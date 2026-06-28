@@ -2,11 +2,10 @@
 #include <cmath>
 #include <string>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "engine/core/application.h"
 
 int main() {
-  std::cout << "Hello, World!" << std::endl;
-  return 0;
+    Application app = Application();
+    app.Init();
+    return 0;
 }
