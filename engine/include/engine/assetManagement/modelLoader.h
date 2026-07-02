@@ -1,4 +1,4 @@
-#include <engine/assets/assetLoaders/meshLoader.h>
+#include <engine/assetManagement/meshLoader.h>
 
 struct ModelData {
     std::vector<MeshData> meshes;

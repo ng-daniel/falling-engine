@@ -1,5 +1,5 @@
 #include <vector>
-#include <engine/assets/assetLoaders/textureLoader.h>
+#include <engine/assetManagement/textureLoader.h>
 
 struct VertexData {
     float position[3];
