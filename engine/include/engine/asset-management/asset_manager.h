@@ -31,7 +31,9 @@ public:
 /// @brief Manages loading, storage, and access of assets in the engine.
 class AssetManager {
 public:
-    
+    AssetManager();
+    ~AssetManager();
+
     /// @brief Requests an asset of the specified type and ID.
     /// @tparam T The type of the asset to request.
     /// @param id The ID of the asset to request.
@@ -46,20 +48,12 @@ public:
 
 private:
     
-    /// @brief Stores the metadata for all assets managed by the AssetManager.
     std::unordered_map<AssetID, AssetMetadata> assetMetadatas;
-    /// @brief Stores the loaded assets in memory.
     std::unordered_map<AssetID, std::unique_ptr<Asset>> loadedAssets;    
 
     void ImportAsset(const std::filesystem::path& path);
     
-    /// @brief Generates metadata for an asset, assigning type based on file type.
-    /// @return The generated asset metadata.
     AssetMetadata GenerateMetadata();
-
-    /// @brief Parses a metadata file for an asset.
-    /// @param metadataFilePath The path to the metadata file.
-    /// @return The parsed asset metadata.
     AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);
 
 };
