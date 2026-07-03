@@ -25,13 +25,11 @@ struct AssetMetadata {
 };
 
 /**
- * @brief Abstract class for assets, should not be used by itself.
+ * @brief Struct for assets, should not be used by itself.
  */
-class Asset {
-public:
+struct Asset {
     Asset();
     virtual ~Asset() = 0;
-
     AssetID id;
     std::string name;
 };

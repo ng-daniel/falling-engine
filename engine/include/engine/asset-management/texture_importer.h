@@ -4,8 +4,7 @@
 #include <vector>
 #include "asset_structures.h"
 
-class TextureAsset : public Asset {
-public:
+struct TextureAsset : public Asset {
     TextureAsset() = default;
     ~TextureAsset() override = default;
 
