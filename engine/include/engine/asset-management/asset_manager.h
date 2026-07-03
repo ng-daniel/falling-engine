@@ -1,3 +1,6 @@
+#ifndef ASSET_MANAGER_H
+#define ASSET_MANAGER_H
+
 #include <iostream>
 #include <cstdint>
 #include <filesystem>
@@ -17,11 +20,14 @@ enum AssetType {
 struct AssetMetadata {
     AssetID id;
     std::string type;
+    std::string importer;
     std::filesystem::path path;
     bool loaded; // in CPU memory or not
 };
 
-/// @brief Abstract class for assets, should not be used by itself.
+/**
+ * @brief Abstract class for assets, should not be used by itself.
+ */
 class Asset {
 public:
     Asset();
@@ -31,45 +37,60 @@ public:
     std::string name;
 };
 
-/// @brief Abstract class for asset loaders, should not be used by itself.
+/**
+ * @brief Abstract class for asset loaders, should not be used by itself.
+ */
 class AssetImporter {
 public:
     AssetImporter() = default;
     virtual ~AssetImporter() = 0;
 
     virtual Asset& LoadAsset(const std::filesystem::path& path) = 0;
+    std::string GetImporterName() const { return importerName; }
+
+private:
+    std::string importerName;
 };
 
-/// @brief Manages all loading, storage, and distribution of assets for the game.
+/**
+ * @brief Manages all loading, storage, and distribution of assets for the game.
+ */
 class AssetManager {
 public:
-    
     AssetManager();
     ~AssetManager();
 
-    /// @brief Requests an asset of the specified type and ID.
-    /// @tparam T The type of the asset to request.
-    /// @param id The ID of the asset to request.
-    /// @return A reference to the requested asset.
+    /**
+     * @brief Requests an asset of the specified type and ID.
+     * @tparam T The type of the asset to request.
+     * @param id The ID of the asset to request.
+     * @return A reference to the requested asset.
+     */
     template<typename T>
     T& RequestAsset(AssetID id);
 
-    /// @brief Populates assetMetadatas by scanning the 
-    /// specified asset directory and importing assets.
-    /// @param assetDirectory The directory to scan for assets.
-    void ProcessAssets(const std::filesystem::path& assetDirectory);
-
 private:
+    const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
     
+    // data storage
     std::unordered_map<AssetID, AssetMetadata> assetMetadatas;
-    std::unordered_map<AssetID, Asset&> loadedAssets;
-    std::unordered_map<std::string, AssetImporter&> extensionToImporter;    
+    std::unordered_map<AssetID, Asset> loadedAssets;
 
-    void ImportAsset(const std::filesystem::path& path);
+    // mappings
+    std::unordered_map<std::string, AssetImporter> extensionToImporter;  
+
+    void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
+
+    std::vector<Asset> 
+    ImportSourceAsset(AssetMetadata& metadata);
     
-    AssetMetadata GenerateMetadata();
+    AssetImporter& GetImporterForExtension(const std::string& extension);
+    
+    AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
     AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);
 
     AssetID GenerateSourceAssetID();
     AssetID GenerateSubAssetID(AssetID parentID, const std::string& subAssetName);
 };
+
+#endif // ASSET_MANAGER_H
