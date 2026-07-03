@@ -21,16 +21,29 @@ struct AssetMetadata {
     bool loaded; // in CPU memory or not
 };
 
-/// @brief Base class for assets.
+/// @brief Abstract class for assets, should not be used by itself.
 class Asset {
 public:
+    Asset();
+    virtual ~Asset() = 0;
+
     AssetID id;
     std::string name;
 };
 
-/// @brief Manages loading, storage, and access of assets in the engine.
+/// @brief Abstract class for asset loaders, should not be used by itself.
+class AssetImporter {
+public:
+    AssetImporter() = default;
+    virtual ~AssetImporter() = 0;
+
+    virtual Asset& LoadAsset(const std::filesystem::path& path) = 0;
+};
+
+/// @brief Manages all loading, storage, and distribution of assets for the game.
 class AssetManager {
 public:
+    
     AssetManager();
     ~AssetManager();
 
@@ -49,11 +62,14 @@ public:
 private:
     
     std::unordered_map<AssetID, AssetMetadata> assetMetadatas;
-    std::unordered_map<AssetID, std::unique_ptr<Asset>> loadedAssets;    
+    std::unordered_map<AssetID, Asset&> loadedAssets;
+    std::unordered_map<std::string, AssetImporter&> extensionToImporter;    
 
     void ImportAsset(const std::filesystem::path& path);
     
     AssetMetadata GenerateMetadata();
     AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);
 
+    AssetID GenerateSourceAssetID();
+    AssetID GenerateSubAssetID(AssetID parentID, const std::string& subAssetName);
 };

@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "engine/core/application.h"
+#include "application.h"
 
 Application::Application() {
     std::cout << "Application Initialized!" << std::endl;
