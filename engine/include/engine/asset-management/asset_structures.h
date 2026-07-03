@@ -25,10 +25,9 @@ struct AssetMetadata {
 
 /**
  * @brief Struct for assets, should not be used by itself.
+ * But also can't be abstract because it is returned by AssetLoaders.
  */
 struct Asset {
-    Asset();
-    virtual ~Asset() = 0;
     AssetID id;
     std::string name;
 };
@@ -41,7 +40,7 @@ public:
     AssetImporter() = default;
     virtual ~AssetImporter() = 0;
 
-    virtual Asset& LoadAsset(const std::filesystem::path& path) = 0;
+    virtual Asset LoadAsset(const std::filesystem::path& path) = 0;
     std::string GetImporterName() const { return importerName; }
 
 private:

@@ -5,9 +5,6 @@
 #include "asset_structures.h"
 
 struct TextureAsset : public Asset {
-    TextureAsset() = default;
-    ~TextureAsset() override = default;
-
     // texture properties
     int width;
     int height;
@@ -23,7 +20,7 @@ public:
     TextureImporter() = default;
     ~TextureImporter() override = default;
 
-    Asset& LoadAsset(const std::filesystem::path& path) override;
+    Asset LoadAsset(const std::filesystem::path& path) override;
 };
 
 #endif // TEXTURE_IMPORTER_H

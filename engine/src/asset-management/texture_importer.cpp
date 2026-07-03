@@ -3,6 +3,28 @@
 
 #include "engine/asset-management/texture_importer.h"
 
-Asset& TextureImporter::LoadAsset(const std::filesystem::path& path) {
-    return; // TODO: Implement texture loading logic using stb_image
+/**
+ * @brief Loads a texture asset from the given file path.
+ * 
+ * @param path The file path to the texture asset.
+ * @return Asset The loaded texture asset.
+ */
+Asset TextureImporter::LoadAsset(const std::filesystem::path& path) {
+    int width, height, numChannels;
+    unsigned char * data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
+    if (!data) {
+        throw std::runtime_error("Failed to load texture: " + path.string());
+    }
+
+    TextureAsset textureAsset;
+    textureAsset.width = width;
+    textureAsset.height = height;
+    textureAsset.numChannels = numChannels;
+
+    size_t dataSize = width * height * numChannels;
+    textureAsset.data.assign(data, data + dataSize);
+
+    stbi_image_free(data);
+
+    return textureAsset;
 }
