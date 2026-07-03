@@ -4,10 +4,12 @@
 #include <iostream>
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
 #include "asset_structures.h"
+#include "texture_importer.h"
 
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
@@ -33,8 +35,11 @@ private:
     std::unordered_map<AssetID, AssetMetadata> assetMetadatas;
     std::unordered_map<AssetID, Asset> loadedAssets;
 
+    // asset importers
+    TextureImporter textureImporter;
+
     // mappings
-    std::unordered_map<std::string, AssetImporter> extensionToImporter;  
+    std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
 
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
 

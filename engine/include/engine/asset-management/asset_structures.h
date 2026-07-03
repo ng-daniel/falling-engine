@@ -38,7 +38,7 @@ struct Asset {
 class AssetImporter {
 public:
     AssetImporter() = default;
-    virtual ~AssetImporter() = 0;
+    virtual ~AssetImporter() = default;
 
     virtual Asset LoadAsset(const std::filesystem::path& path) = 0;
     std::string GetImporterName() const { return importerName; }

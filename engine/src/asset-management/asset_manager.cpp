@@ -1,4 +1,5 @@
 #include "engine/asset-management/asset_manager.h"
+#include "engine/asset-management/texture_importer.h"
 
 /*
 Asset Manager Implementation
@@ -16,11 +17,8 @@ Lazily loads assets into loadedAssets when requested by external code.
  * Creates the necessary data structures for managing assets.
  */
 AssetManager::AssetManager() {
-    AssetManager::assetMetadatas = std::unordered_map<AssetID, AssetMetadata>();
-    AssetManager::loadedAssets = std::unordered_map<AssetID, Asset>();
-
-    // TODO: create asset importer subclass for textures first, then the rest
-    // AssetManager::extensionToImporter = std::unordered_map<std::string, AssetImporter&>();
+    extensionToImporter.emplace(".jpg", textureImporter);
+    extensionToImporter.emplace(".png", textureImporter);
 }
 
 /**
@@ -29,10 +27,8 @@ AssetManager::AssetManager() {
  */
 AssetManager::~AssetManager() {
     assetMetadatas.clear();
-    for (auto& [id, asset] : loadedAssets) {
-        delete &asset;
-    }
     loadedAssets.clear();
+    extensionToImporter.clear();
 }
 
 /**
@@ -87,7 +83,11 @@ AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
  * @return A reference to the corresponding AssetImporter.
  */
 AssetImporter& AssetManager::GetImporterForExtension(const std::string& extension) {
-
+    auto iterator = extensionToImporter.find(extension); // returns an iterator because ?? cpp is freak language
+    if (iterator == extensionToImporter.end()) {
+        throw std::runtime_error("No importer found for extension: " + extension);
+    }
+    return iterator->second.get(); // accesses the value in the key-value pair
 }
 
 AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetPath) {
