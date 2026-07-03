@@ -1,4 +1,3 @@
-
 #ifndef ASSET_STRUCTURES_H
 #define ASSET_STRUCTURES_H
 

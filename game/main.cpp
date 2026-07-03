@@ -6,6 +6,5 @@
 
 int main() {
     Application app = Application();
-    app.Init();
     return 0;
 }
