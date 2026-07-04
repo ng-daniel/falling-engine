@@ -132,10 +132,29 @@ AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetP
  * @param metadataFilePath The path to the metadata file.
  * @return An AssetMetadata object containing the parsed metadata.
  */
-AssetMetadata AssetManager::ParseMetadata(const std::filesystem::path& metadataFilePath) {
-    
-    // parse as json with same structure as the AssetMetadata struct    
+AssetMetadata AssetManager::ReadMetadata(const std::filesystem::path& metadataFilePath) {
+    AssetMetadata metadata;
+    try {
+        metadataSerializer.Read(metadata, metadataFilePath);
+    } catch (const std::runtime_error& e) {
+        throw std::runtime_error("Failed to parse metadata from file: " + metadataFilePath.string() + ". " + e.what());
+    }
+    return metadata;
+}
 
+/**
+ * @brief Writes metadata for an asset located at the specified path.
+ * @param metadata The AssetMetadata object to write.
+ * @param assetPath The path to the asset file.
+ */
+void AssetManager::WriteMetadata(AssetMetadata& metadata, const std::filesystem::path& assetPath) {
+    std::filesystem::path metadataFilePath = assetPath;
+    metadataFilePath += ASSET_METADATA_EXTENSION;
+    try {
+        metadataSerializer.Write(metadata, metadataFilePath);
+    } catch (const std::runtime_error& e) {
+        throw std::runtime_error("Failed to write metadata to file: " + metadataFilePath.string() + ". " + e.what());
+    }
 }
 
 UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {

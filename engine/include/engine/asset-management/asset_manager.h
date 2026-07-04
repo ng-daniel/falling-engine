@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "engine/serialization/asset_metadata_serializer.h"
+
 #include "asset_structures.h"
 #include "texture_importer.h"
 
@@ -30,13 +32,16 @@ public:
 
 private:
     const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
-    
-    // data storage
-    std::unordered_map<UUID, AssetMetadata> assetMetadatas;
-    std::unordered_map<UUID, Asset> loadedAssets;
 
     // asset importers
     TextureImporter textureImporter;
+
+    // metadata serializer
+    AssetMetadataSerializer metadataSerializer;
+
+    // data storage
+    std::unordered_map<UUID, AssetMetadata> assetMetadatas;
+    std::unordered_map<UUID, Asset> loadedAssets;
 
     // mappings
     std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
@@ -50,7 +55,8 @@ private:
     AssetImporter& GetImporterByName(const std::string& importerName);
     
     AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
-    AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);
+    AssetMetadata ReadMetadata(const std::filesystem::path& metadataFilePath);
+    void WriteMetadata(AssetMetadata& metadata, const std::filesystem::path& assetPath);
 
     UUID GenerateSourceAssetID();
     UUID GenerateSubAssetID(UUID parentID, const std::string& subAssetName);
