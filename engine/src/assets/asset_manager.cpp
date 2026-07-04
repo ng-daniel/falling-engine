@@ -1,5 +1,5 @@
-#include "engine/asset-management/asset_manager.h"
-#include "engine/asset-management/texture_importer.h"
+#include "engine/assets/asset_manager.h"
+#include "engine/assets/texture_importer.h"
 
 /*
 Asset Manager Implementation
@@ -63,11 +63,43 @@ T& AssetManager::RequestAsset(UUID id) {
  * For each file found, it checks if the file extension has a corresponding
  * AssetImporter registered in the extensionToImporter map.
  * 
+ * Skips metadata files, and ignores files that cannot be processed by any importer.
+ * 
  * If an importer is found, it calls the ImportAsset method to import the asset.
  * The imported asset's metadata is then stored in the assetMetadatas map.
  */
 void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirectory) {
-    return;
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(assetDirectory)) {
+        if (entry.is_regular_file()) {
+            
+            const std::filesystem::path& filePath = entry.path();
+            const std::string extension = filePath.extension().string();
+            if (extension == ASSET_METADATA_EXTENSION) {
+                continue;
+            }
+        
+            // first load if metadata exists
+            std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
+            if (std::filesystem::exists(metadataFilePath)) {
+                try {
+                    AssetMetadata metadata = ReadMetadata(metadataFilePath);
+                    assetMetadatas.emplace(metadata.id, metadata);
+                } catch (const std::runtime_error& e) {
+                    std::cout << "Warning: Failed to read metadata for asset, regenerating: " << filePath.string() << ". " << e.what() << std::endl;
+                }
+            }
+
+            // generate new metadata file
+            try {
+                AssetImporter& importer = GetImporterForExtension(extension);
+                AssetMetadata metadata = GenerateMetadata(filePath);
+                assetMetadatas.emplace(metadata.id, metadata);
+            } catch (const std::runtime_error& e) {
+                // don't throw if a file can't be processed
+                std::cout << "Warning: Failed to process asset: " << filePath.string() << ". " << e.what() << std::endl;
+            }
+        }
+    }
 }
 
 /**
@@ -157,14 +189,25 @@ AssetMetadata AssetManager::ReadMetadata(const std::filesystem::path& metadataFi
  * @param assetPath The path to the asset file.
  */
 void AssetManager::WriteMetadata(AssetMetadata& metadata, const std::filesystem::path& assetPath) {
-    std::filesystem::path metadataFilePath = assetPath;
-    metadataFilePath += ASSET_METADATA_EXTENSION;
+    std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
     try {
         metadataSerializer.Write(metadata, metadataFilePath);
     } catch (const std::runtime_error& e) {
         throw std::runtime_error("Failed to write metadata to file: " + metadataFilePath.string() + ". " + e.what());
     }
 }
+
+/**
+ * @brief Generates the file path for the metadata file corresponding to the given asset path.
+ * @param assetPath The path to the asset file.
+ * @return The generated file path for the metadata file.
+ */
+std::filesystem::path AssetManager::GenerateMetadataFilePath(const std::filesystem::path& assetPath) {
+    std::filesystem::path metadataFilePath = assetPath;
+    metadataFilePath += ASSET_METADATA_EXTENSION;
+    return metadataFilePath;
+}
+
 
 UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
     return 0;

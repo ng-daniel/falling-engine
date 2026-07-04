@@ -3,9 +3,9 @@
 
 #include "jsonarchive.h"
 
-JsonArchive::JsonArchive()
-    : m_Mode(Mode::Writing),
-      m_Root(nlohmann::json::object()) {
+JsonArchive::JsonArchive(Mode mode)
+    : m_Mode(mode),
+    m_Root(nlohmann::json::object()) {
     m_Stack.push_back(&m_Root);
 }
 
@@ -16,8 +16,6 @@ bool JsonArchive::Open(const std::filesystem::path& path) {
         return false;
 
     file >> m_Root;
-
-    m_Mode = Mode::Reading;
 
     m_Stack.clear();
     m_Stack.push_back(&m_Root);

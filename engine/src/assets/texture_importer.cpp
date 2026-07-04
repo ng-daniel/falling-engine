@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "engine/asset-management/texture_importer.h"
+#include "engine/assets/texture_importer.h"
 
 /**
  * @brief Loads a texture asset from the given file path.
