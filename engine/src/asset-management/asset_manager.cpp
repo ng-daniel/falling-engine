@@ -127,8 +127,15 @@ AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetP
     return metadata;
 }
 
+/**
+ * @brief Parses metadata from a metadata file located at the specified path.
+ * @param metadataFilePath The path to the metadata file.
+ * @return An AssetMetadata object containing the parsed metadata.
+ */
 AssetMetadata AssetManager::ParseMetadata(const std::filesystem::path& metadataFilePath) {
-    return AssetMetadata();
+    
+    // parse as json with same structure as the AssetMetadata struct    
+
 }
 
 UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
