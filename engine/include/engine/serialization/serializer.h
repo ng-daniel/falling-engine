@@ -6,8 +6,8 @@ class Serializer
 {
 public:
     virtual ~Serializer() = default;
-    virtual void Read(Archive& archive, T& object) = 0;
-    virtual void Write(Archive& archive, const T& object) = 0;
+    virtual void Read(T& object, const std::filesystem::path& path) = 0;
+    virtual void Write(const T& object, const std::filesystem::path& path) = 0;
 };
 
 #endif // ENGINE_SERIALIZATION_SERIALIZER_H

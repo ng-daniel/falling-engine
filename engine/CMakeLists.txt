@@ -5,6 +5,8 @@ add_library(engine
     src/asset-management/asset_manager.cpp
     src/asset-management/texture_importer.cpp
 
+    src/serialization/asset_metadata_serializer.cpp
+
     src/utils/uuid.cpp
 )
 
