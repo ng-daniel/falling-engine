@@ -18,7 +18,7 @@
  */
 class AssetManager {
 public:
-    AssetManager();
+    AssetManager(std::filesystem::path root);
     ~AssetManager();
 
     /**
@@ -32,6 +32,7 @@ public:
 
 private:
     const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
+    std::filesystem::path rootDirectory;
 
     // asset importers
     TextureImporter textureImporter;

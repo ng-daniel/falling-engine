@@ -14,13 +14,23 @@ Lazily loads assets into loadedAssets when requested by external code.
 
 /**
  * @brief Constructs an AssetManager instance.
- * Creates the necessary data structures for managing assets.
+ * 
+ * @param root The root directory where assets are located.
+ * 
+ * @details
+ * Initializes the necessary importers.
+ * 
+ * Scans the asset directory to build the assetMetadatas map.
  */
-AssetManager::AssetManager() {
+AssetManager::AssetManager(std::filesystem::path root)
+    : rootDirectory(std::move(root)) {
+    
     textureImporter = TextureImporter();
     
     extensionToImporter.emplace(".jpg", textureImporter);
     extensionToImporter.emplace(".png", textureImporter);
+
+    ProcessAssetDirectory(rootDirectory);
 }
 
 /**
