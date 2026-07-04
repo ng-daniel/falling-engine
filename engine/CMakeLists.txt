@@ -2,8 +2,8 @@ add_library(engine
 
     src/core/application.cpp
 
-    src/asset-management/asset_manager.cpp
-    src/asset-management/texture_importer.cpp
+    src/assets/asset_manager.cpp
+    src/assets/texture_importer.cpp
 
     src/serialization/asset_metadata_serializer.cpp
 

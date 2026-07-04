@@ -1,5 +1,5 @@
-#ifndef ASSET_STRUCTURES_H
-#define ASSET_STRUCTURES_H
+#ifndef ENGINE_ASSETS_ASSET_STRUCTURES_H
+#define ENGINE_ASSETS_ASSET_STRUCTURES_H
 
 #include <cstdint>
 #include <filesystem>
@@ -45,4 +45,4 @@ public:
     virtual std::string_view GetType() = 0;
 };
 
-#endif // ASSET_STRUCTURES_H
+#endif // ENGINE_ASSETS_ASSET_STRUCTURES_H

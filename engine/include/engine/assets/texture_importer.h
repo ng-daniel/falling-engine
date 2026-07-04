@@ -1,5 +1,5 @@
-#ifndef TEXTURE_IMPORTER_H
-#define TEXTURE_IMPORTER_H
+#ifndef ENGINE_ASSETS_TEXTURE_IMPORTER_H
+#define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
 #include <vector>
 #include "asset_structures.h"
@@ -28,4 +28,4 @@ private:
     std::string_view importerType = "Texture"; // should be same as enum in asset_structures
 };
 
-#endif // TEXTURE_IMPORTER_H
+#endif // ENGINE_ASSETS_TEXTURE_IMPORTER_H

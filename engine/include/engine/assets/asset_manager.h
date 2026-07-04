@@ -1,5 +1,5 @@
-#ifndef ASSET_MANAGER_H
-#define ASSET_MANAGER_H
+#ifndef ENGINE_ASSETS_ASSET_MANAGER_H
+#define ENGINE_ASSETS_ASSET_MANAGER_H
 
 #include <iostream>
 #include <cstdint>
@@ -12,7 +12,7 @@
 
 #include "asset_structures.h"
 #include "texture_importer.h"
-
+    
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
  */
@@ -62,4 +62,4 @@ private:
     UUID GenerateSubAssetID(UUID parentID, const std::string& subAssetName);
 };
 
-#endif // ASSET_MANAGER_H
+#endif // ENGINE_ASSETS_ASSET_MANAGER_H
