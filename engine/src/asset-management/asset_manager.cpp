@@ -17,6 +17,8 @@ Lazily loads assets into loadedAssets when requested by external code.
  * Creates the necessary data structures for managing assets.
  */
 AssetManager::AssetManager() {
+    textureImporter = TextureImporter();
+    
     extensionToImporter.emplace(".jpg", textureImporter);
     extensionToImporter.emplace(".png", textureImporter);
 }
@@ -88,6 +90,21 @@ AssetImporter& AssetManager::GetImporterForExtension(const std::string& extensio
         throw std::runtime_error("No importer found for extension: " + extension);
     }
     return iterator->second.get(); // accesses the value in the key-value pair
+}
+
+/**
+ * @brief Retrieves the appropriate AssetImporter by its name.
+ * @param importerName The name of the importer to look up.
+ * @return A reference to the corresponding AssetImporter.
+ * 
+ * @note
+ * Needs to be manually updated whenever a new importer is added.
+ */
+AssetImporter& AssetManager::GetImporterByName(const std::string& importerName) {
+    if (importerName == textureImporter.GetName()) {
+        return textureImporter;
+    }
+    throw std::runtime_error("No importer found with name: " + importerName);
 }
 
 AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetPath) {

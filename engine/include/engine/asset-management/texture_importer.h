@@ -20,7 +20,10 @@ public:
     TextureImporter() = default;
     ~TextureImporter() override = default;
 
-    Asset LoadAsset(const std::filesystem::path& path) override;
+    std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) override;
+    std::string_view GetName() override { return importerName; }
+private:
+    std::string_view importerName = "TextureImporter"; // should be same as class name
 };
 
 #endif // TEXTURE_IMPORTER_H

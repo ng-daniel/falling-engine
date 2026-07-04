@@ -40,11 +40,8 @@ public:
     AssetImporter() = default;
     virtual ~AssetImporter() = default;
 
-    virtual Asset LoadAsset(const std::filesystem::path& path) = 0;
-    std::string GetImporterName() const { return importerName; }
-
-private:
-    std::string importerName;
+    virtual std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) = 0;
+    virtual std::string_view GetName() = 0;
 };
 
 #endif // ASSET_STRUCTURES_H

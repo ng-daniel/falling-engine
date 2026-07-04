@@ -47,6 +47,7 @@ private:
     ImportSourceAsset(AssetMetadata& metadata);
     
     AssetImporter& GetImporterForExtension(const std::string& extension);
+    AssetImporter& GetImporterByName(const std::string& importerName);
     
     AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
     AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);

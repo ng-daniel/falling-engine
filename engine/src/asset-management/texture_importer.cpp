@@ -9,20 +9,20 @@
  * @param path The file path to the texture asset.
  * @return Asset The loaded texture asset.
  */
-Asset TextureImporter::LoadAsset(const std::filesystem::path& path) {
+std::unique_ptr<Asset> TextureImporter::LoadAsset(const std::filesystem::path& path) {
     int width, height, numChannels;
     unsigned char * data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
     if (!data) {
         throw std::runtime_error("Failed to load texture: " + path.string());
     }
 
-    TextureAsset textureAsset;
-    textureAsset.width = width;
-    textureAsset.height = height;
-    textureAsset.numChannels = numChannels;
+    std::unique_ptr<TextureAsset> textureAsset = std::make_unique<TextureAsset>();
+    textureAsset->width = width;
+    textureAsset->height = height;
+    textureAsset->numChannels = numChannels;
 
     size_t dataSize = width * height * numChannels;
-    textureAsset.data.assign(data, data + dataSize);
+    textureAsset->data.assign(data, data + dataSize);
 
     stbi_image_free(data);
 
