@@ -107,8 +107,24 @@ AssetImporter& AssetManager::GetImporterByName(const std::string& importerName) 
     throw std::runtime_error("No importer found with name: " + importerName);
 }
 
+/**
+ * @brief Generates metadata for an asset located at the specified path.
+ * @param assetPath The path to the asset file.
+ * @return An AssetMetadata object containing the generated metadata.
+ */
 AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetPath) {
-    return AssetMetadata();
+    AssetMetadata metadata;
+    metadata.id = GenerateSourceAssetID();
+    metadata.path = assetPath;
+    try {
+        AssetImporter& importer = GetImporterForExtension(assetPath.extension().string());
+        metadata.importer = importer.GetName();
+        metadata.type = importer.GetType();
+    } catch (const std::runtime_error& e) {
+        throw std::runtime_error("Failed to generate metadata for asset: " + assetPath.string() + ". " + e.what());
+    }
+
+    return metadata;
 }
 
 AssetMetadata AssetManager::ParseMetadata(const std::filesystem::path& metadataFilePath) {

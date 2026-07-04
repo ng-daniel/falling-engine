@@ -42,6 +42,7 @@ public:
 
     virtual std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) = 0;
     virtual std::string_view GetName() = 0;
+    virtual std::string_view GetType() = 0;
 };
 
 #endif // ASSET_STRUCTURES_H
