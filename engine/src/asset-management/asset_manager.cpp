@@ -48,7 +48,7 @@ AssetManager::~AssetManager() {
  * in the assetMetadatas map and adds it to the loadedAssets map.
  */
 template <typename T>
-T& AssetManager::RequestAsset(AssetID id) {
+T& AssetManager::RequestAsset(UUID id) {
     return nullptr;
 }
 
@@ -115,10 +115,6 @@ AssetMetadata AssetManager::ParseMetadata(const std::filesystem::path& metadataF
     return AssetMetadata();
 }
 
-AssetID AssetManager::GenerateSourceAssetID() {
-    return 0;
-}
-
-AssetID AssetManager::GenerateSubAssetID(AssetID parentID, const std::string& subAssetName) {
+UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
     return 0;
 }

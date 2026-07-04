@@ -1,6 +1,11 @@
 add_library(engine
 
     src/core/application.cpp
+
+    src/asset-management/asset_manager.cpp
+    src/asset-management/texture_importer.cpp
+
+    src/utils/uuid.cpp
 )
 
 target_include_directories(engine PUBLIC

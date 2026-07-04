@@ -26,14 +26,14 @@ public:
      * @return A reference to the requested asset.
      */
     template<typename T>
-    T& RequestAsset(AssetID id);
+    T& RequestAsset(UUID id);
 
 private:
     const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
     
     // data storage
-    std::unordered_map<AssetID, AssetMetadata> assetMetadatas;
-    std::unordered_map<AssetID, Asset> loadedAssets;
+    std::unordered_map<UUID, AssetMetadata> assetMetadatas;
+    std::unordered_map<UUID, Asset> loadedAssets;
 
     // asset importers
     TextureImporter textureImporter;
@@ -52,8 +52,8 @@ private:
     AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
     AssetMetadata ParseMetadata(const std::filesystem::path& metadataFilePath);
 
-    AssetID GenerateSourceAssetID();
-    AssetID GenerateSubAssetID(AssetID parentID, const std::string& subAssetName);
+    UUID GenerateSourceAssetID();
+    UUID GenerateSubAssetID(UUID parentID, const std::string& subAssetName);
 };
 
 #endif // ASSET_MANAGER_H

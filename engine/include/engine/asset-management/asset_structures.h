@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <string>
 
-using AssetID = std::uint32_t;
+#include "engine/utils/uuid.h"
 
 enum AssetType {
     Model,
@@ -16,7 +16,7 @@ enum AssetType {
 };
 
 struct AssetMetadata {
-    AssetID id;
+    UUID id;
     std::string type;
     std::string importer;
     std::filesystem::path path;
@@ -28,7 +28,7 @@ struct AssetMetadata {
  * But also can't be abstract because it is returned by AssetLoaders.
  */
 struct Asset {
-    AssetID id;
+    UUID id;
     std::string name;
 };
 
