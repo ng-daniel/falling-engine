@@ -7,8 +7,13 @@
 class JsonArchive : public Archive
 {
 public:
+    enum class Mode
+    {
+        Reading,
+        Writing
+    };
 
-    JsonArchive();
+    JsonArchive(Mode mode);
 
     bool Open(const std::filesystem::path& path) override;
     bool Save(const std::filesystem::path& path) override;
@@ -34,17 +39,8 @@ public:
     void Write(std::string_view key, const std::string& value) override;
 
 private:
-
-    enum class Mode
-    {
-        Reading,
-        Writing
-    };
-
     Mode m_Mode;
-
     nlohmann::json m_Root;
-
     std::vector<nlohmann::json*> m_Stack;
 };
 
