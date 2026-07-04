@@ -72,11 +72,20 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
 
 /**
  * @brief Imports an asset from the specified file path.
- * 
+ * @param metadata The metadata of the asset to import.
+ * @return A unique pointer to the imported Asset.
  */
-std::vector<Asset>
+std::unique_ptr<Asset>
 AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
-    return {};
+    AssetImporter& importer = GetImporterByName(metadata.importer);
+    try {
+        std::unique_ptr<Asset> asset = importer.LoadAsset(metadata.path);
+        loadedAssets.emplace(asset->id, *asset);
+        metadata.loaded = true;
+        return asset;
+    } catch (const std::runtime_error& e) {
+        throw std::runtime_error("Failed to import asset: " + metadata.path.string() + ". " + e.what());
+    }
 }
 
 /**

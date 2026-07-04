@@ -41,14 +41,14 @@ private:
 
     // data storage
     std::unordered_map<UUID, AssetMetadata> assetMetadatas;
-    std::unordered_map<UUID, Asset> loadedAssets;
+    std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
 
     // mappings
     std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
 
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
 
-    std::vector<Asset> 
+    std::unique_ptr<Asset> 
     ImportSourceAsset(AssetMetadata& metadata);
     
     AssetImporter& GetImporterForExtension(const std::string& extension);
