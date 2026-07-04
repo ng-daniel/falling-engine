@@ -1,7 +1,6 @@
 #ifndef ENGINE_ASSETS_ASSET_MANAGER_H
 #define ENGINE_ASSETS_ASSET_MANAGER_H
 
-#include <iostream>
 #include <cstdint>
 #include <filesystem>
 #include <memory>

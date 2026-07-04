@@ -5,6 +5,6 @@
 #include "engine/core/application.h"
 
 int main() {
-    Application app = Application();
+    Application app = Application("./assets");
     return 0;
 }

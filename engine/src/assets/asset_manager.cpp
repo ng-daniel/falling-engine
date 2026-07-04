@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "engine/assets/asset_manager.h"
 #include "engine/assets/texture_importer.h"
 
@@ -59,7 +61,7 @@ AssetManager::~AssetManager() {
  */
 template <typename T>
 T& AssetManager::RequestAsset(UUID id) {
-    return nullptr;
+    return T();
 }
 
 /**
@@ -79,6 +81,13 @@ T& AssetManager::RequestAsset(UUID id) {
  * The imported asset's metadata is then stored in the assetMetadatas map.
  */
 void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirectory) {
+
+    std::cout << "Processing asset directory: " << assetDirectory.string() << std::endl;
+    
+    if (!std::filesystem::exists(assetDirectory)) {
+        throw std::runtime_error("Asset directory does not exist: " + assetDirectory.string());
+    }
+
     for (const auto& entry : std::filesystem::recursive_directory_iterator(assetDirectory)) {
         if (entry.is_regular_file()) {
             
@@ -122,7 +131,7 @@ AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
     AssetImporter& importer = GetImporterByName(metadata.importer);
     try {
         std::unique_ptr<Asset> asset = importer.LoadAsset(metadata.path);
-        loadedAssets.emplace(asset->id, *asset);
+        loadedAssets.emplace(asset->id, std::move(asset));
         metadata.loaded = true;
         return asset;
     } catch (const std::runtime_error& e) {
@@ -217,7 +226,6 @@ std::filesystem::path AssetManager::GenerateMetadataFilePath(const std::filesyst
     metadataFilePath += ASSET_METADATA_EXTENSION;
     return metadataFilePath;
 }
-
 
 UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
     return 0;

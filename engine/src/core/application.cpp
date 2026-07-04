@@ -2,7 +2,8 @@
 
 #include "engine/core/application.h"
 
-Application::Application() {
+Application::Application(std::filesystem::path assetRoot) 
+    : assetManager(std::move(assetRoot)) {
     std::cout << "Application Initialized!" << std::endl;
     return;
 }
