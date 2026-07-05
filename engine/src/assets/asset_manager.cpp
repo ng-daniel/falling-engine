@@ -103,22 +103,25 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
             std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
             if (std::filesystem::exists(metadataFilePath)) {
                 try {
+                    std::cout << "Reading metadata for asset: " << filePath.string() << std::endl;
                     AssetMetadata metadata = ReadMetadata(metadataFilePath);
                     assetMetadatas.emplace(metadata.id, metadata);
                 } catch (const std::runtime_error& e) {
                     std::cout << "Warning: Failed to read metadata for asset, regenerating: " << filePath.string() << ". " << e.what() << std::endl;
                 }
             }
-
-            // generate new metadata file
-            try {
-                AssetImporter& importer = GetImporterForExtension(extension);
-                AssetMetadata metadata = GenerateMetadata(filePath);
-                WriteMetadata(metadata, filePath);
-                assetMetadatas.emplace(metadata.id, metadata);
-            } catch (const std::runtime_error& e) {
-                // don't throw if a file can't be processed
-                std::cout << "Warning: Failed to process asset: " << filePath.string() << ". " << e.what() << std::endl;
+            else {
+                // generate new metadata file
+                try {
+                    std::cout << "Generating metadata for asset: " << filePath.string() << std::endl;
+                    AssetImporter& importer = GetImporterForExtension(extension);
+                    AssetMetadata metadata = GenerateMetadata(filePath);
+                    WriteMetadata(metadata, filePath);
+                    assetMetadatas.emplace(metadata.id, metadata);
+                } catch (const std::runtime_error& e) {
+                    // don't throw if a file can't be processed
+                    std::cout << "Warning: Failed to process asset: " << filePath.string() << ". " << e.what() << std::endl;
+                }
             }
         }
     }
