@@ -227,6 +227,10 @@ std::filesystem::path AssetManager::GenerateMetadataFilePath(const std::filesyst
     return metadataFilePath;
 }
 
+UUID AssetManager::GenerateSourceAssetID() {
+    return UUIDGenerator::GenerateUUID();
+}
+
 UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
     return 0;
 }

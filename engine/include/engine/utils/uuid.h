@@ -8,12 +8,11 @@ using UUID = std::uint64_t;
 
 class UUIDGenerator {
 public:
-    UUIDGenerator();
-    UUID GenerateUUID();
+    static UUID GenerateUUID();
 
 private:
-    std::random_device rd;
-    std::mt19937_64 gen;
-    std::uniform_int_distribution<UUID> dist;
+    static std::random_device rd;
+    static std::mt19937_64 gen;
+    static std::uniform_int_distribution<UUID> dist;
 };
 #endif // UUID_H
