@@ -96,6 +96,8 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
             if (extension == ASSET_METADATA_EXTENSION) {
                 continue;
             }
+
+            std::cout << "Found asset file: " << filePath.string() << std::endl;
         
             // first load if metadata exists
             std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
@@ -112,6 +114,7 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
             try {
                 AssetImporter& importer = GetImporterForExtension(extension);
                 AssetMetadata metadata = GenerateMetadata(filePath);
+                WriteMetadata(metadata, filePath);
                 assetMetadatas.emplace(metadata.id, metadata);
             } catch (const std::runtime_error& e) {
                 // don't throw if a file can't be processed
