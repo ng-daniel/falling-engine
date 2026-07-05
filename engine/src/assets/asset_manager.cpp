@@ -105,6 +105,7 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
                 try {
                     std::cout << "Reading metadata for asset: " << filePath.string() << std::endl;
                     AssetMetadata metadata = ReadMetadata(metadataFilePath);
+                    ValidateMetadata(metadata, metadataFilePath);
                     assetMetadatas.emplace(metadata.id, metadata);
                 } catch (const std::runtime_error& e) {
                     std::cout << "Warning: Failed to read metadata for asset, regenerating: " << filePath.string() << ". " << e.what() << std::endl;
@@ -209,11 +210,37 @@ AssetMetadata AssetManager::ReadMetadata(const std::filesystem::path& metadataFi
 }
 
 /**
+ * @brief Validates the metadata of an asset, writing any necessary updates.
+ * @param metadata The AssetMetadata object to validate.
+ * @param metadataFilePath The path to the metadata file.
+ */
+void AssetManager::ValidateMetadata(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath) {
+    bool changed = false;
+
+    // check if the asset path in the metadata matches the actual asset path
+    // done in case the asset was moved
+    std::string realAssetPath = metadataFilePath.string().substr(
+        0, metadataFilePath.string().size() - ASSET_METADATA_EXTENSION.size()
+    );
+    std::cout << "\tReal asset path: " << realAssetPath << std::endl;
+    std::cout << "\tRecorded asset path: " << metadata.path << std::endl;
+    if (realAssetPath != metadata.path) {
+        std::cout << "\tWarning: Asset path in metadata file does not match actual asset path. Updating metadata path." << std::endl;
+        metadata.path = realAssetPath;
+        changed = true;
+    }
+
+    if (changed) {
+        WriteMetadata(metadata, realAssetPath);
+    }
+}
+
+/**
  * @brief Writes metadata for an asset located at the specified path.
  * @param metadata The AssetMetadata object to write.
  * @param assetPath The path to the asset file.
  */
-void AssetManager::WriteMetadata(AssetMetadata& metadata, const std::filesystem::path& assetPath) {
+void AssetManager::WriteMetadata(const AssetMetadata& metadata, const std::filesystem::path& assetPath) {
     std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
     try {
         metadataSerializer.Write(metadata, metadataFilePath);

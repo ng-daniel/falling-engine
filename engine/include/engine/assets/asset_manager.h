@@ -56,7 +56,8 @@ private:
     
     AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
     AssetMetadata ReadMetadata(const std::filesystem::path& metadataFilePath);
-    void WriteMetadata(AssetMetadata& metadata, const std::filesystem::path& assetPath);
+    void ValidateMetadata(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath);
+    void WriteMetadata(const AssetMetadata& metadata, const std::filesystem::path& assetPath);
     std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath);
 
     UUID GenerateSourceAssetID();

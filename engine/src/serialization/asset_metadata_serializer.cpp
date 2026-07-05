@@ -11,15 +11,17 @@ void AssetMetadataSerializer::Read(AssetMetadata& metadata, const std::filesyste
     std::string uid;
     std::string type;
     std::string importer;
+    std::string assetPath;
 
     archive.Read("uid", uid);
     archive.Read("assetType", type);
     archive.Read("importer", importer);
+    archive.Read("path", assetPath);
 
     metadata.id = UUIDFromString(uid);
     metadata.type = type;
     metadata.importer = importer;
-    metadata.path = metaPath.string();
+    metadata.path = assetPath;
 }
 
 void AssetMetadataSerializer::Write(const AssetMetadata& metadata, const std::filesystem::path& metaPath) {
@@ -28,7 +30,7 @@ void AssetMetadataSerializer::Write(const AssetMetadata& metadata, const std::fi
     archive.Write("uid", ToString(metadata.id));
     archive.Write("assetType", metadata.type);
     archive.Write("importer", metadata.importer);
-    archive.Write("path", metaPath.string());
+    archive.Write("path", metadata.path);
 
     archive.Save(metaPath);
 }
