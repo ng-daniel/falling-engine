@@ -2,6 +2,7 @@
 
 #include "engine/assets/asset_manager.h"
 #include "engine/assets/texture_importer.h"
+#include "engine/assets/asset_helpers.h"
 
 /*
 Asset Manager Implementation
@@ -125,6 +126,7 @@ AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
         
         asset->id = metadata.id;
         asset->name = metadata.path.stem().string();
+        asset->type = GetAssetTypeFromString(metadata.type);
 
         std::cout << "Successfully imported asset: " << asset->id << std::endl;
         loadedAssets.emplace(asset->id, std::move(asset));
