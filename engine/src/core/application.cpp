@@ -10,12 +10,12 @@ Application::Application(std::filesystem::path assetRoot)
     // TESTING
 
     UUID textureAssetID = 12551888299912889363; // Example UUID for a TextureAsset
-    TextureAsset * tex = assetManager.RequestAsset<TextureAsset>(textureAssetID); // Example usage of RequestAsset
+    const TextureAsset * tex = assetManager.RequestAssetReadOnly<TextureAsset>(textureAssetID); // Example usage of RequestAsset
     std::cout << "Texture Asset Size: " << tex->data.size() << std::endl;
 
 
     UUID shaderAssetID = 7075911361046789303; // Example UUID for a ShaderAsset
-    ShaderAsset * shader = assetManager.RequestAsset<ShaderAsset>(shaderAssetID); // Example usage of RequestAsset
+    const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(shaderAssetID); // Example usage of RequestAsset
     std::cout << "Shader Asset Source: " << shader->shaderSource << std::endl;
 
     return;

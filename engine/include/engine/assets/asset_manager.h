@@ -65,6 +65,17 @@ public:
         return typedAssetPtr;
     }
 
+    /**
+     * @brief Requests an asset of the specified type and ID, but returns a const pointer.
+     * @tparam T The type of the asset to request.
+     * @param id The ID of the asset to request.
+     * @return A const pointer to the requested asset, or nullptr if not found.
+     */
+    template <typename T>
+    const T* RequestAssetReadOnly(UUID id) {
+        return RequestAsset<T>(id);
+    }
+
 private:
     const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
     std::filesystem::path rootDirectory;
