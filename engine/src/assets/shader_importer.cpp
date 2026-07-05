@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "engine/assets/shader_importer.h"
+#include "engine/assets/asset_data.h"
 
 /**
  * @brief Loads a shader asset from the given file path.
@@ -23,9 +24,9 @@ std::unique_ptr<Asset> ShaderImporter::LoadAsset(const std::filesystem::path& pa
     
     // get type from file extension
     if (path.extension() == ".vert") {
-        shaderAsset->shaderType = ShaderType::Vertex;
+        shaderAsset->shaderType = ShaderAsset::ShaderType::Vertex;
     } else if (path.extension() == ".frag") {
-        shaderAsset->shaderType = ShaderType::Fragment;
+        shaderAsset->shaderType = ShaderAsset::ShaderType::Fragment;
     } else {
         throw std::runtime_error("Unknown shader file extension: " + path.string());
     }
