@@ -4,14 +4,6 @@
 #include <vector>
 #include "asset_structures.h"
 
-struct TextureAsset : public Asset {
-    // texture properties
-    int width;
-    int height;
-    int numChannels;
-    std::vector<unsigned char> data; // raw pixel data
-};
-
 /**
  * @brief Handles loading of texture assets.
  */

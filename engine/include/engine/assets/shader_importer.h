@@ -4,16 +4,6 @@
 #include <vector>
 #include "asset_structures.h"
 
-enum ShaderType {
-    Vertex,
-    Fragment
-};
-
-struct ShaderAsset : public Asset {
-    ShaderType shaderType;
-    std::string shaderSource;
-};
-
 /**
  * @brief Handles loading of shader assets.
  */

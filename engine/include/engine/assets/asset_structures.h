@@ -7,13 +7,7 @@
 
 #include "engine/utils/uuid.h"
 
-enum AssetType {
-    Model,
-    Mesh,
-    Material,
-    Texture,
-    Shader
-};
+#include "asset_data.h"
 
 struct AssetMetadata {
     UUID id;
@@ -21,15 +15,6 @@ struct AssetMetadata {
     std::string importer;
     std::filesystem::path path;
     bool loaded; // in CPU memory or not
-};
-
-/**
- * @brief Struct for assets, should not be used by itself.
- * But also can't be abstract because it is returned by AssetLoaders.
- */
-struct Asset {
-    UUID id;
-    std::string name;
 };
 
 /**

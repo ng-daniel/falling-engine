@@ -1,6 +1,7 @@
 add_library(engine
     src/assets/asset_manager.cpp
     src/assets/texture_importer.cpp
+    src/assets/shader_importer.cpp
 
     src/core/application.cpp
 

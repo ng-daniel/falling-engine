@@ -11,6 +11,7 @@
 
 #include "asset_structures.h"
 #include "texture_importer.h"
+#include "shader_importer.h"
     
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
@@ -35,6 +36,7 @@ private:
 
     // asset importers
     TextureImporter textureImporter;
+    ShaderImporter shaderImporter;
 
     // metadata serializer
     AssetMetadataSerializer metadataSerializer;
