@@ -23,12 +23,47 @@ public:
 
     /**
      * @brief Requests an asset of the specified type and ID.
+     * 
      * @tparam T The type of the asset to request.
      * @param id The ID of the asset to request.
-     * @return A reference to the requested asset.
+     * 
+     * @return A pointer to the requested asset, or nullptr if not found.
+     * 
+     * @details
+     * This is the main interface for external code to request assets from the AssetManager.
+     * First searches the loadedAssets map for the asset.
+     * If not found, it loads the asset from disk by looking it up
+     * in the assetMetadatas map and adds it to the loadedAssets map.
      */
-    template<typename T>
-    T& RequestAsset(UUID id);
+    template <typename T>
+    T* RequestAsset(UUID id) {
+        if (loadedAssets.find(id) == loadedAssets.end()) {
+            // asset not loaded, load it
+            std::cout << "Asset with ID " + std::to_string(id) + " not loaded, attempting to load." << std::endl;
+            
+            auto metadataIterator = assetMetadatas.find(id);
+            if (metadataIterator == assetMetadatas.end()) {
+                std::cout << "Asset with ID " + std::to_string(id) + " not found in assetMetadatas." << std::endl;
+                return nullptr;
+            }
+            AssetMetadata& metadata = metadataIterator->second;
+            ImportSourceAsset(metadata);
+        }
+        
+        std::unique_ptr<Asset>& assetPtr = loadedAssets[id];
+        if (!assetPtr) {
+            std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
+            return nullptr;
+        }
+        T* typedAssetPtr = static_cast<T*>(assetPtr.get());
+        if (!typedAssetPtr) {
+            std::cout << "Asset with ID " + std::to_string(id) + " is not of the requested type." << std::endl;
+            return nullptr;
+        }
+
+        std::cout << "Asset with ID " + std::to_string(id) + " loaded and returned." << std::endl;
+        return typedAssetPtr;
+    }
 
 private:
     const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata

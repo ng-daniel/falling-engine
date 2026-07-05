@@ -49,36 +49,6 @@ AssetManager::~AssetManager() {
 }
 
 /**
- * @brief Requests an asset of the specified type and ID.
- * 
- * @tparam T The type of the asset to request.
- * @param id The ID of the asset to request.
- * 
- * @return A reference to the requested asset.
- * 
- * @details
- * This is the main interface for external code to request assets from the AssetManager.
- * First searches the loadedAssets map for the asset.
- * If not found, it loads the asset from disk by looking it up
- * in the assetMetadatas map and adds it to the loadedAssets map.
- */
-template <typename T>
-T& AssetManager::RequestAsset(UUID id) {
-    if (loadedAssets.find(id) == loadedAssets.end()) {
-        // asset not loaded, load it
-        auto metadataIterator = assetMetadatas.find(id);
-        if (metadataIterator == assetMetadatas.end()) {
-            throw std::runtime_error("Asset with ID " + std::to_string(id) + " not found in assetMetadatas.");
-        }
-        AssetMetadata& metadata = metadataIterator->second;
-        ImportSourceAsset(metadata);
-    }
-    
-    std::unique_ptr<Asset>& assetPtr = loadedAssets[id];
-    return *static_cast<T*>(assetPtr.get());
-}
-
-/**
  * @brief Populates assetMetadatas by scanning the 
  * specified asset directory and importing assets.
  * 
@@ -152,6 +122,11 @@ AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
     AssetImporter& importer = GetImporterByName(metadata.importer);
     try {
         std::unique_ptr<Asset> asset = importer.LoadAsset(metadata.path);
+        
+        asset->id = metadata.id;
+        asset->name = metadata.path.stem().string();
+
+        std::cout << "Successfully imported asset: " << asset->id << std::endl;
         loadedAssets.emplace(asset->id, std::move(asset));
         metadata.loaded = true;
         return asset;
@@ -184,6 +159,9 @@ AssetImporter& AssetManager::GetImporterForExtension(const std::string& extensio
 AssetImporter& AssetManager::GetImporterByName(const std::string& importerName) {
     if (importerName == textureImporter.GetName()) {
         return textureImporter;
+    }
+    if (importerName == shaderImporter.GetName()) {
+        return shaderImporter;
     }
     throw std::runtime_error("No importer found with name: " + importerName);
 }
