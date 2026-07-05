@@ -1,7 +1,8 @@
 #include <fstream>
 #include <vector>
 
-#include "jsonarchive.h"
+#include "engine/serialization/jsonarchive.h"
+#include "engine/serialization/serialization_helpers.h"
 
 JsonArchive::JsonArchive(Mode mode)
     : m_Mode(mode),

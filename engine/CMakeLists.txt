@@ -1,11 +1,12 @@
 add_library(engine
-
-    src/core/application.cpp
-
     src/assets/asset_manager.cpp
     src/assets/texture_importer.cpp
 
+    src/core/application.cpp
+
     src/serialization/asset_metadata_serializer.cpp
+    src/serialization/jsonarchive.cpp
+    src/serialization/serialization_helpers.cpp
 
     src/utils/uuid.cpp
 )
