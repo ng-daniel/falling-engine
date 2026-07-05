@@ -4,7 +4,7 @@
 #include "asset_data.h"
 #include <stdexcept>
 
-Asset::AssetType GetAssetTypeFromString(const std::string& typeStr) {
+inline Asset::AssetType GetAssetTypeFromString(const std::string& typeStr) {
     if (typeStr == "Model") {
         return Asset::AssetType::Model;
     } else if (typeStr == "Mesh") {
@@ -20,7 +20,7 @@ Asset::AssetType GetAssetTypeFromString(const std::string& typeStr) {
     }
 }
 
-std::string GetStringFromAssetType(Asset::AssetType type) {
+inline std::string GetStringFromAssetType(Asset::AssetType type) {
     switch (type) {
         case Asset::AssetType::Model:
             return "Model";

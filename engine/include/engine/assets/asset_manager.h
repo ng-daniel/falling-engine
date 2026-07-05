@@ -12,6 +12,7 @@
 #include "asset_structures.h"
 #include "texture_importer.h"
 #include "shader_importer.h"
+#include "asset_helpers.h"
     
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
@@ -37,26 +38,30 @@ public:
      */
     template <typename T>
     T* RequestAsset(UUID id) {
-        if (loadedAssets.find(id) == loadedAssets.end()) {
-            // asset not loaded, load it
-            std::cout << "Asset with ID " + std::to_string(id) + " not loaded, attempting to load." << std::endl;
-            
-            auto metadataIterator = assetMetadatas.find(id);
-            if (metadataIterator == assetMetadatas.end()) {
-                std::cout << "Asset with ID " + std::to_string(id) + " not found in assetMetadatas." << std::endl;
-                return nullptr;
-            }
-            AssetMetadata& metadata = metadataIterator->second;
+        
+        // pull metadata
+        auto metadataIterator = assetMetadatas.find(id);
+        if (metadataIterator == assetMetadatas.end()) {
+            std::cout << "Asset with ID " + std::to_string(id) + " not found in assetMetadatas." << std::endl;
+            return nullptr;
+        }
+        AssetMetadata& metadata = metadataIterator->second;
+
+        // load asset if not already loaded
+        if (loadedAssets.find(id) == loadedAssets.end()) {            
             ImportSourceAsset(metadata);
         }
         
+        // validate and return asset ptr
         std::unique_ptr<Asset>& assetPtr = loadedAssets[id];
         if (!assetPtr) {
             std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
             return nullptr;
         }
         T* typedAssetPtr = static_cast<T*>(assetPtr.get());
-        if (!typedAssetPtr) {
+        if (!typedAssetPtr || 
+            typedAssetPtr->type != GetAssetTypeFromString(metadata.type)
+        ) {
             std::cout << "Asset with ID " + std::to_string(id) + " is not of the requested type." << std::endl;
             return nullptr;
         }
