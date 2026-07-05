@@ -28,9 +28,12 @@ AssetManager::AssetManager(std::filesystem::path root)
     : rootDirectory(std::move(root)) {
     
     textureImporter = TextureImporter();
-    
+    shaderImporter = ShaderImporter();
+
     extensionToImporter.emplace(".jpg", textureImporter);
     extensionToImporter.emplace(".png", textureImporter);
+    extensionToImporter.emplace(".vert", shaderImporter);
+    extensionToImporter.emplace(".frag", shaderImporter);
 
     ProcessAssetDirectory(rootDirectory);
 }
@@ -61,7 +64,18 @@ AssetManager::~AssetManager() {
  */
 template <typename T>
 T& AssetManager::RequestAsset(UUID id) {
-    return T();
+    if (loadedAssets.find(id) == loadedAssets.end()) {
+        // asset not loaded, load it
+        auto metadataIterator = assetMetadatas.find(id);
+        if (metadataIterator == assetMetadatas.end()) {
+            throw std::runtime_error("Asset with ID " + std::to_string(id) + " not found in assetMetadatas.");
+        }
+        AssetMetadata& metadata = metadataIterator->second;
+        ImportSourceAsset(metadata);
+    }
+    
+    std::unique_ptr<Asset>& assetPtr = loadedAssets[id];
+    return *static_cast<T*>(assetPtr.get());
 }
 
 /**
