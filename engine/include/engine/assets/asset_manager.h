@@ -53,7 +53,7 @@ public:
         }
         
         // validate and return asset ptr
-        std::unique_ptr<Asset>& assetPtr = loadedAssets[id];
+        std::unique_ptr<Asset>& assetPtr = loadedAssets.find(id)->second;
         if (!assetPtr) {
             std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
             return nullptr;
@@ -101,8 +101,7 @@ private:
 
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
 
-    std::unique_ptr<Asset> 
-    ImportSourceAsset(AssetMetadata& metadata);
+    void ImportSourceAsset(AssetMetadata& metadata);
     
     AssetImporter& GetImporterForExtension(const std::string& extension);
     AssetImporter& GetImporterByName(const std::string& importerName);
