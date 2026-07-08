@@ -172,7 +172,7 @@ AssetImporter& AssetManager::GetImporterByName(const std::string& importerName) 
  */
 AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetPath) {
     AssetMetadata metadata;
-    metadata.id = GenerateSourceAssetID();
+    metadata.id = UUIDGenerator::GenerateUUID();
     metadata.path = assetPath;
     try {
         AssetImporter& importer = GetImporterForExtension(assetPath.extension().string());
@@ -249,12 +249,4 @@ std::filesystem::path AssetManager::GenerateMetadataFilePath(const std::filesyst
     std::filesystem::path metadataFilePath = assetPath;
     metadataFilePath += ASSET_METADATA_EXTENSION;
     return metadataFilePath;
-}
-
-UUID AssetManager::GenerateSourceAssetID() {
-    return UUIDGenerator::GenerateUUID();
-}
-
-UUID AssetManager::GenerateSubAssetID(UUID parentID, const std::string& subAssetName) {
-    return 0;
 }

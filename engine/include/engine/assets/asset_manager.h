@@ -111,9 +111,6 @@ private:
     void ValidateMetadata(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath);
     void WriteMetadata(const AssetMetadata& metadata, const std::filesystem::path& assetPath);
     std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath);
-
-    UUID GenerateSourceAssetID();
-    UUID GenerateSubAssetID(UUID parentID, const std::string& subAssetName);
 };
 
 #endif // ENGINE_ASSETS_ASSET_MANAGER_H
