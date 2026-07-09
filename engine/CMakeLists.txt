@@ -2,6 +2,8 @@ add_library(engine
     src/assets/asset_manager.cpp
     src/assets/texture_importer.cpp
     src/assets/shader_importer.cpp
+    src/assets/model_importer.cpp
+    src/assets/material_importer.cpp
 
     src/core/application.cpp
 
@@ -20,5 +22,8 @@ target_link_libraries(engine PRIVATE
   glfw 
   OpenGL::GL
   glad::glad
+)
+
+target_link_libraries(engine PUBLIC
   glm::glm
 )
