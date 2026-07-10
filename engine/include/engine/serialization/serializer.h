@@ -1,6 +1,8 @@
 #ifndef ENGINE_SERIALIZATION_SERIALIZER_H
 #define ENGINE_SERIALIZATION_SERIALIZER_H
 
+#include <filesystem>
+
 template<typename T>
 class Serializer
 {

@@ -1,19 +1,27 @@
 #ifndef ENGINE_ASSETS_ASSET_MANAGER_H
 #define ENGINE_ASSETS_ASSET_MANAGER_H
 
-#include <cstdint>
+#include <iostream>
 #include <filesystem>
 #include <memory>
 #include <unordered_map>
-#include <vector>
 
 #include "engine/serialization/asset_metadata_serializer.h"
 
 #include "asset_structures.h"
+
 #include "texture_importer.h"
 #include "shader_importer.h"
+#include "material_importer.h"
+#include "model_importer.h"
+
 #include "asset_helpers.h"
     
+// class TextureImporter;
+// class ShaderImporter;
+// class MaterialImporter;
+// class ModelImporter;
+
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
  */
@@ -88,6 +96,8 @@ private:
     // asset importers
     TextureImporter textureImporter;
     ShaderImporter shaderImporter;
+    MaterialImporter materialImporter;
+    ModelImporter modelImporter;
 
     // metadata serializer
     AssetMetadataSerializer metadataSerializer;

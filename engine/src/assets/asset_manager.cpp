@@ -1,8 +1,15 @@
 #include <iostream>
 
 #include "engine/assets/asset_manager.h"
+
 #include "engine/assets/texture_importer.h"
+#include "engine/assets/shader_importer.h"
+#include "engine/assets/material_importer.h"
+#include "engine/assets/model_importer.h"
+
 #include "engine/assets/asset_helpers.h"
+
+
 
 /*
 Asset Manager Implementation
