@@ -6,6 +6,7 @@ add_library(engine
     src/core/application.cpp
 
     src/serialization/asset_metadata_serializer.cpp
+    src/serialization/asset_uuid_serializer.cpp
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp
 
