@@ -8,8 +8,6 @@
 
 #include "asset_data.h"
 
-class AssetManager;
-
 struct AssetMetadata {
     UUID id;
     std::string type;

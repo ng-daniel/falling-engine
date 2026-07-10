@@ -4,8 +4,6 @@
 
 #include "engine/assets/texture_importer.h"
 #include "engine/assets/shader_importer.h"
-#include "engine/assets/material_importer.h"
-#include "engine/assets/model_importer.h"
 
 #include "engine/assets/asset_helpers.h"
 
@@ -35,13 +33,13 @@ Lazily loads assets into loadedAssets when requested by external code.
 AssetManager::AssetManager(std::filesystem::path root)
     : rootDirectory(std::move(root)) {
     
+    // TEXTURE IMPORTER
     textureImporter = TextureImporter();
-    shaderImporter = ShaderImporter();
-    materialImporter = MaterialImporter();
-    modelImporter = ModelImporter();
-
     extensionToImporter.emplace(".jpg", textureImporter);
     extensionToImporter.emplace(".png", textureImporter);
+
+    // SHADER IMPORTER
+    shaderImporter = ShaderImporter();
     extensionToImporter.emplace(".vert", shaderImporter);
     extensionToImporter.emplace(".frag", shaderImporter);
 

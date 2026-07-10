@@ -9,13 +9,10 @@
 #include "engine/serialization/asset_metadata_serializer.h"
 
 #include "asset_structures.h"
-
 #include "texture_importer.h"
 #include "shader_importer.h"
-#include "material_importer.h"
-#include "model_importer.h"
-
 #include "asset_helpers.h"
+
 
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.
@@ -91,8 +88,6 @@ private:
     // asset importers
     TextureImporter textureImporter;
     ShaderImporter shaderImporter;
-    MaterialImporter materialImporter;
-    ModelImporter modelImporter;
 
     // metadata serializer
     AssetMetadataSerializer metadataSerializer;
