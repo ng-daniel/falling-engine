@@ -9,15 +9,15 @@
  */
 class TextureImporter : public AssetImporter {
 public:
-    ~TextureImporter() override = default;
+    ~TextureImporter() = default;
 
-    std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) override;
-    std::unique_ptr<Asset> LoadAssetFromMemory(const std::vector<unsigned char>& data);
-    std::string_view GetName() override { return importerName; }
-    std::string_view GetType() override { return importerType; }
+    static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
+    static std::unique_ptr<Asset> LoadAssetFromMemory(const std::vector<unsigned char>& data);
+    static std::string_view GetName() { return importerName; }
+    static std::string_view GetType() { return importerType; }
 private:
-    std::string_view importerName = "TextureImporter"; // should be same as class name
-    std::string_view importerType = "Texture"; // should be same as enum in asset_structures
+    constexpr static const std::string_view importerName = "TextureImporter"; // should be same as class name
+    constexpr static const std::string_view importerType = "Texture"; // should be same as enum in asset_structures
 };
 
 #endif // ENGINE_ASSETS_TEXTURE_IMPORTER_H

@@ -7,8 +7,6 @@
 
 #include "engine/assets/asset_helpers.h"
 
-
-
 /*
 Asset Manager Implementation
 --------------------------------
@@ -32,17 +30,6 @@ Lazily loads assets into loadedAssets when requested by external code.
  */
 AssetManager::AssetManager(std::filesystem::path root)
     : rootDirectory(std::move(root)) {
-    
-    // TEXTURE IMPORTER
-    textureImporter = TextureImporter();
-    extensionToImporter.emplace(".jpg", textureImporter);
-    extensionToImporter.emplace(".png", textureImporter);
-
-    // SHADER IMPORTER
-    shaderImporter = ShaderImporter();
-    extensionToImporter.emplace(".vert", shaderImporter);
-    extensionToImporter.emplace(".frag", shaderImporter);
-
     ProcessAssetDirectory(rootDirectory);
 }
 
@@ -107,7 +94,6 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
                 // generate new metadata file
                 try {
                     std::cout << "Generating metadata for asset: " << filePath.string() << std::endl;
-                    AssetImporter& importer = GetImporterForExtension(extension);
                     AssetMetadata metadata = GenerateMetadata(filePath);
                     WriteMetadata(metadata, filePath);
                     assetMetadatas.emplace(metadata.id, metadata);
@@ -125,9 +111,21 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
  * @param metadata The metadata of the asset to import.
  */
 void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
-    AssetImporter& importer = GetImporterByName(metadata.importer);
     try {
-        std::vector<std::unique_ptr<Asset>> assets = importer.LoadAsset(metadata.path);
+        std::vector<std::unique_ptr<Asset>> assets;
+        switch (GetAssetTypeFromString(metadata.type)) {
+            case Asset::AssetType::Texture:
+                assets = TextureImporter::LoadAsset(metadata.path);
+                break;
+            case Asset::AssetType::Shader:
+                assets = ShaderImporter::LoadAsset(metadata.path);
+                break;
+            case Asset::AssetType::Model:
+                // assets = ModelImporter::LoadAsset(metadata.path);
+            default:
+                throw std::runtime_error("Unsupported asset type for import: " + metadata.type);
+        }
+
         for (auto& asset : assets) {
             RegisterLoadedAsset(metadata, std::move(asset));
         }
@@ -150,37 +148,6 @@ void AssetManager::RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<
 }
 
 /**
- * @brief Retrieves the appropriate AssetImporter for the given file extension.
- * @param extension The file extension to look up.
- * @return A reference to the corresponding AssetImporter.
- */
-AssetImporter& AssetManager::GetImporterForExtension(const std::string& extension) {
-    auto iterator = extensionToImporter.find(extension); // returns an iterator because ?? cpp is freak language
-    if (iterator == extensionToImporter.end()) {
-        throw std::runtime_error("No importer found for extension: " + extension);
-    }
-    return iterator->second.get(); // accesses the value in the key-value pair
-}
-
-/**
- * @brief Retrieves the appropriate AssetImporter by its name.
- * @param importerName The name of the importer to look up.
- * @return A reference to the corresponding AssetImporter.
- * 
- * @note
- * Needs to be manually updated whenever a new importer is added.
- */
-AssetImporter& AssetManager::GetImporterByName(const std::string& importerName) {
-    if (importerName == textureImporter.GetName()) {
-        return textureImporter;
-    }
-    if (importerName == shaderImporter.GetName()) {
-        return shaderImporter;
-    }
-    throw std::runtime_error("No importer found with name: " + importerName);
-}
-
-/**
  * @brief Generates metadata for an asset located at the specified path.
  * @param assetPath The path to the asset file.
  * @return An AssetMetadata object containing the generated metadata.
@@ -190,9 +157,9 @@ AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetP
     metadata.id = UUIDGenerator::GenerateUUID();
     metadata.path = assetPath;
     try {
-        AssetImporter& importer = GetImporterForExtension(assetPath.extension().string());
-        metadata.importer = importer.GetName();
-        metadata.type = importer.GetType();
+        std::string extension = assetPath.extension().string();
+        metadata.type = GetStringFromAssetType(GetAssetTypeFromExtension(extension));
+        metadata.importer = "DEPRECIATED";
     } catch (const std::runtime_error& e) {
         throw std::runtime_error("Failed to generate metadata for asset: " + assetPath.string() + ". " + e.what());
     }

@@ -8,14 +8,14 @@
  */
 class ShaderImporter : public AssetImporter {
 public:
-    ~ShaderImporter() override = default;
+    ~ShaderImporter() = default;
 
-    std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) override;
-    std::string_view GetName() override { return importerName; }
-    std::string_view GetType() override { return importerType; }
+    static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
+    static std::string_view GetName() { return importerName; }
+    static std::string_view GetType() { return importerType; }
 private:
-    std::string_view importerName = "ShaderImporter"; // should be same as class name
-    std::string_view importerType = "Shader"; // should be same as enum in asset_structures
+    constexpr static const std::string_view importerName = "ShaderImporter";
+    constexpr static const std::string_view importerType = "Shader";
 };
 
 #endif // ENGINE_ASSETS_SHADER_IMPORTER_H

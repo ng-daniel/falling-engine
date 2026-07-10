@@ -37,4 +37,16 @@ inline std::string GetStringFromAssetType(Asset::AssetType type) {
     }
 }
 
+inline Asset::AssetType GetAssetTypeFromExtension(const std::string& extension) {
+    if (extension == ".png" || extension == ".jpg" || extension == ".jpeg") {
+        return Asset::AssetType::Texture;
+    } else if (extension == ".glb" || extension == ".gltf") {
+        return Asset::AssetType::Model;
+    } else if (extension == ".vert" || extension == ".frag") {
+        return Asset::AssetType::Shader;
+    } else {
+        throw std::runtime_error("Unknown asset type for extension: " + extension);
+    }
+}
+
 #endif // ENGINE_ASSETS_ASSET_HELPERS_H

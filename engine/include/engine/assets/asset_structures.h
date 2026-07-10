@@ -22,12 +22,12 @@ struct AssetMetadata {
 class AssetImporter {
 public:
     AssetImporter() = default;
-    virtual ~AssetImporter() = default;
+    ~AssetImporter() = default;
 
     // is a vector of assets because some importers may generate multiple assets
-    virtual std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) = 0;
-    virtual std::string_view GetName() = 0;
-    virtual std::string_view GetType() = 0;
+    static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
+    static std::string_view GetName();
+    static std::string_view GetType();
 };
 
 #endif // ENGINE_ASSETS_ASSET_STRUCTURES_H
