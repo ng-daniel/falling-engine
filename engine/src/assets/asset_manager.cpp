@@ -127,18 +127,26 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
 void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
     AssetImporter& importer = GetImporterByName(metadata.importer);
     try {
-        std::unique_ptr<Asset> asset = importer.LoadAsset(metadata.path);
-        
-        asset->id = metadata.id;
-        asset->name = metadata.path.stem().string();
-        asset->type = GetAssetTypeFromString(metadata.type);
-
-        std::cout << "Successfully imported asset: " << asset->id << std::endl;
-        loadedAssets.emplace(asset->id, std::move(asset));
-        metadata.loaded = true;
+        std::vector<std::unique_ptr<Asset>> assets = importer.LoadAsset(metadata.path);
+        for (auto& asset : assets) {
+            RegisterLoadedAsset(metadata, std::move(asset));
+        }
     } catch (const std::runtime_error& e) {
         throw std::runtime_error("Failed to import asset: " + metadata.path.string() + ". " + e.what());
     }
+}
+
+/**
+ * @brief Registers a loaded asset in the loadedAssets map and updates its metadata.
+ * @param metadata The metadata of the asset to register.
+ * @param asset A unique pointer to the loaded asset.
+ */
+void AssetManager::RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset) {
+    asset->id = metadata.id;
+    asset->name = metadata.path.stem().string();
+    asset->type = GetAssetTypeFromString(metadata.type);
+    loadedAssets.emplace(asset->id, std::move(asset));
+    metadata.loaded = true;
 }
 
 /**

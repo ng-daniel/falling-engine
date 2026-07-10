@@ -10,7 +10,7 @@ class ShaderImporter : public AssetImporter {
 public:
     ~ShaderImporter() override = default;
 
-    std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) override;
+    std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) override;
     std::string_view GetName() override { return importerName; }
     std::string_view GetType() override { return importerType; }
 private:

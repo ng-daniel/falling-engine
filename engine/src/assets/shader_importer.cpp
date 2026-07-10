@@ -7,9 +7,9 @@
 /**
  * @brief Loads a shader asset from the given file path.
  * @param path The file path to the shader asset.
- * @return Asset ptr to the loaded shader asset.
+ * @return std::vector<std::unique_ptr<Asset>> The loaded shader asset.
  */
-std::unique_ptr<Asset> ShaderImporter::LoadAsset(const std::filesystem::path& path) {
+std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(const std::filesystem::path& path) {
     
     // load source from file
     std::ifstream shaderFile(path);
@@ -31,5 +31,7 @@ std::unique_ptr<Asset> ShaderImporter::LoadAsset(const std::filesystem::path& pa
         throw std::runtime_error("Unknown shader file extension: " + path.string());
     }
 
-    return shaderAsset;
+    std::vector<std::unique_ptr<Asset>> assets;
+    assets.push_back(std::move(shaderAsset));
+    return assets;
 }

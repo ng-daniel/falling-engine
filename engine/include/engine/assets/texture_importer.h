@@ -2,6 +2,7 @@
 #define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
 #include "asset_structures.h"
+#include <vector>
 
 /**
  * @brief Handles loading of texture assets.
@@ -10,7 +11,7 @@ class TextureImporter : public AssetImporter {
 public:
     ~TextureImporter() override = default;
 
-    std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) override;
+    std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) override;
     std::unique_ptr<Asset> LoadAssetFromMemory(const std::vector<unsigned char>& data);
     std::string_view GetName() override { return importerName; }
     std::string_view GetType() override { return importerType; }

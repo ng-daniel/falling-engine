@@ -24,7 +24,8 @@ public:
     AssetImporter() = default;
     virtual ~AssetImporter() = default;
 
-    virtual std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) = 0;
+    // is a vector of assets because some importers may generate multiple assets
+    virtual std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path) = 0;
     virtual std::string_view GetName() = 0;
     virtual std::string_view GetType() = 0;
 };

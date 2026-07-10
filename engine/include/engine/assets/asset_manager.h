@@ -102,6 +102,7 @@ private:
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
 
     void ImportSourceAsset(AssetMetadata& metadata);
+    void RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset);
     
     AssetImporter& GetImporterForExtension(const std::string& extension);
     AssetImporter& GetImporterByName(const std::string& importerName);
