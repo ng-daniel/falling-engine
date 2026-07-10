@@ -1,7 +1,6 @@
 #ifndef ENGINE_ASSETS_SHADER_IMPORTER_H
 #define ENGINE_ASSETS_SHADER_IMPORTER_H
 
-#include <vector>
 #include "asset_structures.h"
 
 /**
@@ -9,7 +8,6 @@
  */
 class ShaderImporter : public AssetImporter {
 public:
-    ShaderImporter() = default;
     ~ShaderImporter() override = default;
 
     std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) override;

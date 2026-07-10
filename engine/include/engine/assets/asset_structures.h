@@ -1,13 +1,14 @@
 #ifndef ENGINE_ASSETS_ASSET_STRUCTURES_H
 #define ENGINE_ASSETS_ASSET_STRUCTURES_H
 
-#include <cstdint>
 #include <filesystem>
 #include <string>
 
 #include "engine/utils/uuid.h"
 
 #include "asset_data.h"
+
+class AssetManager;
 
 struct AssetMetadata {
     UUID id;

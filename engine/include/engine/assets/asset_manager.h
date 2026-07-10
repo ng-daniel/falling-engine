@@ -16,11 +16,6 @@
 #include "model_importer.h"
 
 #include "asset_helpers.h"
-    
-// class TextureImporter;
-// class ShaderImporter;
-// class MaterialImporter;
-// class ModelImporter;
 
 /**
  * @brief Manages all loading, storage, and distribution of assets for the game.

@@ -1,7 +1,6 @@
 #ifndef ENGINE_ASSETS_MODEL_IMPORTER_H
 #define ENGINE_ASSETS_MODEL_IMPORTER_H
 
-#include <vector>
 #include "asset_structures.h"
 
 /**
@@ -9,7 +8,6 @@
  */
 class ModelImporter : public AssetImporter {
 public:
-    ModelImporter() = default;
     ~ModelImporter() override = default;
 
     std::unique_ptr<Asset> LoadAsset(const std::filesystem::path& path) override;

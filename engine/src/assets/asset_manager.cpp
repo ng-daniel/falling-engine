@@ -37,6 +37,8 @@ AssetManager::AssetManager(std::filesystem::path root)
     
     textureImporter = TextureImporter();
     shaderImporter = ShaderImporter();
+    materialImporter = MaterialImporter();
+    modelImporter = ModelImporter();
 
     extensionToImporter.emplace(".jpg", textureImporter);
     extensionToImporter.emplace(".png", textureImporter);
