@@ -75,27 +75,31 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
             if (extension == ASSET_METADATA_EXTENSION) {
                 continue;
             }
-
             std::cout << "Found asset file: " << filePath.string() << std::endl;
         
-            // first load if metadata exists
             std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
-            if (std::filesystem::exists(metadataFilePath)) {
+            std::filesystem::path uuidFilePath = GenerateUUIDFilePath(filePath);
+
+            if (std::filesystem::exists(metadataFilePath) &&
+                std::filesystem::exists(uuidFilePath)) {
+        
+                // first load if metadata exists
+                
                 try {
-                    std::cout << "Reading metadata for asset: " << filePath.string() << std::endl;
-                    AssetMetadata metadata = ReadMetadata(metadataFilePath);
-                    ValidateMetadata(metadata, metadataFilePath);
+                    AssetMetadata metadata = ReadMetadataAndUUID(filePath);
+                    ValidateMetadataAndUUID(metadata, filePath);
                     assetMetadatas.emplace(metadata.id, metadata);
                 } catch (const std::runtime_error& e) {
                     std::cout << "Warning: Failed to read metadata for asset, regenerating: " << filePath.string() << ". " << e.what() << std::endl;
                 }
             }
             else {
-                // generate new metadata file
+                
+                // else generate new metadata file
+                
                 try {
-                    std::cout << "Generating metadata for asset: " << filePath.string() << std::endl;
                     AssetMetadata metadata = GenerateMetadata(filePath);
-                    WriteMetadata(metadata, filePath);
+                    WriteMetadataAndUUID(metadata, filePath);
                     assetMetadatas.emplace(metadata.id, metadata);
                 } catch (const std::runtime_error& e) {
                     // don't throw if a file can't be processed
@@ -168,14 +172,18 @@ AssetMetadata AssetManager::GenerateMetadata(const std::filesystem::path& assetP
 }
 
 /**
- * @brief Parses metadata from a metadata file located at the specified path.
+ * @brief Parses metadata from a metadata file and a uuid file located at the specified path.
+ * @param uuidFilePath The path to the uuid file.
  * @param metadataFilePath The path to the metadata file.
  * @return An AssetMetadata object containing the parsed metadata.
  */
-AssetMetadata AssetManager::ReadMetadata(const std::filesystem::path& metadataFilePath) {
+AssetMetadata AssetManager::ReadMetadataAndUUID(const std::filesystem::path& assetPath) {
     AssetMetadata metadata;
+    std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
+    std::filesystem::path uuidFilePath = GenerateUUIDFilePath(assetPath);
     try {
         metadataSerializer.Read(metadata, metadataFilePath);
+        uuidSerializer.Read(metadata.id, uuidFilePath);
     } catch (const std::runtime_error& e) {
         throw std::runtime_error("Failed to parse metadata from file: " + metadataFilePath.string() + ". " + e.what());
     }
@@ -185,16 +193,14 @@ AssetMetadata AssetManager::ReadMetadata(const std::filesystem::path& metadataFi
 /**
  * @brief Validates the metadata of an asset, writing any necessary updates.
  * @param metadata The AssetMetadata object to validate.
- * @param metadataFilePath The path to the metadata file.
+ * @param assetPath The path to the asset file.
  */
-void AssetManager::ValidateMetadata(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath) {
+void AssetManager::ValidateMetadataAndUUID(AssetMetadata& metadata, const std::filesystem::path& assetPath) {
     bool changed = false;
 
     // check if the asset path in the metadata matches the actual asset path
     // done in case the asset was moved
-    std::string realAssetPath = metadataFilePath.string().substr(
-        0, metadataFilePath.string().size() - ASSET_METADATA_EXTENSION.size()
-    );
+    std::string realAssetPath = assetPath.string();
     std::cout << "\tReal asset path: " << realAssetPath << std::endl;
     std::cout << "\tRecorded asset path: " << metadata.path << std::endl;
     if (realAssetPath != metadata.path) {
@@ -204,7 +210,7 @@ void AssetManager::ValidateMetadata(AssetMetadata& metadata, const std::filesyst
     }
 
     if (changed) {
-        WriteMetadata(metadata, realAssetPath);
+        WriteMetadataAndUUID(metadata, realAssetPath);
     }
 }
 
@@ -213,10 +219,13 @@ void AssetManager::ValidateMetadata(AssetMetadata& metadata, const std::filesyst
  * @param metadata The AssetMetadata object to write.
  * @param assetPath The path to the asset file.
  */
-void AssetManager::WriteMetadata(const AssetMetadata& metadata, const std::filesystem::path& assetPath) {
+void AssetManager::WriteMetadataAndUUID(const AssetMetadata& metadata, const std::filesystem::path& assetPath) {
     std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
+    std::filesystem::path uuidFilePath = GenerateUUIDFilePath(assetPath);
     try {
         metadataSerializer.Write(metadata, metadataFilePath);
+        uuidSerializer.Write(metadata.id, uuidFilePath);
+        
     } catch (const std::runtime_error& e) {
         throw std::runtime_error("Failed to write metadata to file: " + metadataFilePath.string() + ". " + e.what());
     }
@@ -231,4 +240,15 @@ std::filesystem::path AssetManager::GenerateMetadataFilePath(const std::filesyst
     std::filesystem::path metadataFilePath = assetPath;
     metadataFilePath += ASSET_METADATA_EXTENSION;
     return metadataFilePath;
+}
+
+/**
+ * @brief Generates the file path for the UUID file corresponding to the given asset path.
+ * @param assetPath The path to the asset file.
+ * @return The generated file path for the UUID file.
+ */
+std::filesystem::path AssetManager::GenerateUUIDFilePath(const std::filesystem::path& assetPath) {
+    std::filesystem::path uuidFilePath = assetPath;
+    uuidFilePath += ASSET_UUID_EXTENSION;
+    return uuidFilePath;
 }

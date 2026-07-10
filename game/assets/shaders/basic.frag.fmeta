@@ -1,6 +1,5 @@
 {
     "assetType": "Shader",
-    "importer": "ShaderImporter",
-    "path": "./game/assets/shaders/basic.frag",
-    "uid": "7075911361046789303"
+    "importer": "DEPRECIATED",
+    "path": "./game/assets/shaders/basic.frag"
 }
