@@ -98,13 +98,12 @@ private:
     std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
 
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
-
     void ImportSourceAsset(AssetMetadata& metadata);
     void RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset);
     
     AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
-    AssetMetadata ReadMetadataAndUUID(const std::filesystem::path& metadataFilePath);
-    void ValidateMetadataAndUUID(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath);
+    AssetMetadata ReadMetadataAndUUID(const std::filesystem::path& assetPath);
+    void ValidateMetadataAndUUID(AssetMetadata& metadata, const std::filesystem::path& assetPath);
     void WriteMetadataAndUUID(const AssetMetadata& metadata, const std::filesystem::path& assetPath);
     std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath);
     std::filesystem::path GenerateUUIDFilePath(const std::filesystem::path& assetPath);
