@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_SHADER_IMPORTER_H
 #define ENGINE_ASSETS_SHADER_IMPORTER_H
 
-#include "asset_data.h"
+#include "engine/assets/asset_data.h"
 
 /**
  * @brief Handles loading of shader assets.

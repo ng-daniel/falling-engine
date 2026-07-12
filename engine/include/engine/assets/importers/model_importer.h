@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_MODEL_IMPORTER_H
 #define ENGINE_ASSETS_MODEL_IMPORTER_H
 
-#include "asset_data.h"
+#include "engine/assets/asset_data.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"

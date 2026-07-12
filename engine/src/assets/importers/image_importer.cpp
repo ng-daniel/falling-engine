@@ -2,7 +2,7 @@
 #include "stb_image.h"
 
 #include <vector>
-#include "engine/assets/image_importer.h"
+#include "engine/assets/importers/image_importer.h"
 #include "engine/assets/asset_helpers.h"
 
 /**
