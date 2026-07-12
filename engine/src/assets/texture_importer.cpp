@@ -10,11 +10,11 @@
  * @param path The file path to the texture asset.
  * @return std::vector<std::unique_ptr<Asset>> The loaded texture asset.
  */
-std::vector<std::unique_ptr<Asset>> TextureImporter::LoadAsset(const std::filesystem::path& path) {
+std::vector<std::unique_ptr<Asset>> TextureImporter::LoadAsset(AssetMetadata& metadata) {
     int width, height, numChannels;
-    unsigned char * data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
+    unsigned char * data = stbi_load(metadata.path.string().c_str(), &width, &height, &numChannels, 0);
     if (!data) {
-        throw std::runtime_error("Failed to load texture: " + path.string());
+        throw std::runtime_error("Failed to load texture: " + metadata.path.string());
     }
 
     std::unique_ptr<TextureAsset> textureAsset = std::make_unique<TextureAsset>();

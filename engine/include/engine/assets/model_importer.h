@@ -13,7 +13,7 @@ class ModelImporter : public AssetImporter {
 public:
     ~ModelImporter() = default;
 
-    static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
+    static std::vector<std::unique_ptr<Asset>> LoadAsset(AssetMetadata& metadata);
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
 private:

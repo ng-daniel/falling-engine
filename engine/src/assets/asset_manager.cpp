@@ -120,13 +120,13 @@ void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
         std::vector<std::unique_ptr<Asset>> assets;
         switch (GetAssetTypeFromString(metadata.type)) {
             case Asset::AssetType::Texture:
-                assets = TextureImporter::LoadAsset(metadata.path);
+                assets = TextureImporter::LoadAsset(metadata);
                 break;
             case Asset::AssetType::Shader:
-                assets = ShaderImporter::LoadAsset(metadata.path);
+                assets = ShaderImporter::LoadAsset(metadata);
                 break;
             case Asset::AssetType::Model:
-                // assets = ModelImporter::LoadAsset(metadata.path);
+                // assets = ModelImporter::LoadAsset(metadata);
             default:
                 throw std::runtime_error("Unsupported asset type for import: " + metadata.type);
         }

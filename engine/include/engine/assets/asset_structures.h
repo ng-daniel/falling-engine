@@ -25,7 +25,7 @@ public:
     ~AssetImporter() = default;
 
     // is a vector of assets because some importers may generate multiple assets
-    static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
+    static std::vector<std::unique_ptr<Asset>> LoadAsset(AssetMetadata& metadata);
     static std::string_view GetName();
     static std::string_view GetType();
 };
