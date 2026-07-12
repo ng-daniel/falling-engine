@@ -1,4 +1,5 @@
 #include "engine/assets/asset_data.h"
+#include <memory>
 #include <vector>
 #include "engine/assets/model_importer.h"
 
@@ -27,21 +28,27 @@ ModelImporter::LoadAsset(AssetMetadata& metadata) {
         for (cgltf_size i = 0; i < data->textures_count; ++i)
         {
             cgltf_texture * texture = &data->textures[i];
-            importedAssets.push_back(ProcessTexture(*texture));
+            std::unique_ptr<TextureAsset> textureAsset = ProcessTexture(*texture);
+            importedTextures[texture] = textureAsset->id;
+            importedAssets.push_back(std::move(textureAsset));
         }
         
         // process all meshes in the model
         for (cgltf_size i = 0; i < data->meshes_count; ++i)
         {
             cgltf_mesh * mesh = &data->meshes[i];
-            importedAssets.push_back(ProcessMesh(*mesh));
+            std::unique_ptr<MeshAsset> meshAsset = ProcessMesh(*mesh);
+            importedMeshes[mesh] = meshAsset->id;
+            importedAssets.push_back(std::move(meshAsset));
         }
 
         // process all materials in the model
         for (cgltf_size i = 0; i < data->materials_count; ++i)
         {
             cgltf_material * material = &data->materials[i];
-            importedAssets.push_back(ProcessMaterial(*material));
+            std::unique_ptr<MaterialAsset> materialAsset = ProcessMaterial(*material);
+            importedMaterials[material] = materialAsset->id;
+            importedAssets.push_back(std::move(materialAsset));
         }
 
         cgltf_free(data);
