@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "engine/assets/texture_importer.h"
+#include "engine/assets/asset_helpers.h"
 
 /**
  * @brief Loads a texture asset from the given file path.
@@ -24,9 +25,15 @@ std::vector<std::unique_ptr<Asset>> TextureImporter::LoadAsset(AssetMetadata& me
     size_t dataSize = width * height * numChannels;
     textureAsset->data.assign(data, data + dataSize);
 
+    ApplyMetadataToAsset(
+        metadata.id, 
+        metadata.path.stem().string(), 
+        "Texture", 
+        *textureAsset
+    );
+
     std::vector<std::unique_ptr<Asset>> assets;
     assets.push_back(std::move(textureAsset));
-
     stbi_image_free(data);
 
     return assets;

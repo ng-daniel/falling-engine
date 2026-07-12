@@ -2,7 +2,9 @@
 #define ENGINE_ASSETS_ASSET_HELPERS_H
 
 #include "asset_data.h"
+#include "engine/utils/uuid.h"
 #include <stdexcept>
+#include <string>
 
 inline Asset::AssetType GetAssetTypeFromString(const std::string& typeStr) {
     if (typeStr == "Model") {
@@ -47,6 +49,24 @@ inline Asset::AssetType GetAssetTypeFromExtension(const std::string& extension) 
     } else {
         throw std::runtime_error("Unknown asset type for extension: " + extension);
     }
+}
+
+/**
+ * @brief Applies metadata information to an asset object.
+ * @param id The UUID of the asset.
+ * @param name The name of the asset.
+ * @param type The type of the asset as a string.
+ * @param asset The asset object to which the metadata will be applied.
+ */
+inline void ApplyMetadataToAsset(
+    const UUID id, 
+    const std::string name,
+    const std::string type,
+    Asset& asset) {
+    
+    asset.id = id;
+    asset.name = name;
+    asset.type = GetAssetTypeFromString(type);
 }
 
 #endif // ENGINE_ASSETS_ASSET_HELPERS_H

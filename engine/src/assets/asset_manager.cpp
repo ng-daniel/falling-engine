@@ -144,9 +144,6 @@ void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
  * @param asset A unique pointer to the loaded asset.
  */
 void AssetManager::RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset) {
-    asset->id = metadata.id;
-    asset->name = metadata.path.stem().string();
-    asset->type = GetAssetTypeFromString(metadata.type);
     loadedAssets.emplace(asset->id, std::move(asset));
     metadata.loaded = true;
 }

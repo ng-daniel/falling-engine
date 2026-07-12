@@ -11,6 +11,7 @@ Application::Application(std::filesystem::path assetRoot)
 
     UUID textureAssetID = 2855671031843873317; // Example UUID for a TextureAsset
     const TextureAsset * tex = assetManager.RequestAssetReadOnly<TextureAsset>(textureAssetID); // Example usage of RequestAsset
+    std::cout << "Finished loading texture asset with ID: " << textureAssetID << std::endl;
     std::cout << "Texture Asset Size: " << tex->data.size() << std::endl;
 
 

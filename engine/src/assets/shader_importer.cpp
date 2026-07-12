@@ -3,7 +3,7 @@
 
 #include "engine/assets/shader_importer.h"
 #include "engine/assets/asset_data.h"
-
+#include "engine/assets/asset_helpers.h"
 /**
  * @brief Loads a shader asset from the given metadata.
  * @param metadata The metadata of the shader asset.
@@ -31,7 +31,15 @@ std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(AssetMetadata& met
         throw std::runtime_error("Unknown shader file extension: " + metadata.path.string());
     }
 
+    ApplyMetadataToAsset(
+        metadata.id, 
+        metadata.path.stem().string(), 
+        "Shader", 
+        *shaderAsset
+    );
+
     std::vector<std::unique_ptr<Asset>> assets;
     assets.push_back(std::move(shaderAsset));
+
     return assets;
 }
