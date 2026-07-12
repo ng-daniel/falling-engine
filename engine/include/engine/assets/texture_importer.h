@@ -1,7 +1,6 @@
 #ifndef ENGINE_ASSETS_TEXTURE_IMPORTER_H
 #define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
-#include "asset_structures.h"
 #include "asset_data.h"
 #include <vector>
 

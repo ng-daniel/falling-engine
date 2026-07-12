@@ -9,7 +9,6 @@
 #include "engine/serialization/asset_metadata_serializer.h"
 #include "engine/serialization/asset_uuid_serializer.h"
 
-#include "asset_structures.h"
 #include "asset_helpers.h"
 
 

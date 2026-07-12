@@ -4,9 +4,18 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <filesystem>
 #include <glm/glm.hpp>
 
 #include "engine/utils/uuid.h"
+
+struct AssetMetadata {
+    UUID id;
+    std::string type;
+    std::string importer;
+    std::filesystem::path path;
+    bool loaded; // in CPU memory or not
+};
 
 /**
  * @brief Struct for assets, should not be used by itself.
