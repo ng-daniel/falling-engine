@@ -12,7 +12,7 @@ public:
     ~TextureImporter() = default;
 
     static std::vector<std::unique_ptr<Asset>> LoadAsset(const std::filesystem::path& path);
-    static std::unique_ptr<Asset> LoadAssetFromMemory(const std::vector<unsigned char>& data);
+    static std::vector<std::unique_ptr<Asset>> LoadAssetFromMemory(const std::vector<unsigned char>& data);
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
 private:

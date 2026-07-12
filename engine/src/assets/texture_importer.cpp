@@ -31,3 +31,31 @@ std::vector<std::unique_ptr<Asset>> TextureImporter::LoadAsset(const std::filesy
 
     return assets;
 }
+
+/**
+ * @brief Loads a texture asset from the given memory buffer.
+ * 
+ * @param data The memory buffer containing the texture data.
+ * @return std::vector<std::unique_ptr<Asset>> The loaded texture asset.
+ */
+std::vector<std::unique_ptr<Asset>> TextureImporter::LoadAssetFromMemory(const std::vector<unsigned char>& data) {
+    int width, height, numChannels;
+    unsigned char * textureData = stbi_load_from_memory(data.data(), data.size(), &width, &height, &numChannels, 0);
+    if (!textureData) {
+        throw std::runtime_error("Failed to load texture from memory");
+    }
+
+    std::unique_ptr<TextureAsset> textureAsset = std::make_unique<TextureAsset>();
+    textureAsset->width = width;
+    textureAsset->height = height;
+    textureAsset->numChannels = numChannels;
+    size_t dataSize = width * height * numChannels;
+    textureAsset->data.assign(textureData, textureData + dataSize);
+
+    std::vector<std::unique_ptr<Asset>> assets;
+    assets.push_back(std::move(textureAsset));
+
+    stbi_image_free(textureData);
+
+    return assets;
+}
