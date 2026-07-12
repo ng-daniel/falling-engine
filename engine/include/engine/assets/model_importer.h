@@ -23,6 +23,7 @@ private:
     static std::unique_ptr<MeshAsset> ProcessMesh(const cgltf_mesh& mesh);
     static std::unique_ptr<MaterialAsset> ProcessMaterial(const cgltf_material& material);
     static std::unique_ptr<TextureAsset> ProcessTexture(const cgltf_texture& texture);
+    static std::unique_ptr<ImageAsset> ProcessImage(const cgltf_image& image);
 };
 
 #endif // ENGINE_ASSETS_MODEL_IMPORTER_H

@@ -27,6 +27,7 @@ struct Asset {
         Mesh,
         Material,
         Texture,
+        Image,
         Shader
     };
     UUID id;
@@ -43,11 +44,23 @@ struct ShaderAsset : public Asset {
     std::string shaderSource;
 };
 
-struct TextureAsset : public Asset {
+struct ImageAsset : public Asset {
     int width;
     int height;
     int numChannels;
     std::vector<unsigned char> data;
+};
+
+struct TextureAsset : public Asset {
+    UUID image; // reference to an ImageAsset
+
+    // arbitrary integers that r code for filtering/wrapping modes
+    // every texture ref in glTF has a sampler
+    // see cgltf_sampler for more info
+    int mag_filter = 0;
+	int min_filter;
+	int wrap_s;
+	int wrap_t;
 };
 
 struct MaterialAsset : public Asset

@@ -2,7 +2,7 @@
 
 #include "engine/assets/asset_manager.h"
 
-#include "engine/assets/texture_importer.h"
+#include "engine/assets/image_importer.h"
 #include "engine/assets/shader_importer.h"
 
 #include "engine/assets/asset_helpers.h"
@@ -118,8 +118,8 @@ void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
     try {
         std::vector<std::unique_ptr<Asset>> assets;
         switch (GetAssetTypeFromString(metadata.type)) {
-            case Asset::AssetType::Texture:
-                assets = TextureImporter::LoadAsset(metadata);
+            case Asset::AssetType::Image:
+                assets = ImageImporter::LoadAsset(metadata);
                 break;
             case Asset::AssetType::Shader:
                 assets = ShaderImporter::LoadAsset(metadata);

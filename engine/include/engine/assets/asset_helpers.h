@@ -15,6 +15,8 @@ inline Asset::AssetType GetAssetTypeFromString(const std::string& typeStr) {
         return Asset::AssetType::Material;
     } else if (typeStr == "Texture") {
         return Asset::AssetType::Texture;
+    } else if (typeStr == "Image") {
+        return Asset::AssetType::Image;
     } else if (typeStr == "Shader") {
         return Asset::AssetType::Shader;
     } else {
@@ -32,6 +34,8 @@ inline std::string GetStringFromAssetType(Asset::AssetType type) {
             return "Material";
         case Asset::AssetType::Texture:
             return "Texture";
+        case Asset::AssetType::Image:
+            return "Image";
         case Asset::AssetType::Shader:
             return "Shader";
         default:
