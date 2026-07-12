@@ -2,12 +2,13 @@
 #define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
 #include "asset_structures.h"
+#include "asset_data.h"
 #include <vector>
 
 /**
  * @brief Handles loading of texture assets.
  */
-class TextureImporter : public AssetImporter {
+class TextureImporter {
 public:
     ~TextureImporter() = default;
 

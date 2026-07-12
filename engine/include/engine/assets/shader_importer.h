@@ -2,11 +2,12 @@
 #define ENGINE_ASSETS_SHADER_IMPORTER_H
 
 #include "asset_structures.h"
+#include "asset_data.h"
 
 /**
  * @brief Handles loading of shader assets.
  */
-class ShaderImporter : public AssetImporter {
+class ShaderImporter {
 public:
     ~ShaderImporter() = default;
 

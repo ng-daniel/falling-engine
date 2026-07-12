@@ -2,6 +2,7 @@
 #define ENGINE_ASSETS_MODEL_IMPORTER_H
 
 #include "asset_structures.h"
+#include "asset_data.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
@@ -9,7 +10,7 @@
 /**
  * @brief Handles loading of model assets.
  */
-class ModelImporter : public AssetImporter {
+class ModelImporter {
 public:
     ~ModelImporter() = default;
 

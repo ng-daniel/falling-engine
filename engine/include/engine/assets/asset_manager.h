@@ -94,9 +94,6 @@ private:
     std::unordered_map<UUID, AssetMetadata> assetMetadatas;
     std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
 
-    // mappings
-    std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
-
     void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
     void ImportSourceAsset(AssetMetadata& metadata);
     void RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset);

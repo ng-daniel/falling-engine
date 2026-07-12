@@ -40,7 +40,6 @@ AssetManager::AssetManager(std::filesystem::path root)
 AssetManager::~AssetManager() {
     assetMetadatas.clear();
     loadedAssets.clear();
-    extensionToImporter.clear();
 }
 
 /**
