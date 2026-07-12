@@ -72,7 +72,8 @@ void AssetManager::ProcessAssetDirectory(const std::filesystem::path& assetDirec
             
             const std::filesystem::path& filePath = entry.path();
             const std::string extension = filePath.extension().string();
-            if (extension == ASSET_METADATA_EXTENSION) {
+            if (extension == ASSET_METADATA_EXTENSION ||
+                extension == ASSET_UUID_EXTENSION) {
                 continue;
             }
             std::cout << "Found asset file: " << filePath.string() << std::endl;
