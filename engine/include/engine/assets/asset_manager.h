@@ -3,21 +3,19 @@
 
 #include <iostream>
 #include <filesystem>
-#include <memory>
-#include <unordered_map>
 
-#include "engine/assets/metadata/asset_metadata_service.h"
+#include "engine/assets/warehouse/asset_warehouse_service.h"
 
 #include "asset_helpers.h"
 
 
 /**
- * @brief Manages all loading, storage, and distribution of assets for the game.
+ * @brief Manages asset imports and serves asset requests through the warehouse.
  */
 class AssetManager {
 public:
     AssetManager(std::filesystem::path root);
-    ~AssetManager();
+    ~AssetManager() = default;
 
     /**
      * @brief Requests an asset of the specified type and ID.
@@ -29,35 +27,31 @@ public:
      * 
      * @details
      * This is the main interface for external code to request assets from the AssetManager.
-     * First searches the loadedAssets map for the asset.
-     * If not found, it loads the asset from disk by looking it up
-     * in the assetMetadatas map and adds it to the loadedAssets map.
+     * First searches the asset warehouse for the asset.
+     * If not found, it loads the asset from disk by looking up metadata
+     * in the asset warehouse and storing the loaded asset there.
      */
     template <typename T>
     T* RequestAsset(UUID id) {
-        
-        // pull metadata
-        auto metadataIterator = assetMetadatas.find(id);
-        if (metadataIterator == assetMetadatas.end()) {
-            std::cout << "Asset with ID " + std::to_string(id) + " not found in assetMetadatas." << std::endl;
+        AssetMetadata* metadata = assetWarehouseService.FindMetadata(id);
+        if (!metadata) {
+            std::cout << "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata." << std::endl;
             return nullptr;
         }
-        AssetMetadata& metadata = metadataIterator->second;
 
-        // load asset if not already loaded
-        if (loadedAssets.find(id) == loadedAssets.end()) {            
-            ImportSourceAsset(metadata);
+        if (!assetWarehouseService.HasLoadedAsset(id)) {
+            ImportSourceAsset(*metadata);
         }
-        
-        // validate and return asset ptr
-        std::unique_ptr<Asset>& assetPtr = loadedAssets.find(id)->second;
-        if (!assetPtr) {
+
+        Asset* asset = assetWarehouseService.GetLoadedAsset(id);
+        if (!asset) {
             std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
             return nullptr;
         }
-        T* typedAssetPtr = static_cast<T*>(assetPtr.get());
+
+        T* typedAssetPtr = static_cast<T*>(asset);
         if (!typedAssetPtr || 
-            typedAssetPtr->type != GetAssetTypeFromString(metadata.type)
+            typedAssetPtr->type != GetAssetTypeFromString(metadata->type)
         ) {
             std::cout << "Asset with ID " + std::to_string(id) + " is not of the requested type." << std::endl;
             return nullptr;
@@ -79,15 +73,8 @@ public:
     }
 
 private:
-    std::filesystem::path rootDirectory;
-    AssetMetadataService assetMetadataService;
-
-    // data storage
-    std::unordered_map<UUID, AssetMetadata> assetMetadatas;
-    std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
-
+    AssetWarehouseService assetWarehouseService;
     void ImportSourceAsset(AssetMetadata& metadata);
-    void RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset);
 };
 
 #endif // ENGINE_ASSETS_ASSET_MANAGER_H
