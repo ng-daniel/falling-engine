@@ -2,8 +2,9 @@
 
 #include "engine/assets/asset_manager.h"
 
-#include "engine/assets/image_importer.h"
-#include "engine/assets/shader_importer.h"
+#include "engine/assets/importers/image_importer.h"
+#include "engine/assets/importers/shader_importer.h"
+#include "engine/assets/importers/model_importer.h"
 
 #include "engine/assets/asset_helpers.h"
 

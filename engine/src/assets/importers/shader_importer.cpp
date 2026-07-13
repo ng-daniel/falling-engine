@@ -1,7 +1,7 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "engine/assets/shader_importer.h"
+#include "engine/assets/importers/shader_importer.h"
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"
 /**

@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/assets/model_importer.h"
-#include "engine/assets/image_importer.h"
+#include "engine/assets/importers/model_importer.h"
+#include "engine/assets/importers/image_importer.h"
 
 
 /**

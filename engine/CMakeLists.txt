@@ -1,7 +1,8 @@
 add_library(engine
     src/assets/asset_manager.cpp
-    src/assets/image_importer.cpp
-    src/assets/shader_importer.cpp
+    src/assets/importers/image_importer.cpp
+    src/assets/importers/shader_importer.cpp
+    src/assets/importers/model_importer.cpp
 
     src/core/application.cpp
 
