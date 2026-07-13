@@ -6,8 +6,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "engine/serialization/asset_metadata_serializer.h"
-#include "engine/serialization/asset_uuid_serializer.h"
+#include "engine/assets/metadata/asset_metadata_service.h"
 
 #include "asset_helpers.h"
 
@@ -80,29 +79,15 @@ public:
     }
 
 private:
-    const std::string ASSET_UUID_EXTENSION = ".fid"; // stands for falling id
-    const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
-
     std::filesystem::path rootDirectory;
-
-    // metadata serializer
-    AssetMetadataSerializer metadataSerializer;
-    AssetUUIDSerializer uuidSerializer;
+    AssetMetadataService assetMetadataService;
 
     // data storage
     std::unordered_map<UUID, AssetMetadata> assetMetadatas;
     std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
 
-    void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
     void ImportSourceAsset(AssetMetadata& metadata);
     void RegisterLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset);
-    
-    AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
-    AssetMetadata ReadMetadataAndUUID(const std::filesystem::path& assetPath);
-    void ValidateMetadataAndUUID(AssetMetadata& metadata, const std::filesystem::path& assetPath);
-    void WriteMetadataAndUUID(const AssetMetadata& metadata, const std::filesystem::path& assetPath);
-    std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath);
-    std::filesystem::path GenerateUUIDFilePath(const std::filesystem::path& assetPath);
 };
 
 #endif // ENGINE_ASSETS_ASSET_MANAGER_H
