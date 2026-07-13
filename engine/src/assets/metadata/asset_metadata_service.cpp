@@ -4,10 +4,20 @@
 
 #include "engine/assets/asset_helpers.h"
 
+/**
+ * @brief Loads asset metadata from the specified asset directory.
+ * @param assetDirectory The directory to scan for assets and their metadata.
+ * @return A map of UUIDs to AssetMetadata objects for all assets found in the directory.
+ * @throws std::runtime_error if the asset directory does not exist or if there are issues reading metadata files.
+ * @details
+ * Ok basically this thing takes the root asset directory and walks it completely.
+ * Skipping over any non-file files, and skipping ID and METADATA files.
+ * For any regular file, tries to read or generate metadata based on the file extension.
+ */
 std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
 	const std::filesystem::path& assetDirectory) {
+	
 	std::unordered_map<UUID, AssetMetadata> assetMetadatas;
-
 	std::cout << "Processing asset directory: " << assetDirectory.string() << std::endl;
 
 	if (!std::filesystem::exists(assetDirectory)) {
@@ -54,6 +64,12 @@ std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
 	return assetMetadatas;
 }
 
+/**
+ * @brief Generates metadata for the given asset path.
+ * @param assetPath The path of the asset to generate metadata for.
+ * @return The generated AssetMetadata object.
+ * @throws std::runtime_error if metadata generation fails.
+ */
 AssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path& assetPath) {
 	AssetMetadata metadata;
 	metadata.id = UUIDGenerator::GenerateUUID();
@@ -70,6 +86,12 @@ AssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path
 	return metadata;
 }
 
+/**
+ * @brief Reads metadata and UUID for the given asset path.
+ * @param assetPath The path of the asset to read metadata and UUID for.
+ * @return The AssetMetadata object containing the metadata and UUID.
+ * @throws std::runtime_error if reading metadata or UUID fails.
+ */
 AssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::path& assetPath) {
 	AssetMetadata metadata;
 	std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
@@ -84,6 +106,12 @@ AssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::p
 	return metadata;
 }
 
+/**
+ * @brief Validates the metadata and UUID for the given asset path.
+ * @param metadata The metadata to validate.
+ * @param assetPath The path of the asset to validate against.
+ * @throws std::runtime_error if validation fails.
+ */
 void AssetMetadataService::ValidateMetadataAndUUID(
 	AssetMetadata& metadata,
 	const std::filesystem::path& assetPath) {
@@ -104,6 +132,12 @@ void AssetMetadataService::ValidateMetadataAndUUID(
 	}
 }
 
+/**
+ * @brief Writes metadata and UUID for the given asset path.
+ * @param metadata The metadata to write.
+ * @param assetPath The path of the asset to write metadata and UUID for.
+ * @throws std::runtime_error if writing metadata or UUID fails.
+ */
 void AssetMetadataService::WriteMetadataAndUUID(
 	const AssetMetadata& metadata,
 	const std::filesystem::path& assetPath) {
@@ -118,6 +152,11 @@ void AssetMetadataService::WriteMetadataAndUUID(
 	}
 }
 
+/**
+ * @brief Generates the metadata file path for the given asset path.
+ * @param assetPath The path of the asset to generate the metadata file path for.
+ * @return The generated metadata file path.
+ */
 std::filesystem::path AssetMetadataService::GenerateMetadataFilePath(
 	const std::filesystem::path& assetPath) const {
 	std::filesystem::path metadataFilePath = assetPath;
@@ -125,6 +164,11 @@ std::filesystem::path AssetMetadataService::GenerateMetadataFilePath(
 	return metadataFilePath;
 }
 
+/**
+ * @brief Generates the UUID file path for the given asset path.
+ * @param assetPath The path of the asset to generate the UUID file path for.
+ * @return The generated UUID file path.
+ */
 std::filesystem::path AssetMetadataService::GenerateUUIDFilePath(
 	const std::filesystem::path& assetPath) const {
 	std::filesystem::path uuidFilePath = assetPath;
