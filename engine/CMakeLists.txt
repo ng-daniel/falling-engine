@@ -1,7 +1,7 @@
 add_library(engine
     src/assets/asset_manager.cpp
     src/assets/warehouse/asset_warehouse_service.cpp
-  src/assets/metadata/asset_metadata_service.cpp
+    src/assets/metadata/asset_metadata_service.cpp
     src/assets/importers/image_importer.cpp
     src/assets/importers/shader_importer.cpp
     src/assets/importers/model_importer.cpp
@@ -9,7 +9,6 @@ add_library(engine
     src/core/application.cpp
 
     src/serialization/asset_metadata_serializer.cpp
-    src/serialization/asset_uuid_serializer.cpp
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp
 

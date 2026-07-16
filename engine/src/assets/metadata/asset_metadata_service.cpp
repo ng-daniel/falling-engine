@@ -31,16 +31,15 @@ std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
 
 		const std::filesystem::path& filePath = entry.path();
 		const std::string extension = filePath.extension().string();
-		if (extension == assetMetadataExtension || extension == assetUuidExtension) {
+		if (extension == assetMetadataExtension) {
 			continue;
 		}
 
 		std::cout << "Found asset file: " << filePath.string() << std::endl;
 
 		std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
-		std::filesystem::path uuidFilePath = GenerateUUIDFilePath(filePath);
 
-		if (std::filesystem::exists(metadataFilePath) && std::filesystem::exists(uuidFilePath)) {
+		if (std::filesystem::exists(metadataFilePath)) {
 			try {
 				AssetMetadata metadata = ReadMetadataAndUUID(filePath);
 				ValidateMetadataAndUUID(metadata, filePath);
@@ -95,10 +94,8 @@ AssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path
 AssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::path& assetPath) {
 	AssetMetadata metadata;
 	std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
-	std::filesystem::path uuidFilePath = GenerateUUIDFilePath(assetPath);
 	try {
 		metadataSerializer.Read(metadata, metadataFilePath);
-		uuidSerializer.Read(metadata.id, uuidFilePath);
 	} catch (const std::runtime_error& e) {
 		throw std::runtime_error(
 			"Failed to parse metadata from file: " + metadataFilePath.string() + ". " + e.what());
@@ -142,10 +139,8 @@ void AssetMetadataService::WriteMetadataAndUUID(
 	const AssetMetadata& metadata,
 	const std::filesystem::path& assetPath) {
 	std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
-	std::filesystem::path uuidFilePath = GenerateUUIDFilePath(assetPath);
 	try {
 		metadataSerializer.Write(metadata, metadataFilePath);
-		uuidSerializer.Write(metadata.id, uuidFilePath);
 	} catch (const std::runtime_error& e) {
 		throw std::runtime_error(
 			"Failed to write metadata to file: " + metadataFilePath.string() + ". " + e.what());
@@ -162,16 +157,4 @@ std::filesystem::path AssetMetadataService::GenerateMetadataFilePath(
 	std::filesystem::path metadataFilePath = assetPath;
 	metadataFilePath += assetMetadataExtension;
 	return metadataFilePath;
-}
-
-/**
- * @brief Generates the UUID file path for the given asset path.
- * @param assetPath The path of the asset to generate the UUID file path for.
- * @return The generated UUID file path.
- */
-std::filesystem::path AssetMetadataService::GenerateUUIDFilePath(
-	const std::filesystem::path& assetPath) const {
-	std::filesystem::path uuidFilePath = assetPath;
-	uuidFilePath += assetUuidExtension;
-	return uuidFilePath;
 }

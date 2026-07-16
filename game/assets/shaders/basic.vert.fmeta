@@ -1,5 +1,5 @@
 {
     "assetType": "Shader",
-    "importer": "DEPRECIATED",
-    "path": "./game/assets/shaders/basic.vert"
+    "path": "./game/assets/shaders/basic.vert",
+    "uuid": "7235453645727811402"
 }
