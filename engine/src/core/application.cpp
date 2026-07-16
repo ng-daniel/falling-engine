@@ -10,13 +10,13 @@ Application::Application(std::filesystem::path assetRoot)
 
     // TESTING
 
-    UUID imageAssetID = 2855671031843873317; // Example UUID for a TextureAsset
+    UUID imageAssetID = 4078977777516510992; // Example UUID for a TextureAsset
     const ImageAsset * img = assetManager.RequestAssetReadOnly<ImageAsset>(imageAssetID); // Example usage of RequestAsset
     std::cout << "Finished loading image asset with ID: " << imageAssetID << std::endl;
     std::cout << "Image Asset Size: " << img->data.size() << std::endl;
 
 
-    UUID shaderAssetID = 7602981331776155094; // Example UUID for a ShaderAsset
+    UUID shaderAssetID = 6296191929730498041; // Example UUID for a ShaderAsset
     const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(shaderAssetID); // Example usage of RequestAsset
     std::cout << "Shader Asset Source: " << shader->shaderSource << std::endl;
 

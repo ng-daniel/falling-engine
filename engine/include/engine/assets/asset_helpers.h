@@ -45,7 +45,7 @@ inline std::string GetStringFromAssetType(Asset::AssetType type) {
 
 inline Asset::AssetType GetAssetTypeFromExtension(const std::string& extension) {
     if (extension == ".png" || extension == ".jpg" || extension == ".jpeg") {
-        return Asset::AssetType::Texture;
+        return Asset::AssetType::Image;
     } else if (extension == ".glb" || extension == ".gltf") {
         return Asset::AssetType::Model;
     } else if (extension == ".vert" || extension == ".frag") {
