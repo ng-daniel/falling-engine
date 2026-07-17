@@ -1,4 +1,4 @@
-#include "engine/assets/warehouse/asset_warehouse_service.h"
+#include "engine/assets/asset_warehouse_service.h"
 
 /**
  * @brief Constructs an AssetWarehouseService with the given asset root path.

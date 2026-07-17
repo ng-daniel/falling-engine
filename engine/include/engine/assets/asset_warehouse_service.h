@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "engine/assets/asset_data.h"
-#include "engine/assets/metadata/asset_metadata_service.h"
+#include "engine/assets/asset_metadata_service.h"
 
 /**
  * @brief Manages the storage and retrieval of assets and their metadata.

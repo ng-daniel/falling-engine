@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "engine/assets/metadata/asset_metadata_service.h"
+#include "engine/assets/asset_metadata_service.h"
 
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"

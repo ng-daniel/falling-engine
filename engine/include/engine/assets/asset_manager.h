@@ -4,9 +4,9 @@
 #include <iostream>
 #include <filesystem>
 
-#include "engine/assets/warehouse/asset_warehouse_service.h"
+#include "engine/assets/asset_warehouse_service.h"
 
-#include "asset_helpers.h"
+#include "engine/assets/asset_helpers.h"
 
 
 /**
