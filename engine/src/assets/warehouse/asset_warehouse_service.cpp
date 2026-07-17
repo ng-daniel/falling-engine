@@ -7,7 +7,7 @@
  * Initializes the asset metadata service and loads all asset metadata from the specified root path.
  */
 AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetRoot)
-	: assetMetadatas(assetMetadataService.LoadAssetMetadata(assetRoot)) {}
+	: sourceMetadatas(assetMetadataService.LoadAssetMetadata(assetRoot)) {}
 
 /**
  * @brief Finds the metadata for the asset with the given ID.
@@ -15,8 +15,8 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
  * @return A pointer to the asset metadata, or nullptr if not found.
  */
 SourceAssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
-	auto iterator = assetMetadatas.find(id);
-	if (iterator == assetMetadatas.end()) {
+	auto iterator = sourceMetadatas.find(id);
+	if (iterator == sourceMetadatas.end()) {
 		return nullptr;
 	}
 
@@ -29,8 +29,8 @@ SourceAssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
  * @return A const pointer to the asset metadata, or nullptr if not found.
  */
 const SourceAssetMetadata* AssetWarehouseService::FindMetadataReadOnly(UUID id) const {
-	auto iterator = assetMetadatas.find(id);
-	if (iterator == assetMetadatas.end()) {
+	auto iterator = sourceMetadatas.find(id);
+	if (iterator == sourceMetadatas.end()) {
 		return nullptr;
 	}
 
@@ -88,6 +88,6 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
  * @brief Clears all loaded assets and metadata from the warehouse.
  */
 void AssetWarehouseService::Clear() {
-	assetMetadatas.clear();
+	sourceMetadatas.clear();
 	loadedAssets.clear();
 }

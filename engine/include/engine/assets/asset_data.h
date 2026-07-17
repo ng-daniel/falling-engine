@@ -11,9 +11,9 @@
 
 struct RuntimeAssetMetadata {
     UUID id;
+    UUID sourceId; // reference to the source asset metadata
     std::string type;
     std::filesystem::path path;
-    bool loaded; // in GPU memory or not
 };
 
 struct SourceAssetMetadata {
