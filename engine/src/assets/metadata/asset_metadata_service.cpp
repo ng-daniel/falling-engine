@@ -76,7 +76,6 @@ SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem
 	try {
 		std::string extension = assetPath.extension().string();
 		metadata.type = GetStringFromAssetType(GetAssetTypeFromExtension(extension));
-		metadata.importer = "DEPRECIATED";
 	} catch (const std::runtime_error& e) {
 		throw std::runtime_error(
 			"Failed to generate metadata for asset: " + assetPath.string() + ". " + e.what());

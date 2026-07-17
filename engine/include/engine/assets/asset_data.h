@@ -9,11 +9,18 @@
 
 #include "engine/utils/uuid.h"
 
+struct RuntimeAssetMetadata {
+    UUID id;
+    std::string type;
+    std::filesystem::path path;
+    bool loaded; // in GPU memory or not
+};
+
 struct SourceAssetMetadata {
     UUID id;
     std::string type;
-    std::string importer;
     std::filesystem::path path;
+    std::vector<RuntimeAssetMetadata> assetMetadatas; // INCLUDES SOURCE ASSET METADATA
     bool loaded; // in CPU memory or not
 };
 
