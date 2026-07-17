@@ -46,7 +46,7 @@ bool JsonArchive::Contains(std::string_view key) const {
     return m_Stack.back()->contains(key);
 }
 
-std::size_t JsonArchive::Size() const {
+std::size_t JsonArchive::GetSizeWhenInArray() const {
     return m_Stack.back()->size();
 }
 
