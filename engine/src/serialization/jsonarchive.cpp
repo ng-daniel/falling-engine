@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "engine/serialization/jsonarchive.h"
-#include "engine/serialization/serialization_helpers.h"
 
 JsonArchive::JsonArchive(Mode mode)
     : m_Mode(mode),
@@ -47,29 +46,37 @@ bool JsonArchive::Contains(std::string_view key) const {
     return m_Stack.back()->contains(key);
 }
 
+std::size_t JsonArchive::GetSizeWhenInArray() const {
+    return m_Stack.back()->size();
+}
+
+std::size_t& JsonArchive::CurrentArrayIndex() {
+    return m_ArrayIndices.back();
+}
+
 /*
 Read Methods
 -----------------
 */
 
 void JsonArchive::Read(std::string_view key, int& value) {
-    value = (*m_Stack.back())[key];
+    m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
 void JsonArchive::Read(std::string_view key, uint32_t& value) {
-    value = (*m_Stack.back())[key];
+    m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
 void JsonArchive::Read(std::string_view key, float& value) {
-    value = (*m_Stack.back())[key];
+    m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
 void JsonArchive::Read(std::string_view key, bool& value) {
-    value = (*m_Stack.back())[key];
+    m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
 void JsonArchive::Read(std::string_view key, std::string& value) {
-    value = (*m_Stack.back())[key];
+    m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
 /*
@@ -102,6 +109,20 @@ void JsonArchive::Write(
 void JsonArchive::BeginObject(std::string_view name) {
     if (name.empty())
     {
+        if (!m_Stack.back()->is_array())
+        {
+            return;
+        }
+
+        if (IsWriting())
+        {
+            m_Stack.back()->push_back(nlohmann::json::object());
+            m_Stack.push_back(&m_Stack.back()->back());
+            return;
+        }
+
+        nlohmann::json& value = (*m_Stack.back())[CurrentArrayIndex()++];
+        m_Stack.push_back(&value);
         return;
     }
 
@@ -116,4 +137,33 @@ void JsonArchive::BeginObject(std::string_view name) {
 void JsonArchive::EndObject() {
     if (m_Stack.size() > 1)
         m_Stack.pop_back();
+}
+
+void JsonArchive::BeginArray(std::string_view name) {
+    if (name.empty())
+    {
+        return;
+    }
+
+    if (IsWriting())
+    {
+        (*m_Stack.back())[std::string(name)] = nlohmann::json::array();
+    }
+
+    m_Stack.push_back(&(*m_Stack.back())[std::string(name)]);
+    m_ArrayIndices.push_back(0);
+}
+
+void JsonArchive::EndArray() {
+    if (m_ArrayIndices.empty())
+    {
+        return;
+    }
+
+    m_ArrayIndices.pop_back();
+
+    if (m_Stack.size() > 1)
+    {
+        m_Stack.pop_back();
+    }
 }

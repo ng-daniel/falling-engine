@@ -1,6 +1,13 @@
 {
-    "assetType": "Texture",
-    "importer": "TextureImporter",
+    "UUID": "12852602255537295023",
+    "assetType": "Image",
     "path": "./game/assets/secret_img/ryujinChromatic.png",
-    "uid": "9066297140188899692"
+    "runtimeAssets": [
+        {
+            "UUID": "12852602255537295023",
+            "assetType": "Image",
+            "path": "./game/assets/secret_img/ryujinChromatic.png",
+            "sourceUUID": "12852602255537295023"
+        }
+    ]
 }

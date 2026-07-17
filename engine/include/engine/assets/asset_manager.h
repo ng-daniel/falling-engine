@@ -1,26 +1,21 @@
 #ifndef ENGINE_ASSETS_ASSET_MANAGER_H
 #define ENGINE_ASSETS_ASSET_MANAGER_H
 
-#include <cstdint>
+#include <iostream>
 #include <filesystem>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
-#include "engine/serialization/asset_metadata_serializer.h"
+#include "engine/assets/asset_warehouse_service.h"
 
-#include "asset_structures.h"
-#include "texture_importer.h"
-#include "shader_importer.h"
-#include "asset_helpers.h"
-    
+#include "engine/assets/asset_helpers.h"
+
+
 /**
- * @brief Manages all loading, storage, and distribution of assets for the game.
+ * @brief Manages asset imports and serves asset requests through the warehouse.
  */
 class AssetManager {
 public:
     AssetManager(std::filesystem::path root);
-    ~AssetManager();
+    ~AssetManager() = default;
 
     /**
      * @brief Requests an asset of the specified type and ID.
@@ -32,35 +27,31 @@ public:
      * 
      * @details
      * This is the main interface for external code to request assets from the AssetManager.
-     * First searches the loadedAssets map for the asset.
-     * If not found, it loads the asset from disk by looking it up
-     * in the assetMetadatas map and adds it to the loadedAssets map.
+     * First searches the asset warehouse for the asset.
+     * If not found, it loads the asset from disk by looking up metadata
+     * in the asset warehouse and storing the loaded asset there.
      */
     template <typename T>
     T* RequestAsset(UUID id) {
-        
-        // pull metadata
-        auto metadataIterator = assetMetadatas.find(id);
-        if (metadataIterator == assetMetadatas.end()) {
-            std::cout << "Asset with ID " + std::to_string(id) + " not found in assetMetadatas." << std::endl;
+        SourceAssetMetadata* metadata = assetWarehouseService.FindMetadata(id);
+        if (!metadata) {
+            std::cout << "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata." << std::endl;
             return nullptr;
         }
-        AssetMetadata& metadata = metadataIterator->second;
 
-        // load asset if not already loaded
-        if (loadedAssets.find(id) == loadedAssets.end()) {            
-            ImportSourceAsset(metadata);
+        if (!assetWarehouseService.HasLoadedAsset(id)) {
+            ImportSourceAsset(*metadata);
         }
-        
-        // validate and return asset ptr
-        std::unique_ptr<Asset>& assetPtr = loadedAssets.find(id)->second;
-        if (!assetPtr) {
+
+        Asset* asset = assetWarehouseService.GetLoadedAsset(id);
+        if (!asset) {
             std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
             return nullptr;
         }
-        T* typedAssetPtr = static_cast<T*>(assetPtr.get());
+
+        T* typedAssetPtr = static_cast<T*>(asset);
         if (!typedAssetPtr || 
-            typedAssetPtr->type != GetAssetTypeFromString(metadata.type)
+            typedAssetPtr->type != GetAssetTypeFromString(metadata->type)
         ) {
             std::cout << "Asset with ID " + std::to_string(id) + " is not of the requested type." << std::endl;
             return nullptr;
@@ -82,38 +73,8 @@ public:
     }
 
 private:
-    const std::string ASSET_METADATA_EXTENSION = ".fmeta"; // stands for falling metadata
-    std::filesystem::path rootDirectory;
-
-    // asset importers
-    TextureImporter textureImporter;
-    ShaderImporter shaderImporter;
-
-    // metadata serializer
-    AssetMetadataSerializer metadataSerializer;
-
-    // data storage
-    std::unordered_map<UUID, AssetMetadata> assetMetadatas;
-    std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
-
-    // mappings
-    std::unordered_map<std::string, std::reference_wrapper<AssetImporter>> extensionToImporter;
-
-    void ProcessAssetDirectory(const std::filesystem::path& assetDirectory);
-
-    void ImportSourceAsset(AssetMetadata& metadata);
-    
-    AssetImporter& GetImporterForExtension(const std::string& extension);
-    AssetImporter& GetImporterByName(const std::string& importerName);
-    
-    AssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
-    AssetMetadata ReadMetadata(const std::filesystem::path& metadataFilePath);
-    void ValidateMetadata(AssetMetadata& metadata, const std::filesystem::path& metadataFilePath);
-    void WriteMetadata(const AssetMetadata& metadata, const std::filesystem::path& assetPath);
-    std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath);
-
-    UUID GenerateSourceAssetID();
-    UUID GenerateSubAssetID(UUID parentID, const std::string& subAssetName);
+    AssetWarehouseService assetWarehouseService;
+    void ImportSourceAsset(SourceAssetMetadata& metadata);
 };
 
 #endif // ENGINE_ASSETS_ASSET_MANAGER_H
