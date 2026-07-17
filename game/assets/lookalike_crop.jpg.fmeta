@@ -1,5 +1,12 @@
 {
     "assetType": "Image",
     "path": "./game/assets/lookalike_crop.jpg",
-    "uuid": "8008553672109703555"
+    "runtimeAssets": [
+        {
+            "assetType": "Image",
+            "path": "./game/assets/lookalike_crop.jpg",
+            "uuid": "6874512929425164893"
+        }
+    ],
+    "uuid": "6874512929425164893"
 }

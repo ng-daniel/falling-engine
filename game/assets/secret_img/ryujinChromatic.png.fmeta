@@ -1,5 +1,12 @@
 {
     "assetType": "Image",
     "path": "./game/assets/secret_img/ryujinChromatic.png",
-    "uuid": "9975972915210478370"
+    "runtimeAssets": [
+        {
+            "assetType": "Image",
+            "path": "./game/assets/secret_img/ryujinChromatic.png",
+            "uuid": "8047538052830792789"
+        }
+    ],
+    "uuid": "8047538052830792789"
 }

@@ -1,5 +1,12 @@
 {
     "assetType": "Shader",
     "path": "./game/assets/shaders/basic.frag",
-    "uuid": "231483396437924301"
+    "runtimeAssets": [
+        {
+            "assetType": "Shader",
+            "path": "./game/assets/shaders/basic.frag",
+            "uuid": "4417744969458429781"
+        }
+    ],
+    "uuid": "4417744969458429781"
 }

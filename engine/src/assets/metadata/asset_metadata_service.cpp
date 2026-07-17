@@ -1,7 +1,9 @@
 #include <iostream>
+#include <vector>
 
 #include "engine/assets/metadata/asset_metadata_service.h"
 
+#include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"
 
 /**
@@ -73,6 +75,7 @@ SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem
 	SourceAssetMetadata metadata;
 	metadata.id = UUIDGenerator::GenerateUUID();
 	metadata.path = assetPath;
+	
 	try {
 		std::string extension = assetPath.extension().string();
 		metadata.type = GetStringFromAssetType(GetAssetTypeFromExtension(extension));
@@ -80,6 +83,13 @@ SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem
 		throw std::runtime_error(
 			"Failed to generate metadata for asset: " + assetPath.string() + ". " + e.what());
 	}
+
+	metadata.assetMetadatas = std::vector<RuntimeAssetMetadata>();
+	metadata.assetMetadatas.push_back(RuntimeAssetMetadata{
+		.id = metadata.id,
+		.type = metadata.type,
+		.path = assetPath,
+	}); // add the source metadata as the first runtime asset metadata
 
 	return metadata;
 }
