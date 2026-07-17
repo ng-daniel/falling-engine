@@ -9,7 +9,7 @@
 
 #include "engine/utils/uuid.h"
 
-struct AssetMetadata {
+struct SourceAssetMetadata {
     UUID id;
     std::string type;
     std::string importer;

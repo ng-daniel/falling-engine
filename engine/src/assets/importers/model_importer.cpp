@@ -15,7 +15,7 @@
  * @return A vector of unique pointers to Asset objects representing the loaded model.
  */
 std::vector<std::unique_ptr<Asset>>
-ModelImporter::LoadAsset(AssetMetadata& metadata) {
+ModelImporter::LoadAsset(SourceAssetMetadata& metadata) {
     
     ModelImportData tempData;
     std::vector<std::unique_ptr<Asset>> importedAssets;

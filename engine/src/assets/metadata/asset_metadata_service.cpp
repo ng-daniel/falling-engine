@@ -14,10 +14,10 @@
  * Skipping over any non-file files, and skipping ID and METADATA files.
  * For any regular file, tries to read or generate metadata based on the file extension.
  */
-std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
+std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMetadata(
 	const std::filesystem::path& assetDirectory) {
 	
-	std::unordered_map<UUID, AssetMetadata> assetMetadatas;
+	std::unordered_map<UUID, SourceAssetMetadata> assetMetadatas;
 	std::cout << "Processing asset directory: " << assetDirectory.string() << std::endl;
 
 	if (!std::filesystem::exists(assetDirectory)) {
@@ -41,7 +41,7 @@ std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
 
 		if (std::filesystem::exists(metadataFilePath)) {
 			try {
-				AssetMetadata metadata = ReadMetadataAndUUID(filePath);
+				SourceAssetMetadata metadata = ReadMetadataAndUUID(filePath);
 				ValidateMetadataAndUUID(metadata, filePath);
 				assetMetadatas.emplace(metadata.id, metadata);
 			} catch (const std::runtime_error& e) {
@@ -50,7 +50,7 @@ std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
 			}
 		} else {
 			try {
-				AssetMetadata metadata = GenerateMetadata(filePath);
+				SourceAssetMetadata metadata = GenerateMetadata(filePath);
 				WriteMetadataAndUUID(metadata, filePath);
 				assetMetadatas.emplace(metadata.id, metadata);
 			} catch (const std::runtime_error& e) {
@@ -69,8 +69,8 @@ std::unordered_map<UUID, AssetMetadata> AssetMetadataService::LoadAssetMetadata(
  * @return The generated AssetMetadata object.
  * @throws std::runtime_error if metadata generation fails.
  */
-AssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path& assetPath) {
-	AssetMetadata metadata;
+SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path& assetPath) {
+	SourceAssetMetadata metadata;
 	metadata.id = UUIDGenerator::GenerateUUID();
 	metadata.path = assetPath;
 	try {
@@ -91,8 +91,8 @@ AssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path
  * @return The AssetMetadata object containing the metadata and UUID.
  * @throws std::runtime_error if reading metadata or UUID fails.
  */
-AssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::path& assetPath) {
-	AssetMetadata metadata;
+SourceAssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::path& assetPath) {
+	SourceAssetMetadata metadata;
 	std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
 	try {
 		metadataSerializer.Read(metadata, metadataFilePath);
@@ -110,7 +110,7 @@ AssetMetadata AssetMetadataService::ReadMetadataAndUUID(const std::filesystem::p
  * @throws std::runtime_error if validation fails.
  */
 void AssetMetadataService::ValidateMetadataAndUUID(
-	AssetMetadata& metadata,
+	SourceAssetMetadata& metadata,
 	const std::filesystem::path& assetPath) {
 	bool changed = false;
 
@@ -136,7 +136,7 @@ void AssetMetadataService::ValidateMetadataAndUUID(
  * @throws std::runtime_error if writing metadata or UUID fails.
  */
 void AssetMetadataService::WriteMetadataAndUUID(
-	const AssetMetadata& metadata,
+	const SourceAssetMetadata& metadata,
 	const std::filesystem::path& assetPath) {
 	std::filesystem::path metadataFilePath = GenerateMetadataFilePath(assetPath);
 	try {

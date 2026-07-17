@@ -9,7 +9,7 @@
  * @param metadata The metadata of the shader asset.
  * @return std::vector<std::unique_ptr<Asset>> The loaded shader asset.
  */
-std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(AssetMetadata& metadata) {
+std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(SourceAssetMetadata& metadata) {
     
     // load source from file
     std::ifstream shaderFile(metadata.path);

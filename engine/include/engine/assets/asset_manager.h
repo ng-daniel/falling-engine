@@ -33,7 +33,7 @@ public:
      */
     template <typename T>
     T* RequestAsset(UUID id) {
-        AssetMetadata* metadata = assetWarehouseService.FindMetadata(id);
+        SourceAssetMetadata* metadata = assetWarehouseService.FindMetadata(id);
         if (!metadata) {
             std::cout << "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata." << std::endl;
             return nullptr;
@@ -74,7 +74,7 @@ public:
 
 private:
     AssetWarehouseService assetWarehouseService;
-    void ImportSourceAsset(AssetMetadata& metadata);
+    void ImportSourceAsset(SourceAssetMetadata& metadata);
 };
 
 #endif // ENGINE_ASSETS_ASSET_MANAGER_H

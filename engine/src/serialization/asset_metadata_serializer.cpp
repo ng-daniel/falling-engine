@@ -2,7 +2,7 @@
 #include "engine/serialization/asset_metadata_serializer.h"
 #include "engine/serialization/serialization_helpers.h"
 
-void AssetMetadataSerializer::Read(AssetMetadata& metadata, const std::filesystem::path& metaPath) {
+void AssetMetadataSerializer::Read(SourceAssetMetadata& metadata, const std::filesystem::path& metaPath) {
     JsonArchive archive = JsonArchive(JsonArchive::Mode::Reading);
     if (!archive.Open(metaPath)) {
         throw std::runtime_error("Failed to open asset metadata file: " + metaPath.string());
@@ -20,7 +20,7 @@ void AssetMetadataSerializer::Read(AssetMetadata& metadata, const std::filesyste
     metadata.path = assetPath;
 }
 
-void AssetMetadataSerializer::Write(const AssetMetadata& metadata, const std::filesystem::path& metaPath) {
+void AssetMetadataSerializer::Write(const SourceAssetMetadata& metadata, const std::filesystem::path& metaPath) {
     JsonArchive archive = JsonArchive(JsonArchive::Mode::Writing);
 
     archive.Write("uuid", ToString(metadata.id));

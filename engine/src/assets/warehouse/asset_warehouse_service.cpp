@@ -14,7 +14,7 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
  * @param id The ID of the asset to find metadata for.
  * @return A pointer to the asset metadata, or nullptr if not found.
  */
-AssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
+SourceAssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
 	auto iterator = assetMetadatas.find(id);
 	if (iterator == assetMetadatas.end()) {
 		return nullptr;
@@ -28,7 +28,7 @@ AssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
  * @param id The ID of the asset to find metadata for.
  * @return A const pointer to the asset metadata, or nullptr if not found.
  */
-const AssetMetadata* AssetWarehouseService::FindMetadataReadOnly(UUID id) const {
+const SourceAssetMetadata* AssetWarehouseService::FindMetadataReadOnly(UUID id) const {
 	auto iterator = assetMetadatas.find(id);
 	if (iterator == assetMetadatas.end()) {
 		return nullptr;
@@ -79,7 +79,7 @@ const Asset* AssetWarehouseService::GetLoadedAssetReadOnly(UUID id) const {
  * @param metadata The metadata of the asset to store.
  * @param asset The asset to store.
  */
-void AssetWarehouseService::StoreLoadedAsset(AssetMetadata& metadata, std::unique_ptr<Asset> asset) {
+void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset) {
 	metadata.loaded = true;
 	loadedAssets.insert_or_assign(asset->id, std::move(asset));
 }

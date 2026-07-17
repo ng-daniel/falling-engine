@@ -11,7 +11,7 @@
  * @param path The file path to the image asset.
  * @return std::vector<std::unique_ptr<Asset>> The loaded image asset.
  */
-std::vector<std::unique_ptr<Asset>> ImageImporter::LoadAsset(AssetMetadata& metadata) {
+std::vector<std::unique_ptr<Asset>> ImageImporter::LoadAsset(SourceAssetMetadata& metadata) {
     int width, height, numChannels;
     unsigned char * data = stbi_load(metadata.path.string().c_str(), &width, &height, &numChannels, 0);
     if (!data) {

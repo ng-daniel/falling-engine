@@ -30,7 +30,7 @@ AssetManager::AssetManager(std::filesystem::path root)
  * @brief Imports an asset from the specified file path and stores it in the asset warehouse.
  * @param metadata The metadata of the asset to import.
  */
-void AssetManager::ImportSourceAsset(AssetMetadata& metadata) {
+void AssetManager::ImportSourceAsset(SourceAssetMetadata& metadata) {
     try {
         std::vector<std::unique_ptr<Asset>> assets;
         switch (GetAssetTypeFromString(metadata.type)) {
