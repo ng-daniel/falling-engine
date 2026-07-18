@@ -6,6 +6,14 @@
 
 using UUID = std::uint64_t;
 
+inline std::string UUIDToString(UUID uuid) {
+    return std::to_string(uuid);
+}
+
+inline UUID StringToUUID(const std::string& uuidStr) {
+    return static_cast<UUID>(std::stoull(uuidStr));
+}
+
 class UUIDGenerator {
 public:
     static UUID GenerateUUID();
