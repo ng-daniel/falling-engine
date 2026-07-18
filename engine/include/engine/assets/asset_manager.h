@@ -4,6 +4,7 @@
 #include <iostream>
 #include <filesystem>
 
+#include "engine/assets/asset_handle.h"
 #include "engine/assets/asset_warehouse_service.h"
 
 #include "engine/assets/asset_helpers.h"
@@ -60,6 +61,10 @@ public:
         std::cout << "Asset with ID " + std::to_string(id) + " loaded and returned." << std::endl;
         return typedAssetPtr;
     }
+    template <typename T>
+    T* RequestAsset(AssetHandle id) {
+        return RequestAsset<T>(id.GetUUID());
+    }
 
     /**
      * @brief Requests an asset of the specified type and ID, but returns a const pointer.
@@ -70,6 +75,10 @@ public:
     template <typename T>
     const T* RequestAssetReadOnly(UUID id) {
         return RequestAsset<T>(id);
+    }
+    template <typename T>
+    const T* RequestAssetReadOnly(AssetHandle id) {
+        return RequestAssetReadOnly<T>(id.GetUUID());
     }
 
 private:
