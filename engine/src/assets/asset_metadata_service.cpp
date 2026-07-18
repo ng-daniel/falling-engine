@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 
 #include "engine/assets/asset_metadata_service.h"
 
@@ -52,7 +51,7 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
 			}
 		} else {
 			try {
-				SourceAssetMetadata metadata = GenerateMetadata(filePath);
+				SourceAssetMetadata metadata = GenerateSourceMetadata(filePath);
 				WriteMetadataAndUUID(metadata, filePath);
 				assetMetadatas.emplace(metadata.id, metadata);
 			} catch (const std::runtime_error& e) {
@@ -71,7 +70,7 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
  * @return The generated AssetMetadata object.
  * @throws std::runtime_error if metadata generation fails.
  */
-SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem::path& assetPath) {
+SourceAssetMetadata AssetMetadataService::GenerateSourceMetadata(const std::filesystem::path& assetPath) {
 	SourceAssetMetadata metadata;
 	metadata.id = UUIDGenerator::GenerateUUID();
 	metadata.path = assetPath;
@@ -84,16 +83,32 @@ SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem
 			"Failed to generate metadata for asset: " + assetPath.string() + ". " + e.what());
 	}
 
-	metadata.assetMetadatas = std::vector<RuntimeAssetMetadata>();
-	metadata.assetMetadatas.push_back(RuntimeAssetMetadata{
-		.id = metadata.id,
-		.sourceId = metadata.id,
-		.exportName = assetPath.stem().string(),
-		.type = metadata.type,
-		.path = assetPath,
-	}); // add the source metadata as the first runtime asset metadata
-
 	return metadata;
+}
+
+/**
+ * @brief Generates a RuntimeAssetMetadata object for the given runtime asset and source metadata.
+ * Used after an asset is loaded to generate the runtime metadata for all imported sub-assets.
+ * 
+ * @param asset The runtime asset to generate metadata for.
+ */
+RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadata(
+	UUID assetId, 
+	const std::string& exportName,
+	Asset::AssetType assetType,
+	const SourceAssetMetadata& sourceMetadata) {
+	RuntimeAssetMetadata runtimeMetadata;
+	
+	// asset properties
+	runtimeMetadata.id = assetId;
+	runtimeMetadata.exportName = exportName;
+	runtimeMetadata.type = GetStringFromAssetType(assetType);
+
+	// source properties
+	runtimeMetadata.sourceId = sourceMetadata.id;
+	runtimeMetadata.path = sourceMetadata.path;
+
+	return runtimeMetadata;
 }
 
 /**

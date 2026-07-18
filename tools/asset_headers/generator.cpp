@@ -1,7 +1,8 @@
-#include "engine/assets/asset_warehouse_service.h"
+#include "engine/assets/asset_manager.h"
 
 #include <fstream>
 #include <algorithm>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -69,10 +70,34 @@ namespace {
  * @param outputDir 
  */
 void AssetHeaderGenerator::Generate(const std::string& assetRootDir, const std::string& outputDir) {
+    
+    // phase 1
+    
+    AssetImporterService assetImporterService;
     AssetWarehouseService assetWarehouseService(assetRootDir);
+
+    // phase 2
+
+    std::unordered_map<UUID, SourceAssetMetadata>& sourceMetadatas = assetWarehouseService.GetAllSourceMetadatasAsReference();
+    std::cout << "Source metadatas size: " << sourceMetadatas.size() << std::endl;
+
+    for (auto& [id, metadata] : sourceMetadatas) {
+        
+        std::cout << "Importing asset: " << metadata.path.string() << std::endl;
+
+        std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(metadata);
+        size_t numAssets = assets.size();
+        for (int i = 0; i < numAssets; i++) {
+            
+            assetWarehouseService.StoreLoadedAsset(metadata, std::move(assets[i]));
+        }
+    }
+
+    // phase 3
+
     std::unordered_map<std::string, UUID> exportNameUUIDMap = assetWarehouseService.GetAllExportNameUUIDMappings();
     std::unordered_map<UUID, RuntimeAssetMetadata> runtimeMetadatas = assetWarehouseService.GetAllRuntimeMetadatas();
-    
+
     // extract names and uuids into separate vectors
     std::vector<std::string> keys;
     std::vector<UUID> values;

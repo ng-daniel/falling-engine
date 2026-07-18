@@ -16,16 +16,23 @@
 class AssetMetadataService {
 public:
 	std::unordered_map<UUID, SourceAssetMetadata> LoadAssetMetadata(const std::filesystem::path& assetDirectory);
+	RuntimeAssetMetadata GenerateRuntimeAssetMetadata(
+		UUID assetId, 
+		const std::string& exportName,
+		Asset::AssetType assetType,
+		const SourceAssetMetadata& sourceMetadata);
+	void WriteMetadataAndUUID(const SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
 
 private:
 	const std::string assetMetadataExtension = ".fmeta";
 
 	AssetMetadataSerializer metadataSerializer;
 
-	SourceAssetMetadata GenerateMetadata(const std::filesystem::path& assetPath);
+	SourceAssetMetadata GenerateSourceMetadata(const std::filesystem::path& assetPath);
+
 	SourceAssetMetadata ReadMetadataAndUUID(const std::filesystem::path& assetPath);
 	void ValidateMetadataAndUUID(SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
-	void WriteMetadataAndUUID(const SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
+
 	std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath) const;
 };
 

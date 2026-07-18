@@ -1,4 +1,5 @@
 #include "engine/assets/asset_warehouse_service.h"
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
@@ -26,17 +27,23 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
 }
 
 /**
- * @brief Finds the metadata for the asset with the given ID.
+ * @brief Finds the source metadata for the asset with the given runtime UUID.
  * @param id The ID of the asset to find metadata for.
  * @return A pointer to the asset metadata, or nullptr if not found.
  */
-SourceAssetMetadata* AssetWarehouseService::FindMetadata(UUID id) {
-	auto iterator = sourceMetadatas.find(id);
-	if (iterator == sourceMetadatas.end()) {
+SourceAssetMetadata* AssetWarehouseService::FindSourceMetadata(UUID runtimeAssetUUID) {
+	auto runtimeMetadataIt = runtimeMetadatas.find(runtimeAssetUUID);
+	if (runtimeMetadataIt == runtimeMetadatas.end()) {
 		return nullptr;
 	}
 
-	return &iterator->second;
+	UUID sourceId = runtimeMetadataIt->second.sourceId;
+	auto sourceMetadataIt = sourceMetadatas.find(sourceId);
+	if (sourceMetadataIt == sourceMetadatas.end()) {
+		return nullptr;
+	}
+
+	return &sourceMetadataIt->second;
 }
 
 /**
@@ -96,8 +103,42 @@ const Asset* AssetWarehouseService::GetLoadedAssetReadOnly(UUID id) const {
  * @param asset The asset to store.
  */
 void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset) {
+	if (!asset) {
+		throw std::runtime_error("Cannot store null asset.");
+	}
+
+	const UUID assetId = asset->id;
+	const std::string exportName = asset->name;
+	const Asset::AssetType assetType = asset->type;
+
+	// if no runtime metadata is associated with the generated asset, generate it and store it
+
+	if (runtimeMetadatas.find(assetId) == runtimeMetadatas.end()) {
+		
+		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadata(
+			assetId,
+			exportName,
+			assetType,
+			metadata);
+
+		auto exportNameIterator = exportNameToUUIDMap.find(runtimeMetadata.exportName);
+		if (exportNameIterator != exportNameToUUIDMap.end() && exportNameIterator->second != runtimeMetadata.id) {
+			std::cerr << "Error: Duplicate export name '" << runtimeMetadata.exportName
+					  << "' found for assets with IDs '" << exportNameIterator->second
+					  << "' and '" << runtimeMetadata.id << "'."
+					  << "  Please rename one of the assets' export names in their respective asset metadata files."
+					  << " and rerun the asset header generator."
+					  << std::endl;
+		}
+
+		exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
+		metadata.assetMetadatas.push_back(runtimeMetadata);
+		assetMetadataService.WriteMetadataAndUUID(metadata, metadata.path);
+		
+		runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+	}
 	metadata.loaded = true;
-	loadedAssets.insert_or_assign(asset->id, std::move(asset));
+	loadedAssets.insert_or_assign(assetId, std::move(asset));
 }
 
 /**

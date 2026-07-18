@@ -15,10 +15,12 @@ class AssetWarehouseService {
 public:
 	AssetWarehouseService(const std::filesystem::path& assetRoot);
 
-	SourceAssetMetadata* FindMetadata(UUID id);
+	SourceAssetMetadata* FindSourceMetadata(UUID runtimeAssetUUID);
 	const SourceAssetMetadata* FindMetadataReadOnly(UUID id) const;
+
 	std::unordered_map<std::string, UUID> GetAllExportNameUUIDMappings() { return exportNameToUUIDMap; };
 	std::unordered_map<UUID, RuntimeAssetMetadata> GetAllRuntimeMetadatas() { return runtimeMetadatas; };
+	std::unordered_map<UUID, SourceAssetMetadata>& GetAllSourceMetadatasAsReference() { return sourceMetadatas; };
 
 	bool HasLoadedAsset(UUID id) const;
 	Asset* GetLoadedAsset(UUID id);
