@@ -1,4 +1,5 @@
-#include "engine/assets/asset_manager.h"
+#include "engine/assets/asset_warehouse_service.h"
+#include "engine/assets/asset_importer_service.h"
 
 #include <fstream>
 #include <algorithm>
