@@ -16,9 +16,9 @@ Necessary Features
 - camera system
 - ECS architecture
 - physics and collisions
-- post-processing effects
 
 Stretch Features (doable but low priority)
+- post-processing effects
 - particle system
 - audio system
 
