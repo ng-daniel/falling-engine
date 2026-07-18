@@ -6,7 +6,7 @@
         {
             "UUID": "1909198756733679972",
             "assetType": "Shader",
-            "exportName": "basic",
+            "exportName": "basicFrag",
             "path": "./game/assets/shaders/basic.frag",
             "sourceUUID": "1909198756733679972"
         }

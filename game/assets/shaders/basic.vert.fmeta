@@ -6,7 +6,7 @@
         {
             "UUID": "12207913284717812439",
             "assetType": "Shader",
-            "exportName": "basic",
+            "exportName": "basicVert",
             "path": "./game/assets/shaders/basic.vert",
             "sourceUUID": "12207913284717812439"
         }
