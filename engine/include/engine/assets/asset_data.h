@@ -12,6 +12,7 @@
 struct RuntimeAssetMetadata {
     UUID id;
     UUID sourceId; // reference to the source asset metadata
+    std::string exportName; // unique name for the asset
     std::string type;
     std::filesystem::path path;
 };

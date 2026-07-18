@@ -88,6 +88,7 @@ SourceAssetMetadata AssetMetadataService::GenerateMetadata(const std::filesystem
 	metadata.assetMetadatas.push_back(RuntimeAssetMetadata{
 		.id = metadata.id,
 		.sourceId = metadata.id,
+		.exportName = assetPath.stem().string(),
 		.type = metadata.type,
 		.path = assetPath,
 	}); // add the source metadata as the first runtime asset metadata

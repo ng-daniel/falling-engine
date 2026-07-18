@@ -12,6 +12,7 @@ const std::string RUNTIME_ASSETS_FIELD_NAME = "runtimeAssets";
 
 // runtime asset metadata specific names
 const std::string SOURCE_ID_FIELD_NAME = "sourceUUID";
+const std::string EXPORT_NAME_FIELD_NAME = "exportName";
 
 void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata);
 void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& metadata);
@@ -72,6 +73,7 @@ void AssetMetadataSerializer::Write(const SourceAssetMetadata& metadata, const s
 void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata) {
     std::string id;
     std::string type;
+    std::string exportName;
     std::string assetPath;
     std::string sourceId;
 
@@ -79,11 +81,13 @@ void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata) {
     archive.Read(ASSET_TYPE_FIELD_NAME, type);
     archive.Read(PATH_FIELD_NAME, assetPath);
     archive.Read(SOURCE_ID_FIELD_NAME, sourceId);
+    archive.Read(EXPORT_NAME_FIELD_NAME, exportName);
 
     metadata.id = UUIDFromString(id);
     metadata.type = type;
     metadata.path = assetPath;
     metadata.sourceId = UUIDFromString(sourceId);
+    metadata.exportName = exportName;
 }
 
 void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& metadata) {
@@ -91,4 +95,5 @@ void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& meta
     archive.Write(ASSET_TYPE_FIELD_NAME, metadata.type);
     archive.Write(PATH_FIELD_NAME, metadata.path);
     archive.Write(SOURCE_ID_FIELD_NAME, ToString(metadata.sourceId));
+    archive.Write(EXPORT_NAME_FIELD_NAME, metadata.exportName);
 }

@@ -6,8 +6,22 @@
  * @details
  * Initializes the asset metadata service and loads all asset metadata from the specified root path.
  */
-AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetRoot)
-	: sourceMetadatas(assetMetadataService.LoadAssetMetadata(assetRoot)) {}
+AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetRoot) {
+	// populate metadata maps (all of them except loadedAssets)
+	sourceMetadatas = assetMetadataService.LoadAssetMetadata(assetRoot);
+	for (const auto& [id, metadata] : sourceMetadatas) {
+		for (const auto& runtimeMetadata : metadata.assetMetadatas) {
+			if (exportNameToUUIDMap.find(runtimeMetadata.exportName) != exportNameToUUIDMap.end()) {
+				std::string existingAssetPath = sourceMetadatas[exportNameToUUIDMap[runtimeMetadata.exportName]].path.string();
+				throw std::runtime_error("Error loading asset metadata: Duplicate export name '" + runtimeMetadata.exportName +
+					"' found for assets '" + existingAssetPath + "' and '" + metadata.path.string() + "'." +
+					"Please rename one of the assets' export names in their respective asset metadata files.");
+			}
+			exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
+			runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+		}
+	}
+}
 
 /**
  * @brief Finds the metadata for the asset with the given ID.

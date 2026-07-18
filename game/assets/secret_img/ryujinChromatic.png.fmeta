@@ -1,13 +1,14 @@
 {
-    "UUID": "16291936371702758242",
+    "UUID": "2010625742096375474",
     "assetType": "Image",
     "path": "./game/assets/secret_img/ryujinChromatic.png",
     "runtimeAssets": [
         {
-            "UUID": "16291936371702758242",
+            "UUID": "2010625742096375474",
             "assetType": "Image",
+            "exportName": "ryujinChromatic",
             "path": "./game/assets/secret_img/ryujinChromatic.png",
-            "sourceUUID": "16291936371702758242"
+            "sourceUUID": "2010625742096375474"
         }
     ]
 }

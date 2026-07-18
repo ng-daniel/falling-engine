@@ -27,6 +27,8 @@ public:
 
 private:
 	AssetMetadataService assetMetadataService;
+	
+	std::unordered_map<std::string, UUID> exportNameToUUIDMap;
 	std::unordered_map<UUID, SourceAssetMetadata> sourceMetadatas;
 	std::unordered_map<UUID, RuntimeAssetMetadata> runtimeMetadatas;
 	std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
