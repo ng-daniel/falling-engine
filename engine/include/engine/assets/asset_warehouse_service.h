@@ -17,8 +17,8 @@ public:
 
 	SourceAssetMetadata* FindMetadata(UUID id);
 	const SourceAssetMetadata* FindMetadataReadOnly(UUID id) const;
-
-	std::unordered_map<std::string, UUID> GetAllExportNameUUIDMappings() const;
+	std::unordered_map<std::string, UUID> GetAllExportNameUUIDMappings() { return exportNameToUUIDMap; };
+	std::unordered_map<UUID, RuntimeAssetMetadata> GetAllRuntimeMetadatas() { return runtimeMetadatas; };
 
 	bool HasLoadedAsset(UUID id) const;
 	Asset* GetLoadedAsset(UUID id);

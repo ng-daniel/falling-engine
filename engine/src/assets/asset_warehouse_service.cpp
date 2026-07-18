@@ -107,11 +107,3 @@ void AssetWarehouseService::Clear() {
 	sourceMetadatas.clear();
 	loadedAssets.clear();
 }
-
-/**
- * @brief Retrieves all export names of the assets in the warehouse.
- * @return A vector of all export names.
- */
-std::unordered_map<std::string, UUID> AssetWarehouseService::GetAllExportNameUUIDMappings() const {
-	return exportNameToUUIDMap;
-}
