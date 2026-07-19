@@ -3,7 +3,6 @@
 
 #include "engine/assets/asset_data.h"
 
-#define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 
 /**

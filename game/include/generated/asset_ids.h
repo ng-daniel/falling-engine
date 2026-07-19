@@ -10,5 +10,6 @@ namespace GameAssets
     constexpr AssetHandle LOOKALIKE_CROP_IMAGE{ 14755153773422602874 };
     constexpr AssetHandle BASICVERT_SHADER{ 9187245430687615186 };
     constexpr AssetHandle RYUJINCHROMATIC_IMAGE{ 4181829728652363712 };
+    constexpr AssetHandle RYUJINTEX_IMAGE{ 17286383764878019981 };
 }
 #endif // ASSET_IDS_H

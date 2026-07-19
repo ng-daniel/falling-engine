@@ -7,6 +7,8 @@
 #include "engine/assets/importers/model_importer.h"
 #include "engine/assets/importers/image_importer.h"
 
+#define CGLTF_IMPLEMENTATION
+#include "cgltf.h"
 
 /**
  * @brief Loads a GLTF model asset from the specified path.
@@ -16,9 +18,9 @@
  */
 std::vector<std::unique_ptr<Asset>>
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata) {
-    
     ModelImportData tempData;
     std::vector<std::unique_ptr<Asset>> importedAssets;
+    return importedAssets;
 
     // parse file
 
@@ -77,30 +79,13 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata) {
     return importedAssets;
 }
 
-std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(
-    const cgltf_image& image,
-    ModelImportData& importData) {
-    
-    if (!image.uri && !image.buffer_view) {
-        throw std::runtime_error("CGLTF Image has no URI or buffer view");
-    }
-
-    if (image.uri) {
-        
-    }
-
+std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, ModelImportData& importData) {
     return nullptr;
 }
 
-// std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture) {
-//     cgltf_image * image = texture.image;
-//     if (!image->uri) {
-//         throw std::runtime_error("Texture image URI is null");
-//     }
-
-//     std::unique_ptr<TextureAsset> textureAsset;
-//     // cgltf_accessor * accessor = 
-// }
+std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture, ModelImportData& importData) {
+    return nullptr;
+}
 
 std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_material& material, ModelImportData& importData) {
     return nullptr;

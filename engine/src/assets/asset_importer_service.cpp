@@ -18,7 +18,8 @@ std::vector<std::unique_ptr<Asset>> AssetImporterService::ImportSourceAsset(Sour
                 assets = ShaderImporter::LoadAsset(metadata);
                 break;
             case Asset::AssetType::Model:
-                // assets = ModelImporter::LoadAsset(metadata);
+                assets = ModelImporter::LoadAsset(metadata);
+                break;
             default:
                 throw std::runtime_error("Unsupported asset type for import: " + metadata.type);
         }
