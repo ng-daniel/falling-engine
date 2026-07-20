@@ -13,6 +13,7 @@ public:
 
     static std::vector<std::unique_ptr<Asset>> LoadAsset(SourceAssetMetadata& metadata);
     static std::vector<std::unique_ptr<Asset>> LoadAssetFromMemory(const std::vector<unsigned char>& data);
+    static std::vector<unsigned char> DecodeDataUri(const char * uri);
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
 private:

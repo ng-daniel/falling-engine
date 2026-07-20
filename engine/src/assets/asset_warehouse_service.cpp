@@ -10,16 +10,26 @@
  * Initializes the asset metadata service and loads all asset metadata from the specified root path.
  */
 AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetRoot) {
+	
 	// populate metadata maps (all of them except loadedAssets)
+	// assumes the asset generator tool has already been ran, so the
+	// runtime asset metadata is already generated and stored in the source asset metadata files 
+	
 	sourceMetadatas = assetMetadataService.LoadAssetMetadata(assetRoot);
+	
+	// iterates through all runtime metadata
 	for (const auto& [id, metadata] : sourceMetadatas) {
 		for (const auto& runtimeMetadata : metadata.assetMetadatas) {
+			
+			// check for duplicate export names (must be unique)
 			if (exportNameToUUIDMap.find(runtimeMetadata.exportName) != exportNameToUUIDMap.end()) {
 				std::string existingAssetPath = sourceMetadatas[exportNameToUUIDMap[runtimeMetadata.exportName]].path.string();
 				throw std::runtime_error("Error loading asset metadata: Duplicate export name '" + runtimeMetadata.exportName +
 					"' found for assets '" + existingAssetPath + "' and '" + metadata.path.string() + "'." +
 					"Please rename one of the assets' export names in their respective asset metadata files.");
 			}
+
+			// store the runtime metadata in the warehouse's maps
 			exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
 			runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
 		}

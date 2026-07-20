@@ -1,6 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <string>
 #include <vector>
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/asset_helpers.h"

@@ -86,7 +86,7 @@ void AssetHeaderGenerator::Generate(const std::string& assetRootDir, const std::
         
         std::cout << "Importing asset: " << metadata.path.string() << std::endl;
 
-        std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(metadata);
+        std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(metadata, assetWarehouseService);
         size_t numAssets = assets.size();
         for (int i = 0; i < numAssets; i++) {
             
