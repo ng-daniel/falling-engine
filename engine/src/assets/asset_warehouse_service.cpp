@@ -21,15 +21,6 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
 	// iterates through all runtime metadata
 	for (const auto& [id, metadata] : sourceMetadatas) {
 		for (const auto& runtimeMetadata : metadata.assetMetadatas) {
-			
-			// check for duplicate export names (must be unique)
-			if (exportNameToUUIDMap.find(runtimeMetadata.exportName) != exportNameToUUIDMap.end()) {
-				std::string existingAssetPath = sourceMetadatas[exportNameToUUIDMap[runtimeMetadata.exportName]].path.string();
-				throw std::runtime_error("Error loading asset metadata: Duplicate export name '" + runtimeMetadata.exportName +
-					"' found for assets '" + existingAssetPath + "' and '" + metadata.path.string() + "'." +
-					"Please rename one of the assets' export names in their respective asset metadata files.");
-			}
-
 			// store the runtime metadata in the warehouse's maps
 			StoreRuntimeMetadata(runtimeMetadata);
 		}
@@ -176,8 +167,7 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 			assetType,
 			metadata
 		);
-
-		
+		StoreRuntimeMetadata(runtimeMetadata);
 		metadata.assetMetadatas.push_back(runtimeMetadata);
 		assetMetadataService.WriteMetadataAndUUID(metadata, metadata.path);		
 	}
@@ -188,7 +178,6 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 												// guarantees all runtime assets in the source asset 
 												// metadata have been loaded  
 	runtimeMetadatas[assetId].loaded = true;
-	StoreRuntimeMetadata(runtimeMetadatas[assetId]);
 	loadedAssets.insert_or_assign(assetId, std::move(asset));
 }
 
