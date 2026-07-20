@@ -2,5 +2,13 @@
     "UUID": "18069043453034654244",
     "assetType": "Model",
     "path": "./game/assets/models/ryujin7.glb",
-    "runtimeAssets": []
+    "runtimeAssets": [
+        {
+            "UUID": "3811269488652409328",
+            "assetType": "Image",
+            "exportName": "ryujinTex",
+            "path": "./game/assets/models/ryujin7.glb",
+            "sourceUUID": "18069043453034654244"
+        }
+    ]
 }

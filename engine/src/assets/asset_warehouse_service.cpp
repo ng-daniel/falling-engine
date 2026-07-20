@@ -1,4 +1,5 @@
 #include "engine/assets/asset_warehouse_service.h"
+#include "engine/assets/asset_data.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -30,10 +31,37 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
 			}
 
 			// store the runtime metadata in the warehouse's maps
-			exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
-			runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+			StoreRuntimeMetadata(runtimeMetadata);
 		}
 	}
+}
+
+/**
+ * @brief stores runtime metadata in the warehouse's maps and checks for duplicate export names.
+ * 
+ * @param runtimeMetadata 
+ *
+ * @details
+ * Note that duplicate filepaths are not checked for
+ *
+ * This is because i think it's fine and I dont want to :)
+ */
+void AssetWarehouseService::StoreRuntimeMetadata(const RuntimeAssetMetadata& runtimeMetadata) {
+	auto exportNameIterator = exportNameToUUIDMap.find(runtimeMetadata.exportName);
+	if (exportNameIterator != exportNameToUUIDMap.end() && exportNameIterator->second != runtimeMetadata.id) {
+		std::cerr << "Error: Duplicate export name '" << runtimeMetadata.exportName
+					<< "' found for assets with IDs '" << exportNameIterator->second
+					<< "' and '" << runtimeMetadata.id << "'."
+					<< "  Please rename one of the assets' export names in their respective asset metadata files."
+					<< " and rerun the asset header generator."
+					<< std::endl;
+	}
+	exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
+	runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+
+	// DO SOURCE ID BECAUSE IT MAKES SENSE, WHY WOULD YOU STORE RUNTIME UUID IF
+	// YOUR ONLY USE CASE ONLY REQUIRES A SOURCE UUID DUMMY
+	filePathToUUIDMap[runtimeMetadata.path] = runtimeMetadata.sourceId;
 }
 
 /**
@@ -61,7 +89,7 @@ SourceAssetMetadata* AssetWarehouseService::FindSourceMetadata(UUID runtimeAsset
  * @param id The ID of the asset to find metadata for.
  * @return A const pointer to the asset metadata, or nullptr if not found.
  */
-const SourceAssetMetadata* AssetWarehouseService::FindMetadataReadOnly(UUID id) const {
+const SourceAssetMetadata* AssetWarehouseService::FindSourceMetadataReadOnly(UUID id) const {
 	auto iterator = sourceMetadatas.find(id);
 	if (iterator == sourceMetadatas.end()) {
 		return nullptr;
@@ -108,6 +136,17 @@ const Asset* AssetWarehouseService::GetLoadedAssetReadOnly(UUID id) const {
 }
 
 /**
+ * @brief They call it the dependency resolver.
+ */
+SourceAssetMetadata AssetWarehouseService::DependencyResolver(const std::filesystem::path& assetPath) {
+	if (filePathToUUIDMap.find(assetPath) != filePathToUUIDMap.end()) {
+		return sourceMetadatas[filePathToUUIDMap[assetPath]];
+	} else {
+		throw std::runtime_error("Asset not found in warehouse: " + assetPath.string());
+	}
+}
+
+/**
  * @brief Stores a loaded asset in the warehouse.
  * @param metadata The metadata of the asset to store.
  * @param asset The asset to store.
@@ -121,33 +160,35 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 	const std::string exportName = asset->name;
 	const Asset::AssetType assetType = asset->type;
 
-	// if no runtime metadata is associated with the generated asset, generate it and store it
+	/*
+	if no runtime metadata is associated with the generated asset, generate it and store it
+	
+	every source asset goes through this process at least once,
+	but this is also useful for sub-assets that don't have a source asset metadata file
+	like meshes and materials that are part of a model asset
 
+	this block also populates the export name to UUID map
+	*/
 	if (runtimeMetadatas.find(assetId) == runtimeMetadatas.end()) {
-		
 		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadata(
 			assetId,
 			exportName,
 			assetType,
-			metadata);
+			metadata
+		);
 
-		auto exportNameIterator = exportNameToUUIDMap.find(runtimeMetadata.exportName);
-		if (exportNameIterator != exportNameToUUIDMap.end() && exportNameIterator->second != runtimeMetadata.id) {
-			std::cerr << "Error: Duplicate export name '" << runtimeMetadata.exportName
-					  << "' found for assets with IDs '" << exportNameIterator->second
-					  << "' and '" << runtimeMetadata.id << "'."
-					  << "  Please rename one of the assets' export names in their respective asset metadata files."
-					  << " and rerun the asset header generator."
-					  << std::endl;
-		}
-
-		exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
-		metadata.assetMetadatas.push_back(runtimeMetadata);
-		assetMetadataService.WriteMetadataAndUUID(metadata, metadata.path);
 		
-		runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+		metadata.assetMetadatas.push_back(runtimeMetadata);
+		assetMetadataService.WriteMetadataAndUUID(metadata, metadata.path);		
 	}
-	metadata.loaded = true;
+
+	// flag the asset as loaded and store it in the proper maps
+
+	sourceMetadatas[metadata.id].loaded = true; // due to how importers work, importing one runtime asset
+												// guarantees all runtime assets in the source asset 
+												// metadata have been loaded  
+	runtimeMetadatas[assetId].loaded = true;
+	StoreRuntimeMetadata(runtimeMetadatas[assetId]);
 	loadedAssets.insert_or_assign(assetId, std::move(asset));
 }
 
@@ -157,4 +198,5 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 void AssetWarehouseService::Clear() {
 	sourceMetadatas.clear();
 	loadedAssets.clear();
+	runtimeMetadatas.clear();
 }

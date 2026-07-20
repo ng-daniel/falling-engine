@@ -15,6 +15,7 @@ struct RuntimeAssetMetadata {
     std::string exportName; // unique name for the asset
     std::string type;
     std::filesystem::path path;
+    bool loaded;
 };
 
 struct SourceAssetMetadata {
@@ -22,7 +23,7 @@ struct SourceAssetMetadata {
     std::string type;
     std::filesystem::path path;
     std::vector<RuntimeAssetMetadata> assetMetadatas; // INCLUDES SOURCE ASSET METADATA
-    bool loaded; // in CPU memory or not
+    bool loaded;
 };
 
 /**

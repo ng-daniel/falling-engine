@@ -16,15 +16,18 @@ public:
 	AssetWarehouseService(const std::filesystem::path& assetRoot);
 
 	SourceAssetMetadata* FindSourceMetadata(UUID runtimeAssetUUID);
-	const SourceAssetMetadata* FindMetadataReadOnly(UUID id) const;
+	const SourceAssetMetadata* FindSourceMetadataReadOnly(UUID id) const;
 
 	std::unordered_map<std::string, UUID> GetAllExportNameUUIDMappings() { return exportNameToUUIDMap; };
 	std::unordered_map<UUID, RuntimeAssetMetadata> GetAllRuntimeMetadatas() { return runtimeMetadatas; };
 	std::unordered_map<UUID, SourceAssetMetadata>& GetAllSourceMetadatasAsReference() { return sourceMetadatas; };
 
 	bool HasLoadedAsset(UUID id) const;
+
 	Asset* GetLoadedAsset(UUID id);
 	const Asset* GetLoadedAssetReadOnly(UUID id) const;
+	SourceAssetMetadata DependencyResolver(const std::filesystem::path& assetPath);
+	void StoreRuntimeMetadata(const RuntimeAssetMetadata& metadata);
 
 	void StoreLoadedAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset);
 	void Clear();
@@ -33,6 +36,8 @@ private:
 	AssetMetadataService assetMetadataService;
 	
 	std::unordered_map<std::string, UUID> exportNameToUUIDMap;
+	std::unordered_map<std::filesystem::path, UUID> filePathToUUIDMap;
+
 	std::unordered_map<UUID, SourceAssetMetadata> sourceMetadatas;
 	std::unordered_map<UUID, RuntimeAssetMetadata> runtimeMetadatas;
 	std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;

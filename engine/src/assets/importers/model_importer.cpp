@@ -24,7 +24,6 @@ std::vector<std::unique_ptr<Asset>>
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService) {
     ModelImportContext modelImportContext(assetWarehouseService, metadata.path.parent_path());
     std::vector<std::unique_ptr<Asset>> importedAssets;
-    return importedAssets;
 
     // parse file
 
@@ -50,33 +49,43 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
 
     // process all assets in the model
 
-    for (cgltf_size i = 0; i < data->textures_count; ++i)
+    for (cgltf_size i = 0; i < data->images_count; ++i)
     {
-        cgltf_texture * texture = &data->textures[i];
-        std::unique_ptr<TextureAsset> textureAsset = ProcessTexture(*texture, modelImportContext);
-        modelImportContext.importedTextures[texture] = textureAsset->id;
-        importedAssets.push_back(std::move(textureAsset));
+        cgltf_image * image = &data->images[i];
+        std::unique_ptr<ImageAsset> imageAsset = ProcessImage(*image, modelImportContext);
+        if (imageAsset) {
+            modelImportContext.importedImages[image] = imageAsset->id;
+            importedAssets.push_back(std::move(imageAsset));
+        }
     }
+
+    // for (cgltf_size i = 0; i < data->textures_count; ++i)
+    // {
+    //     cgltf_texture * texture = &data->textures[i];
+    //     std::unique_ptr<TextureAsset> textureAsset = ProcessTexture(*texture, modelImportContext);
+    //     modelImportContext.importedTextures[texture] = textureAsset->id;
+    //     importedAssets.push_back(std::move(textureAsset));
+    // }
     
-    // process all materials in the model
+    // // process all materials in the model
 
-    for (cgltf_size i = 0; i < data->materials_count; ++i)
-    {
-        cgltf_material * material = &data->materials[i];
-        std::unique_ptr<MaterialAsset> materialAsset = ProcessMaterial(*material, modelImportContext);
-        modelImportContext.importedMaterials[material] = materialAsset->id;
-        importedAssets.push_back(std::move(materialAsset));
-    }
+    // for (cgltf_size i = 0; i < data->materials_count; ++i)
+    // {
+    //     cgltf_material * material = &data->materials[i];
+    //     std::unique_ptr<MaterialAsset> materialAsset = ProcessMaterial(*material, modelImportContext);
+    //     modelImportContext.importedMaterials[material] = materialAsset->id;
+    //     importedAssets.push_back(std::move(materialAsset));
+    // }
 
-    // process all meshes in the model
+    // // process all meshes in the model
 
-    for (cgltf_size i = 0; i < data->meshes_count; ++i)
-    {
-        cgltf_mesh * mesh = &data->meshes[i];
-        std::unique_ptr<MeshAsset> meshAsset = ProcessMesh(*mesh, modelImportContext);
-        modelImportContext.importedMeshes[mesh] = meshAsset->id;
-        importedAssets.push_back(std::move(meshAsset));
-    }
+    // for (cgltf_size i = 0; i < data->meshes_count; ++i)
+    // {
+    //     cgltf_mesh * mesh = &data->meshes[i];
+    //     std::unique_ptr<MeshAsset> meshAsset = ProcessMesh(*mesh, modelImportContext);
+    //     modelImportContext.importedMeshes[mesh] = meshAsset->id;
+    //     importedAssets.push_back(std::move(meshAsset));
+    // }
 
     cgltf_free(data);
 
@@ -89,8 +98,13 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
  * @param image The CGLTF image structure to process.
  * @param importData Reference structure containing cgltf ptrs -> asset id mappings.
  * @return std::unique_ptr<ImageAsset> 
+ *
+ * @note We don't create metadata here, only reading metadata.
+ * AssetWarehouseService.StoreLoadedAsset handles generating new metadatas 
+ * for sub-assets after the asset is created, but before the asset is made 
+ * available to the rest of the engine. So dont worry :D
  */
-std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, ModelImportContext& modelImportContext) {
+std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, const ModelImportContext& modelImportContext) {
     UUID imageId = UUIDGenerator::GenerateUUID();
     std::string imageName;
     if (image.name != nullptr && image.name[0] != '\0') {
@@ -110,6 +124,10 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
 
     std::vector<std::unique_ptr<Asset>> importedAssets;
     if (image.buffer_view != nullptr) {
+        /*
+        case 1
+        read raw bytes from buffer and load the image asset from memory
+        */
         const uint8_t* bufferData = cgltf_buffer_view_data(image.buffer_view);
         if (bufferData == nullptr) {
             throw std::runtime_error("Failed to access embedded image buffer view.");
@@ -121,26 +139,35 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
         importedAssets = ImageImporter::LoadAssetFromMemory(encodedImageData);
     }
     else if (image.uri != nullptr && image.uri[0] != '\0'&& strncmp(image.uri, "data:", 5) == 0) {
+        /*
+        case 2
+        decode the base64 data URI and load the image asset from memory
+        */
         std::vector<unsigned char> decodedImageData = DecodeDataUri(image.uri);
         importedAssets = ImageImporter::LoadAssetFromMemory(decodedImageData);
     }
     else if (image.uri != nullptr && image.uri[0] != '\0') {
+        /*
+        case 3
+        check if the source image is already loaded
+        if not, load it from the file path
+        */
         std::filesystem::path imagePath = modelImportContext.modelDirectory / image.uri;
-        SourceAssetMetadata imageMetadata {
-            .id = imageId,
-            .type = "Image",
-            .path = imagePath,
-            .assetMetadatas = {},
-            .loaded = false,
-        };
-        importedAssets = ImageImporter::LoadAsset(imageMetadata);
+        SourceAssetMetadata imageMetadata = modelImportContext.assetWarehouseService.DependencyResolver(imagePath);
+        if (!imageMetadata.loaded) {
+            importedAssets = ImageImporter::LoadAsset(imageMetadata);
+        }
     }
     else {
         throw std::runtime_error("GLTF image must provide either a buffer view or URI.");
     }
 
-    // ensure that exactly one image asset was produced
+    // ensure that either 0 or 1 image asset was produced (if 0, it means the image was already loaded and we don't need to create a new asset)
+    // importedAssets should only contain new assets, not existing ones that were already loaded
 
+    if (importedAssets.empty()) {
+        return nullptr; // image was already loaded
+    }
     if (importedAssets.size() != 1 || importedAssets.front() == nullptr) {
         throw std::runtime_error("Image import did not produce exactly one asset.");
     }
@@ -152,15 +179,15 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
     return imageAsset;
 }
 
-std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture, ModelImportContext& modelImportContext) {
+std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
     return nullptr;
 }
 
-std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_material& material, ModelImportContext& modelImportContext) {
+std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {
     return nullptr;
 }
 
-std::unique_ptr<MeshAsset> ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportContext& modelImportContext) {
+std::unique_ptr<MeshAsset> ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
     return nullptr;
 }
 
