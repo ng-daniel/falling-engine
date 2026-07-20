@@ -9,6 +9,13 @@
             "exportName": "ryujinTex",
             "path": "./game/assets/models/ryujin7.glb",
             "sourceUUID": "18069043453034654244"
+        },
+        {
+            "UUID": "426695319863738697",
+            "assetType": "Image",
+            "exportName": "ryujinTex",
+            "path": "./game/assets/models/ryujin7.glb",
+            "sourceUUID": "18069043453034654244"
         }
     ]
 }

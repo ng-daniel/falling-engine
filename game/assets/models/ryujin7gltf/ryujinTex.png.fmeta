@@ -6,7 +6,7 @@
         {
             "UUID": "17286383764878019981",
             "assetType": "Image",
-            "exportName": "ryujinTex",
+            "exportName": "ryujinTexPng",
             "path": "./game/assets/models/ryujin7gltf/ryujinTex.png",
             "sourceUUID": "17286383764878019981"
         }
