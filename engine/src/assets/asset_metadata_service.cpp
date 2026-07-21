@@ -92,17 +92,13 @@ SourceAssetMetadata AssetMetadataService::GenerateSourceMetadata(const std::file
  * 
  * @param asset The runtime asset to generate metadata for.
  */
-RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadata(
-	UUID assetId, 
-	const std::string& exportName,
-	Asset::AssetType assetType,
-	const SourceAssetMetadata& sourceMetadata) {
+RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadata(const Asset& asset, const SourceAssetMetadata& sourceMetadata) {
 	RuntimeAssetMetadata runtimeMetadata;
 	
 	// asset properties
-	runtimeMetadata.id = assetId;
-	runtimeMetadata.exportName = exportName;
-	runtimeMetadata.type = GetStringFromAssetType(assetType);
+	runtimeMetadata.id = asset.id;
+	runtimeMetadata.exportName = asset.name;
+	runtimeMetadata.type = GetStringFromAssetType(asset.type);
 
 	// source properties
 	runtimeMetadata.sourceId = sourceMetadata.id;

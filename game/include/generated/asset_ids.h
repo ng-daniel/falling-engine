@@ -11,6 +11,6 @@ namespace GameAssets
     constexpr AssetHandle RYUJINCHROMATIC_IMAGE{ 4181829728652363712 };
     constexpr AssetHandle LOOKALIKE_CROP_IMAGE{ 14755153773422602874 };
     constexpr AssetHandle RYUJINTEXPNG_IMAGE{ 17286383764878019981 };
-    constexpr AssetHandle RYUJINTEX_IMAGE{ 9350051412737734506 };
+    constexpr AssetHandle RYUJINTEX_IMAGE{ 4103938462711837232 };
 }
 #endif // ASSET_IDS_H

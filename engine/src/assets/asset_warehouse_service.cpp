@@ -162,9 +162,7 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 	*/
 	if (runtimeMetadatas.find(assetId) == runtimeMetadatas.end()) {
 		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadata(
-			assetId,
-			exportName,
-			assetType,
+			*asset,
 			metadata
 		);
 		StoreRuntimeMetadata(runtimeMetadata);
