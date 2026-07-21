@@ -17,6 +17,8 @@ public:
 
 	SourceAssetMetadata* FindSourceMetadata(UUID runtimeAssetUUID);
 	const SourceAssetMetadata* FindSourceMetadataReadOnly(UUID id) const;
+	RuntimeAssetMetadata* FindRuntimeMetadata(UUID runtimeAssetUUID);
+	const RuntimeAssetMetadata* FindRuntimeMetadataReadOnly(UUID runtimeAssetUUID) const;
 
 	std::unordered_map<std::string, UUID> GetAllExportNameUUIDMappings() { return exportNameToUUIDMap; };
 	std::unordered_map<UUID, RuntimeAssetMetadata> GetAllRuntimeMetadatas() { return runtimeMetadatas; };

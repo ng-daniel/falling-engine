@@ -1,5 +1,6 @@
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_data.h"
+#include "engine/assets/asset_helpers.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -90,6 +91,30 @@ const SourceAssetMetadata* AssetWarehouseService::FindSourceMetadataReadOnly(UUI
 }
 
 /**
+ * @brief Finds the runtime metadata for the asset with the given runtime UUID.
+ * 
+ * @param runtimeAssetUUID The runtime UUID of the asset to find metadata for.
+ * @return A pointer to the runtime asset metadata, or nullptr if not found.
+ */
+RuntimeAssetMetadata* AssetWarehouseService::FindRuntimeMetadata(UUID runtimeAssetUUID) {
+	auto runtimeMetadataIt = runtimeMetadatas.find(runtimeAssetUUID);
+	if (runtimeMetadataIt == runtimeMetadatas.end()) {
+		return nullptr;
+	}
+
+	return &runtimeMetadataIt->second;
+}
+
+const RuntimeAssetMetadata* AssetWarehouseService::FindRuntimeMetadataReadOnly(UUID runtimeAssetUUID) const {
+	auto runtimeMetadataIt = runtimeMetadatas.find(runtimeAssetUUID);
+	if (runtimeMetadataIt == runtimeMetadatas.end()) {
+		return nullptr;
+	}
+
+	return &runtimeMetadataIt->second;
+}
+
+/**
  * @brief Checks if an asset with the given ID is loaded in the warehouse.
  * @param id The ID of the asset to check.
  * @return True if the asset is loaded, false otherwise.
@@ -139,10 +164,10 @@ SourceAssetMetadata AssetWarehouseService::DependencyResolver(const std::filesys
 
 /**
  * @brief Stores a loaded asset in the warehouse.
- * @param metadata The metadata of the asset to store.
+ * @param sourceMetadata The source metadata of the asset to store.
  * @param asset The asset to store.
  */
-void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset) {
+void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& sourceMetadata, std::unique_ptr<Asset> asset) {
 	if (!asset) {
 		throw std::runtime_error("Cannot store null asset.");
 	}
@@ -156,23 +181,29 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 
 	this block also populates the export name to UUID map
 	*/
-	RuntimeAssetMetadata* imageRuntimeMetadata = metadata.TryGetSubAssetMetadata(asset->name);
-	if (imageRuntimeMetadata == nullptr) {
-		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadataNew(
+	RuntimeAssetMetadata* runtimeMetadata;
+	runtimeMetadata = sourceMetadata.TryGetSubAssetMetadata(asset->name);
+	if (runtimeMetadata == nullptr) {
+		RuntimeAssetMetadata newRuntimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadataNew(
 			*asset,
-			metadata,
+			sourceMetadata,
 			asset->name
 		);
-		StoreRuntimeMetadata(runtimeMetadata);
-		metadata.assetMetadatas.push_back(runtimeMetadata);
-		assetMetadataService.WriteMetadataAndUUID(metadata, metadata.path);		
+		StoreRuntimeMetadata(newRuntimeMetadata);
+		sourceMetadata.assetMetadatas.push_back(newRuntimeMetadata);
+		assetMetadataService.WriteMetadataAndUUID(sourceMetadata, sourceMetadata.path);		
 	}
+	runtimeMetadata = sourceMetadata.TryGetSubAssetMetadata(asset->name);
+	assert(runtimeMetadata != nullptr); // should never be null after the above block
+	ApplyMetadataToAsset(
+		*runtimeMetadata,
+		*asset
+	);
 
 	// flag the asset as loaded and store it in the proper maps
-
-	sourceMetadatas[metadata.id].loaded = true; // due to how importers work, importing one runtime asset
-												// guarantees all runtime assets in the source asset 
-												// metadata have been loaded  
+	sourceMetadatas[sourceMetadata.id].loaded = true; // due to how importers work, importing one runtime asset
+													// guarantees all runtime assets in the source asset 
+													// metadata have been loaded  
 	runtimeMetadatas[asset->id].loaded = true;
 	loadedAssets.insert_or_assign(asset->id, std::move(asset));
 }

@@ -35,7 +35,7 @@ public:
      */
     template <typename T>
     T* RequestAsset(UUID id) {
-        SourceAssetMetadata* metadata = assetWarehouseService.FindSourceMetadata(id);
+        RuntimeAssetMetadata* metadata = assetWarehouseService.FindRuntimeMetadata(id);
         if (!metadata) {
             std::cout << "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata." << std::endl;
             return nullptr;
@@ -43,9 +43,10 @@ public:
 
         // import and store in warehouse if not loaded
         if (!assetWarehouseService.HasLoadedAsset(id)) {
-            std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(*metadata, assetWarehouseService);
+            SourceAssetMetadata* sourceMetadata = assetWarehouseService.FindSourceMetadata(metadata->id);
+            std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(*sourceMetadata, assetWarehouseService);
             for (auto& asset : assets) {
-                assetWarehouseService.StoreLoadedAsset(*metadata, std::move(asset));
+                assetWarehouseService.StoreLoadedAsset(*sourceMetadata, std::move(asset));
             }
         }
 
