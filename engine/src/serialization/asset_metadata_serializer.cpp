@@ -1,6 +1,7 @@
 #include "engine/serialization/jsonarchive.h"
 #include "engine/serialization/asset_metadata_serializer.h"
 #include "engine/serialization/serialization_helpers.h"
+#include <string>
 
 // shared names
 const std::string UUID_FIELD_NAME = "UUID";
@@ -13,6 +14,7 @@ const std::string RUNTIME_ASSETS_FIELD_NAME = "runtimeAssets";
 // runtime asset metadata specific names
 const std::string SOURCE_ID_FIELD_NAME = "sourceUUID";
 const std::string EXPORT_NAME_FIELD_NAME = "exportName";
+const std::string SUB_ASSET_IDENTIFIER_FIELD_NAME = "subAssetIdentifier";
 
 void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata);
 void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& metadata);
@@ -76,18 +78,21 @@ void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata) {
     std::string exportName;
     std::string assetPath;
     std::string sourceId;
+    std::string subAssetIdentifier;
 
     archive.Read(UUID_FIELD_NAME, id);
     archive.Read(ASSET_TYPE_FIELD_NAME, type);
     archive.Read(PATH_FIELD_NAME, assetPath);
     archive.Read(SOURCE_ID_FIELD_NAME, sourceId);
     archive.Read(EXPORT_NAME_FIELD_NAME, exportName);
+    archive.Read(SUB_ASSET_IDENTIFIER_FIELD_NAME, subAssetIdentifier);
 
     metadata.id = UUIDFromString(id);
     metadata.type = type;
     metadata.path = assetPath;
     metadata.sourceId = UUIDFromString(sourceId);
     metadata.exportName = exportName;
+    metadata.subAssetIdentifier = subAssetIdentifier;
 }
 
 void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& metadata) {
@@ -96,4 +101,5 @@ void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& meta
     archive.Write(PATH_FIELD_NAME, metadata.path);
     archive.Write(SOURCE_ID_FIELD_NAME, ToString(metadata.sourceId));
     archive.Write(EXPORT_NAME_FIELD_NAME, metadata.exportName);
+    archive.Write(SUB_ASSET_IDENTIFIER_FIELD_NAME, metadata.subAssetIdentifier);
 }

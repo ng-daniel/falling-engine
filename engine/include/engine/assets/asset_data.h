@@ -11,11 +11,12 @@
 
 struct RuntimeAssetMetadata {
     UUID id;
-    UUID sourceId; // reference to the source asset metadata
-    std::string exportName; // unique name for the asset
-    std::string type;
-    std::filesystem::path path;
-    bool loaded;
+    UUID sourceId;                  // reference to the source asset metadata
+    std::string exportName;         // unique name for the asset, editable by user, used to generate asset header file
+    std::string subAssetIdentifier; // unique name for the asset, used for sub-assets
+    std::string type;               // string representation of the asset type
+    std::filesystem::path path;     // path to the source asset file
+    bool loaded;                    // whether the asset is already loaded into memory
 };
 
 struct SourceAssetMetadata {
@@ -24,6 +25,15 @@ struct SourceAssetMetadata {
     std::filesystem::path path;
     std::vector<RuntimeAssetMetadata> assetMetadatas; // INCLUDES SOURCE ASSET METADATA
     bool loaded;
+
+    RuntimeAssetMetadata* TryGetSubAssetMetadata(const std::string& subAssetIdentifier) {
+        for (auto& runtimeMetadata : assetMetadatas) {
+            if (runtimeMetadata.subAssetIdentifier == subAssetIdentifier) {
+                return &runtimeMetadata;
+            }
+        }
+        return nullptr;
+    }
 };
 
 /**

@@ -27,9 +27,7 @@ std::vector<std::unique_ptr<Asset>> ImageImporter::LoadAsset(SourceAssetMetadata
     imageAsset->data.assign(data, data + dataSize);
 
     ApplyMetadataToAsset(
-        metadata.id, 
-        metadata.path.stem().string(), 
-        "Image", 
+        metadata,
         *imageAsset
     );
 

@@ -57,20 +57,24 @@ inline Asset::AssetType GetAssetTypeFromExtension(const std::string& extension) 
 
 /**
  * @brief Applies metadata information to an asset object.
- * @param id The UUID of the asset.
- * @param name The name of the asset.
- * @param type The type of the asset as a string.
+ * @param runtimeMetadata The runtime metadata containing the information to apply
  * @param asset The asset object to which the metadata will be applied.
  */
 inline void ApplyMetadataToAsset(
-    const UUID id, 
-    const std::string name,
-    const std::string type,
+    RuntimeAssetMetadata& runtimeMetadata,
     Asset& asset) {
     
-    asset.id = id;
-    asset.name = name;
-    asset.type = GetAssetTypeFromString(type);
+    asset.id = runtimeMetadata.id;
+    asset.name = runtimeMetadata.exportName;
+    asset.type = GetAssetTypeFromString(runtimeMetadata.type);
+}
+inline void ApplyMetadataToAsset(
+    SourceAssetMetadata& sourceMetadata,
+    Asset& asset) {
+    
+    asset.id = sourceMetadata.id;
+    asset.name = sourceMetadata.path.stem().string();
+    asset.type = GetAssetTypeFromString(sourceMetadata.type);
 }
 
 #endif // ENGINE_ASSETS_ASSET_HELPERS_H

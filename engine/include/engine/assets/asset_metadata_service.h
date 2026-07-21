@@ -16,9 +16,15 @@
 class AssetMetadataService {
 public:
 	std::unordered_map<UUID, SourceAssetMetadata> LoadAssetMetadata(const std::filesystem::path& assetDirectory);
-	RuntimeAssetMetadata GenerateRuntimeAssetMetadata(
+	RuntimeAssetMetadata GenerateRuntimeAssetMetadataFromAsset(
 		const Asset& asset,
-		const SourceAssetMetadata& sourceMetadata);
+		const SourceAssetMetadata& sourceMetadata
+	);
+	RuntimeAssetMetadata GenerateRuntimeAssetMetadataNew(
+		const Asset& asset,
+		const SourceAssetMetadata& sourceMetadata,
+		const std::string& subAssetIdentifier
+	);
 	void WriteMetadataAndUUID(const SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
 
 private:

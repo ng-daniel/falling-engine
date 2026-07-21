@@ -147,10 +147,6 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 		throw std::runtime_error("Cannot store null asset.");
 	}
 
-	const UUID assetId = asset->id;
-	const std::string exportName = asset->name;
-	const Asset::AssetType assetType = asset->type;
-
 	/*
 	if no runtime metadata is associated with the generated asset, generate it and store it
 	
@@ -160,10 +156,12 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 
 	this block also populates the export name to UUID map
 	*/
-	if (runtimeMetadatas.find(assetId) == runtimeMetadatas.end()) {
-		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadata(
+	RuntimeAssetMetadata* imageRuntimeMetadata = metadata.TryGetSubAssetMetadata(asset->name);
+	if (imageRuntimeMetadata == nullptr) {
+		RuntimeAssetMetadata runtimeMetadata = assetMetadataService.GenerateRuntimeAssetMetadataNew(
 			*asset,
-			metadata
+			metadata,
+			asset->name
 		);
 		StoreRuntimeMetadata(runtimeMetadata);
 		metadata.assetMetadatas.push_back(runtimeMetadata);
@@ -175,8 +173,8 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& metadata, std:
 	sourceMetadatas[metadata.id].loaded = true; // due to how importers work, importing one runtime asset
 												// guarantees all runtime assets in the source asset 
 												// metadata have been loaded  
-	runtimeMetadatas[assetId].loaded = true;
-	loadedAssets.insert_or_assign(assetId, std::move(asset));
+	runtimeMetadatas[asset->id].loaded = true;
+	loadedAssets.insert_or_assign(asset->id, std::move(asset));
 }
 
 /**

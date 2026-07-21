@@ -92,13 +92,42 @@ SourceAssetMetadata AssetMetadataService::GenerateSourceMetadata(const std::file
  * 
  * @param asset The runtime asset to generate metadata for.
  */
-RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadata(const Asset& asset, const SourceAssetMetadata& sourceMetadata) {
+RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadataFromAsset(const Asset& asset, const SourceAssetMetadata& sourceMetadata) {
 	RuntimeAssetMetadata runtimeMetadata;
 	
 	// asset properties
 	runtimeMetadata.id = asset.id;
 	runtimeMetadata.exportName = asset.name;
 	runtimeMetadata.type = GetStringFromAssetType(asset.type);
+
+	// source properties
+	runtimeMetadata.sourceId = sourceMetadata.id;
+	runtimeMetadata.path = sourceMetadata.path;
+
+	return runtimeMetadata;
+}
+
+/**
+ * @brief Generates a brand new RuntimeAssetMetadata for when no runtime metadata 
+ * 		  exists yet in the source metadata file.
+ * 
+ * @param asset The asset to generate runtime metadata for. Should have no UUID.
+ * @param sourceMetadata 
+ * @param subAssetIdentifier 
+ * @return RuntimeAssetMetadata 
+ */
+RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadataNew(
+	const Asset& asset,
+	const SourceAssetMetadata& sourceMetadata,
+	const std::string& subAssetIdentifier
+) {
+	RuntimeAssetMetadata runtimeMetadata;
+	
+	// asset properties
+	runtimeMetadata.id = UUIDGenerator::GenerateUUID();
+	runtimeMetadata.exportName = asset.name;
+	runtimeMetadata.type = GetStringFromAssetType(asset.type);
+	runtimeMetadata.subAssetIdentifier = subAssetIdentifier;
 
 	// source properties
 	runtimeMetadata.sourceId = sourceMetadata.id;

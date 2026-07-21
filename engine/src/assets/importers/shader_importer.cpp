@@ -32,9 +32,7 @@ std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(SourceAssetMetadat
     }
 
     ApplyMetadataToAsset(
-        metadata.id, 
-        metadata.path.stem().string(), 
-        "Shader", 
+        metadata,
         *shaderAsset
     );
 

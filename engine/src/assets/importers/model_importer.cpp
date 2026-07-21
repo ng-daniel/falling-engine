@@ -1,7 +1,9 @@
 #include "engine/assets/asset_data.h"
 
+#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -12,8 +14,56 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 
-std::vector<unsigned char> DecodeDataUri(const char* uri);
-std::string BuildSubAssetNameFromGLTFName(const std::string& gltfName, const std::string& sourceName);
+/**
+ * @brief HELPER: Decodes a data URI and returns the decoded image data as a vector of unsigned chars.
+ * 
+ * @param uri the data URI to decode.
+ * @return std::vector<unsigned char> 
+ */
+std::vector<unsigned char> DecodeDataUri(const char* uri) {
+    
+    // validate URI format
+    const char* comma = strchr(uri, ',');
+    if (comma == nullptr || comma - uri < 7 || strncmp(comma - 7, ";base64", 7) != 0) {
+        throw std::runtime_error("Unsupported data URI image format.");
+    }
+
+    // validate base64 payload
+    const char* base64Data = comma + 1;
+    size_t base64Length = strlen(base64Data);
+    if (base64Length == 0 || base64Length % 4 != 0) {
+        throw std::runtime_error("Malformed base64 image payload.");
+    }
+
+    // compute decoded size
+    size_t padding = 0;
+    if (base64Length >= 1 && base64Data[base64Length - 1] == '=') {
+        ++padding;
+    }
+    if (base64Length >= 2 && base64Data[base64Length - 2] == '=') {
+        ++padding;
+    }
+    size_t decodedSize = (base64Length / 4) * 3 - padding;
+
+    // decode base64 data using cgltf's base64 decoder
+    cgltf_options options {};
+    void * decodedData = nullptr;
+    cgltf_result decodeResult = cgltf_load_buffer_base64(&options, decodedSize, base64Data, &decodedData);
+    if (decodeResult != cgltf_result_success || decodedData == nullptr) {
+        throw std::runtime_error("Failed to decode data URI image payload.");
+    }
+
+    // convert to unsigned char vector format
+    unsigned char * bytes = static_cast<unsigned char *>(decodedData);
+    std::vector<unsigned char> imageData(bytes, bytes + decodedSize);
+
+    std::free(decodedData);
+    return imageData;
+}
+
+std::string BuildSubAssetNameFromGLTFName(const std::string&glTFName, Asset::AssetType assetType) {
+    return GetStringFromAssetType(assetType) + "__" + glTFName;
+}
 
 /**
  * @brief Loads a GLTF model asset from the specified path.
@@ -60,6 +110,25 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
         std::unique_ptr<ImageAsset> imageAsset = ProcessImage(*image, modelImportContext);
         if (imageAsset) {
             modelImportContext.importedImages[image] = imageAsset->id;
+            
+            // apply existing metadata if the subAssetIdentifier exists
+            // otherwise do nothing except set the name of the asset,
+            // indicating we need to generate a new runtime metadata for this sub-asset
+
+            std::string defaultImageName = "image_" + std::to_string(i);
+            std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+                image->name ? image->name : defaultImageName,
+                Asset::AssetType::Image
+            );
+            RuntimeAssetMetadata* imageRuntimeMetadata = metadata.TryGetSubAssetMetadata(subAssetIdentifier);
+            if (imageRuntimeMetadata) {
+                ApplyMetadataToAsset(*imageRuntimeMetadata, *imageAsset);
+            }
+            else {
+                std::cout << "INFO: No runtime metadata found for image sub-asset '" << subAssetIdentifier << "'. Generating new runtime metadata." << std::endl;
+                imageAsset->name = subAssetIdentifier;
+            }
+            
             importedAssets.push_back(std::move(imageAsset));
         }
     }
@@ -110,17 +179,6 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
  * available to the rest of the engine. So dont worry :D
  */
 std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, const ModelImportContext& modelImportContext) {
-    std::string sourceName = modelImportContext.sourceAssetMetadata.path.stem().string();
-    std::string imageName;
-    if (image.name != nullptr && image.name[0] != '\0') {
-        imageName = image.name;
-    } else {
-        imageName = "image";
-    }
-    std::string subAssetName = BuildSubAssetNameFromGLTFName(imageName, sourceName);
-
-    UUID imageId = UUIDGenerator::GenerateUUID();
-
     /*
     3 valid cases + 1 invalid case:
     
@@ -187,7 +245,6 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
     auto imageAsset = std::unique_ptr<ImageAsset>(
         static_cast<ImageAsset*>(importedAssets.front().release())
     );
-    ApplyMetadataToAsset(imageId, imageName, "Image", *imageAsset);
 
     return imageAsset;
 }
@@ -202,55 +259,4 @@ std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_materi
 
 std::unique_ptr<MeshAsset> ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
     return nullptr;
-}
-
-/**
- * @brief HELPER: Decodes a data URI and returns the decoded image data as a vector of unsigned chars.
- * 
- * @param uri the data URI to decode.
- * @return std::vector<unsigned char> 
- */
-std::vector<unsigned char> DecodeDataUri(const char* uri) {
-    
-    // validate URI format
-    const char* comma = strchr(uri, ',');
-    if (comma == nullptr || comma - uri < 7 || strncmp(comma - 7, ";base64", 7) != 0) {
-        throw std::runtime_error("Unsupported data URI image format.");
-    }
-
-    // validate base64 payload
-    const char* base64Data = comma + 1;
-    size_t base64Length = strlen(base64Data);
-    if (base64Length == 0 || base64Length % 4 != 0) {
-        throw std::runtime_error("Malformed base64 image payload.");
-    }
-
-    // compute decoded size
-    size_t padding = 0;
-    if (base64Length >= 1 && base64Data[base64Length - 1] == '=') {
-        ++padding;
-    }
-    if (base64Length >= 2 && base64Data[base64Length - 2] == '=') {
-        ++padding;
-    }
-    size_t decodedSize = (base64Length / 4) * 3 - padding;
-
-    // decode base64 data using cgltf's base64 decoder
-    cgltf_options options {};
-    void * decodedData = nullptr;
-    cgltf_result decodeResult = cgltf_load_buffer_base64(&options, decodedSize, base64Data, &decodedData);
-    if (decodeResult != cgltf_result_success || decodedData == nullptr) {
-        throw std::runtime_error("Failed to decode data URI image payload.");
-    }
-
-    // convert to unsigned char vector format
-    unsigned char * bytes = static_cast<unsigned char *>(decodedData);
-    std::vector<unsigned char> imageData(bytes, bytes + decodedSize);
-
-    std::free(decodedData);
-    return imageData;
-}
-
-std::string BuildSubAssetNameFromGLTFName(const std::string& gltfName, const std::string& sourceName) {
-    return sourceName + ":" + gltfName;
 }

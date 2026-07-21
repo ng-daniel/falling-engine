@@ -1,35 +1,15 @@
 {
-    "UUID": "18069043453034654244",
+    "UUID": "7163974071210795265",
     "assetType": "Model",
     "path": "./game/assets/models/ryujin7.glb",
     "runtimeAssets": [
         {
-            "UUID": "12453935647508336967",
-            "assetType": "Image",
-            "exportName": "ryujinTex",
+            "UUID": "10023997765389218965",
+            "assetType": "Model",
+            "exportName": "Image__ryujinTex",
             "path": "./game/assets/models/ryujin7.glb",
-            "sourceUUID": "18069043453034654244"
-        },
-        {
-            "UUID": "9350051412737734506",
-            "assetType": "Image",
-            "exportName": "ryujinTex",
-            "path": "./game/assets/models/ryujin7.glb",
-            "sourceUUID": "18069043453034654244"
-        },
-        {
-            "UUID": "2320832012554494539",
-            "assetType": "Image",
-            "exportName": "ryujinTex",
-            "path": "./game/assets/models/ryujin7.glb",
-            "sourceUUID": "18069043453034654244"
-        },
-        {
-            "UUID": "4103938462711837232",
-            "assetType": "Image",
-            "exportName": "ryujinTex",
-            "path": "./game/assets/models/ryujin7.glb",
-            "sourceUUID": "18069043453034654244"
+            "sourceUUID": "7163974071210795265",
+            "subAssetIdentifier": "Image__ryujinTex"
         }
     ]
 }
