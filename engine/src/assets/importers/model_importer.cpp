@@ -161,7 +161,12 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
         if not, load it from the file path
         */
         std::filesystem::path imagePath = modelImportContext.modelDirectory / image.uri;
-        SourceAssetMetadata imageMetadata = modelImportContext.assetWarehouseService.DependencyResolver(imagePath);
+        SourceAssetMetadata imageMetadata;
+        try {
+            imageMetadata = modelImportContext.assetWarehouseService.DependencyResolver(imagePath);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Failed to resolve dependency for image asset: " + imagePath.string() + ". Error: " + e.what());
+        }
         if (!imageMetadata.loaded) {
             importedAssets = ImageImporter::LoadAsset(imageMetadata);
         }
