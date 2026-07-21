@@ -17,10 +17,11 @@
 */
 class ModelImportContext {
 public:
-    ModelImportContext(AssetWarehouseService& assetWarehouseService, const std::filesystem::path& modelDirectory) 
-        : assetWarehouseService(assetWarehouseService), modelDirectory(modelDirectory) {}
+    ModelImportContext(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService, const std::filesystem::path& modelDirectory) 
+        : sourceAssetMetadata(metadata), assetWarehouseService(assetWarehouseService), modelDirectory(modelDirectory) {}
     ~ModelImportContext() = default;
 
+    SourceAssetMetadata& sourceAssetMetadata;
     AssetWarehouseService& assetWarehouseService;
     std::filesystem::path modelDirectory;
 

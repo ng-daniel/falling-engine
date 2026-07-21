@@ -119,6 +119,8 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
     }
     std::string subAssetName = BuildSubAssetNameFromGLTFName(imageName, sourceName);
 
+    UUID imageId = UUIDGenerator::GenerateUUID();
+
     /*
     3 valid cases + 1 invalid case:
     
