@@ -13,6 +13,7 @@
 #include "cgltf.h"
 
 std::vector<unsigned char> DecodeDataUri(const char* uri);
+std::string BuildSubAssetNameFromGLTFName(const std::string& gltfName, const std::string& sourceName);
 
 /**
  * @brief Loads a GLTF model asset from the specified path.
@@ -22,8 +23,12 @@ std::vector<unsigned char> DecodeDataUri(const char* uri);
  */
 std::vector<std::unique_ptr<Asset>>
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService) {
-    ModelImportContext modelImportContext(assetWarehouseService, metadata.path.parent_path());
     std::vector<std::unique_ptr<Asset>> importedAssets;
+    ModelImportContext modelImportContext(
+        metadata,
+        assetWarehouseService,
+        metadata.path.parent_path()
+    );
 
     // parse file
 
@@ -105,13 +110,14 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
  * available to the rest of the engine. So dont worry :D
  */
 std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, const ModelImportContext& modelImportContext) {
-    UUID imageId = UUIDGenerator::GenerateUUID();
+    std::string sourceName = modelImportContext.sourceAssetMetadata.path.stem().string();
     std::string imageName;
     if (image.name != nullptr && image.name[0] != '\0') {
         imageName = image.name;
     } else {
-        imageName = "image_" + UUIDToString(imageId);
+        imageName = "image";
     }
+    std::string subAssetName = BuildSubAssetNameFromGLTFName(imageName, sourceName);
 
     /*
     3 valid cases + 1 invalid case:
@@ -236,4 +242,8 @@ std::vector<unsigned char> DecodeDataUri(const char* uri) {
 
     std::free(decodedData);
     return imageData;
+}
+
+std::string BuildSubAssetNameFromGLTFName(const std::string& gltfName, const std::string& sourceName) {
+    return sourceName + ":" + gltfName;
 }
