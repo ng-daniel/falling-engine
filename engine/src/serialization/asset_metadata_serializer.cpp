@@ -82,14 +82,12 @@ void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata) {
 
     archive.Read(UUID_FIELD_NAME, id);
     archive.Read(ASSET_TYPE_FIELD_NAME, type);
-    archive.Read(PATH_FIELD_NAME, assetPath);
     archive.Read(SOURCE_ID_FIELD_NAME, sourceId);
     archive.Read(EXPORT_NAME_FIELD_NAME, exportName);
     archive.Read(SUB_ASSET_IDENTIFIER_FIELD_NAME, subAssetIdentifier);
 
     metadata.id = UUIDFromString(id);
     metadata.type = type;
-    metadata.path = assetPath;
     metadata.sourceId = UUIDFromString(sourceId);
     metadata.exportName = exportName;
     metadata.subAssetIdentifier = subAssetIdentifier;
@@ -98,7 +96,6 @@ void ReadRuntimeMetadata(JsonArchive& archive, RuntimeAssetMetadata& metadata) {
 void WriteRuntimeMetadata(JsonArchive& archive, const RuntimeAssetMetadata& metadata) {
     archive.Write(UUID_FIELD_NAME, ToString(metadata.id));
     archive.Write(ASSET_TYPE_FIELD_NAME, metadata.type);
-    archive.Write(PATH_FIELD_NAME, metadata.path);
     archive.Write(SOURCE_ID_FIELD_NAME, ToString(metadata.sourceId));
     archive.Write(EXPORT_NAME_FIELD_NAME, metadata.exportName);
     archive.Write(SUB_ASSET_IDENTIFIER_FIELD_NAME, metadata.subAssetIdentifier);

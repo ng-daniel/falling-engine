@@ -51,9 +51,8 @@ void AssetWarehouseService::StoreRuntimeMetadata(const RuntimeAssetMetadata& run
 	exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
 	runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
 
-	// DO SOURCE ID BECAUSE IT MAKES SENSE, WHY WOULD YOU STORE RUNTIME UUID IF
-	// YOUR ONLY USE CASE ONLY REQUIRES A SOURCE UUID DUMMY
-	filePathToUUIDMap[runtimeMetadata.path] = runtimeMetadata.sourceId;
+	// store source metadata path to UUID mapping for sub-asset dependency resolving
+	filePathToUUIDMap[sourceMetadatas[runtimeMetadata.sourceId].path] = runtimeMetadata.sourceId;
 }
 
 /**

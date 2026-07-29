@@ -102,7 +102,6 @@ RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadataFromAsset
 
 	// source properties
 	runtimeMetadata.sourceId = sourceMetadata.id;
-	runtimeMetadata.path = sourceMetadata.path;
 
 	return runtimeMetadata;
 }
@@ -131,7 +130,6 @@ RuntimeAssetMetadata AssetMetadataService::GenerateRuntimeAssetMetadataNew(
 
 	// source properties
 	runtimeMetadata.sourceId = sourceMetadata.id;
-	runtimeMetadata.path = sourceMetadata.path;
 
 	return runtimeMetadata;
 }

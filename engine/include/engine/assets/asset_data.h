@@ -15,7 +15,6 @@ struct RuntimeAssetMetadata {
     std::string exportName;         // unique name for the asset, editable by user, used to generate asset header file
     std::string subAssetIdentifier; // unique name for the asset, used for sub-assets
     std::string type;               // string representation of the asset type
-    std::filesystem::path path;     // path to the source asset file
     bool loaded;                    // whether the asset is already loaded into memory
 };
 
