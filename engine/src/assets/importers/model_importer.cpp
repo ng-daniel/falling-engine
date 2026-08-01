@@ -250,7 +250,23 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
 }
 
 std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
-    return nullptr;
+    
+    // implement the same logic as ProcessImage, but for textures instead of images
+    std::vector<std::unique_ptr<Asset>> importedAssets;
+    if (texture.image != nullptr) {
+        // check modelImportContext to see if the image has already been imported
+        auto imageIt = modelImportContext.importedImages.find(texture.image);
+        if (imageIt == modelImportContext.importedImages.end()) {
+            throw std::runtime_error("Texture references an image that has not been imported.");
+        }
+        UUID imageId = imageIt->second;
+        
+        // if (imageAsset) {
+        //     modelImportContext.importedImages[texture.image] = imageAsset->id;
+        //     importedAssets.push_back(std::move(imageAsset));
+        // }
+    }
+
 }
 
 std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {
