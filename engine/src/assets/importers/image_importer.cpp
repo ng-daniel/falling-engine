@@ -35,6 +35,9 @@ const ImageAsset* ImageImporter::LoadAsset(
         metadata,
         *imageAsset
     );
+    // override type to Image, since ApplyMetadataToAsset will set it to Texture for .png and .jpg files
+    imageAsset->type = Asset::AssetType::Image;
+
     stbi_image_free(data);
 
     return static_cast<const ImageAsset*>(

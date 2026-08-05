@@ -1,6 +1,7 @@
 #include "engine/assets/asset_importer_service.h"
 
 #include "engine/assets/importers/image_importer.h"
+#include "engine/assets/importers/texture_importer.h"
 #include "engine/assets/importers/shader_importer.h"
 #include "engine/assets/importers/model_importer.h"
 
@@ -22,8 +23,8 @@ std::vector<const Asset*> AssetImporterService::ImportSourceAsset(
     try {
         std::vector<const Asset*> assets;
         switch (GetAssetTypeFromString(metadata.type)) {
-            case Asset::AssetType::Image:
-                assets.push_back(ImageImporter::LoadAsset(metadata, assetWarehouseService));
+            case Asset::AssetType::Texture:
+                assets.push_back(TextureImporter::LoadAsset(metadata, assetWarehouseService));
                 break;
             case Asset::AssetType::Shader:
                 assets.push_back(ShaderImporter::LoadAsset(metadata, assetWarehouseService));

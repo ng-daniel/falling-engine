@@ -1,7 +1,5 @@
 #include "engine/assets/asset_data.h"
 
-#include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -10,6 +8,7 @@
 #include "engine/assets/asset_helpers.h"
 #include "engine/assets/importers/model_importer.h"
 #include "engine/assets/importers/image_importer.h"
+#include "engine/assets/importers/texture_importer.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
@@ -117,13 +116,15 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
         }
     }
 
-    // for (cgltf_size i = 0; i < data->textures_count; ++i)
-    // {
-    //     cgltf_texture * texture = &data->textures[i];
-    //     std::unique_ptr<TextureAsset> textureAsset = ProcessTexture(*texture, modelImportContext);
-    //     modelImportContext.importedTextures[texture] = textureAsset->id;
-    //     importedAssets.push_back(std::move(textureAsset));
-    // }
+    for (cgltf_size i = 0; i < data->textures_count; ++i)
+    {
+        cgltf_texture * texture = &data->textures[i];
+        const TextureAsset* textureAsset = ProcessTexture(*texture, modelImportContext);
+        if (textureAsset != nullptr) {
+            modelImportContext.importedTextures[texture] = textureAsset->id;
+            importedAssets.push_back(textureAsset);
+        }
+    }
     
     // // process all materials in the model
 
@@ -247,7 +248,14 @@ const ImageAsset* ModelImporter::ProcessImage(
         else {
             // load from file if not already loaded
 
-            return ImageImporter::LoadAsset(imageMetadata, modelImportContext.assetWarehouseService);
+            // since the image is also a source, we need to create both the image and a default texture asset for it
+            // which is why we need to call the TextureImporter to load the image and create a texture asset for it
+            // then query the image asset from the warehouse using the texture asset's image UUID
+
+            const TextureAsset* textureAsset = TextureImporter::LoadAsset(imageMetadata, modelImportContext.assetWarehouseService);
+            return static_cast<const ImageAsset*>(
+                modelImportContext.assetWarehouseService.GetLoadedAssetReadOnly(textureAsset->image)
+            );
         }
     }
     else {
@@ -256,23 +264,56 @@ const ImageAsset* ModelImporter::ProcessImage(
 }
 
 const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
-    
-    // implement the same logic as ProcessImage, but for textures instead of images
-    if (texture.image != nullptr) {
-        // check modelImportContext to see if the image has already been imported
-        auto imageIt = modelImportContext.importedImages.find(texture.image);
-        if (imageIt == modelImportContext.importedImages.end()) {
-            throw std::runtime_error("Texture references an image that has not been imported.");
-        }
-        UUID imageId = imageIt->second;
-        
-        // if (imageAsset) {
-        //     modelImportContext.importedImages[texture.image] = imageAsset->id;
-        //     importedAssets.push_back(std::move(imageAsset));
-        // }
+    if (texture.image == nullptr) {
+        throw std::runtime_error("Texture is missing an image reference.");
     }
 
-    return nullptr;
+    UUID imageId;
+    auto imageIt = modelImportContext.importedImages.find(texture.image);
+    if (imageIt != modelImportContext.importedImages.end()) {
+        imageId = imageIt->second;
+    } else {
+        const std::string imageName = texture.image->name
+            ? texture.image->name
+            : "texture_image";
+        const ImageAsset* imageAsset = ProcessImage(*texture.image, imageName, modelImportContext);
+        if (imageAsset == nullptr) {
+            throw std::runtime_error("Failed to import texture image dependency.");
+        }
+        imageId = imageAsset->id;
+    }
+
+    const std::string textureName = texture.name != nullptr && texture.name[0] != '\0'
+        ? texture.name
+        : (texture.image->name != nullptr && texture.image->name[0] != '\0'
+            ? texture.image->name
+            : "texture");
+    const std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+        textureName,
+        Asset::AssetType::Texture
+    );
+
+    const TextureAsset* textureAsset = TextureImporter::LoadAssetFromImage(
+        modelImportContext.sourceAssetMetadata,
+        modelImportContext.assetWarehouseService,
+        imageId,
+        subAssetIdentifier
+    );
+
+    if (texture.sampler != nullptr) {
+        Asset* storedAsset = modelImportContext.assetWarehouseService.GetLoadedAsset(textureAsset->id);
+        if (storedAsset == nullptr) {
+            throw std::runtime_error("Texture asset was not stored in the warehouse.");
+        }
+
+        TextureAsset* mutableTextureAsset = static_cast<TextureAsset*>(storedAsset);
+        mutableTextureAsset->mag_filter = static_cast<int>(texture.sampler->mag_filter);
+        mutableTextureAsset->min_filter = static_cast<int>(texture.sampler->min_filter);
+        mutableTextureAsset->wrap_s = static_cast<int>(texture.sampler->wrap_s);
+        mutableTextureAsset->wrap_t = static_cast<int>(texture.sampler->wrap_t);
+    }
+
+    return textureAsset;
 }
 
 const MaterialAsset* ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {

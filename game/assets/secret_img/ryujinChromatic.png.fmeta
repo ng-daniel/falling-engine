@@ -1,14 +1,21 @@
 {
-    "UUID": "14263897092430818978",
-    "assetType": "Image",
+    "UUID": "14330089934684896347",
+    "assetType": "Texture",
     "path": "./game/assets/secret_img/ryujinChromatic.png",
     "runtimeAssets": [
         {
-            "UUID": "6448575756802403392",
+            "UUID": "18433379156992202182",
             "assetType": "Image",
             "exportName": "ryujinChromatic",
-            "sourceUUID": "14263897092430818978",
+            "sourceUUID": "14330089934684896347",
             "subAssetIdentifier": "ryujinChromatic"
+        },
+        {
+            "UUID": "397092376422481477",
+            "assetType": "Texture",
+            "exportName": "ryujinChromatic_texture",
+            "sourceUUID": "14330089934684896347",
+            "subAssetIdentifier": "ryujinChromatic_texture"
         }
     ]
 }

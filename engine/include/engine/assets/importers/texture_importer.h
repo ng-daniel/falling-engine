@@ -2,7 +2,6 @@
 #define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
 #include "engine/assets/asset_data.h"
-#include <vector>
 
 class AssetWarehouseService;
 
@@ -13,11 +12,12 @@ class TextureImporter {
 public:
     ~TextureImporter() = default;
 
-    static const TextureAsset* ImportTexture(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService);
-    static const TextureAsset* BuildDefaultTextureForImage(
+    static const TextureAsset* LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService);
+    static const TextureAsset* LoadAssetFromImage(
         SourceAssetMetadata& metadata,
         AssetWarehouseService& assetWarehouseService,
-        UUID imageId
+        UUID imageId,
+        const std::string& subAssetIdentifier = ""
     );
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
