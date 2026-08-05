@@ -44,10 +44,7 @@ public:
         // import and store in warehouse if not loaded
         if (!assetWarehouseService.HasLoadedAsset(id)) {
             SourceAssetMetadata* sourceMetadata = assetWarehouseService.FindSourceMetadata(metadata->id);
-            std::vector<std::unique_ptr<Asset>> assets = assetImporterService.ImportSourceAsset(*sourceMetadata, assetWarehouseService);
-            for (auto& asset : assets) {
-                assetWarehouseService.StoreLoadedAsset(*sourceMetadata, std::move(asset));
-            }
+            assetImporterService.ImportSourceAsset(*sourceMetadata, assetWarehouseService);
         }
 
         // retrieval and checks

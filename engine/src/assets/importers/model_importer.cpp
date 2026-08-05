@@ -69,11 +69,11 @@ std::string BuildSubAssetNameFromGLTFName(const std::string&glTFName, Asset::Ass
  * @brief Loads a GLTF model asset from the specified path.
  * 
  * @param path The file path to the model asset.
- * @return A vector of unique pointers to Asset objects representing the loaded model.
+ * @return A vector of stored asset pointers representing the loaded model.
  */
-std::vector<std::unique_ptr<Asset>>
+std::vector<const Asset*>
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService) {
-    std::vector<std::unique_ptr<Asset>> importedAssets;
+    std::vector<const Asset*> importedAssets;
     ModelImportContext modelImportContext(
         metadata,
         assetWarehouseService,
@@ -107,29 +107,13 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
     for (cgltf_size i = 0; i < data->images_count; ++i)
     {
         cgltf_image * image = &data->images[i];
-        std::unique_ptr<ImageAsset> imageAsset = ProcessImage(*image, modelImportContext);
+        const std::string imageName = image->name
+            ? image->name
+            : "image_" + std::to_string(i);
+        const ImageAsset* imageAsset = ProcessImage(*image, imageName, modelImportContext);
         if (imageAsset) {
             modelImportContext.importedImages[image] = imageAsset->id;
-            
-            // apply existing metadata if the subAssetIdentifier exists
-            // otherwise do nothing except set the name of the asset,
-            // indicating we need to generate a new runtime metadata for this sub-asset
-
-            std::string defaultImageName = "image_" + std::to_string(i);
-            std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
-                image->name ? image->name : defaultImageName,
-                Asset::AssetType::Image
-            );
-            RuntimeAssetMetadata* imageRuntimeMetadata = metadata.TryGetSubAssetMetadata(subAssetIdentifier);
-            if (imageRuntimeMetadata) {
-                ApplyMetadataToAsset(*imageRuntimeMetadata, *imageAsset);
-            }
-            else {
-                std::cout << "INFO: No runtime metadata found for image sub-asset '" << subAssetIdentifier << "'. Generating new runtime metadata." << std::endl;
-                imageAsset->name = subAssetIdentifier;
-            }
-            
-            importedAssets.push_back(std::move(imageAsset));
+            importedAssets.push_back(imageAsset);
         }
     }
 
@@ -167,18 +151,20 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
 }
 
 /**
- * @brief Processes a GLTF image and returns a unique pointer to an ImageAsset.
+ * @brief Processes a GLTF image and returns a stored ImageAsset pointer.
  * 
  * @param image The CGLTF image structure to process.
  * @param importData Reference structure containing cgltf ptrs -> asset id mappings.
- * @return std::unique_ptr<ImageAsset> 
+ * @return const ImageAsset* 
  *
- * @note We don't create metadata here, only reading metadata.
- * AssetWarehouseService.StoreLoadedAsset handles generating new metadatas 
- * for sub-assets after the asset is created, but before the asset is made 
- * available to the rest of the engine. So dont worry :D
+ * @note Storage happens inside the dependent importers so the returned asset
+ * already has its runtime UUID assigned and can be referenced immediately.
  */
-std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image, const ModelImportContext& modelImportContext) {
+const ImageAsset* ModelImporter::ProcessImage(
+    const cgltf_image& image,
+    const std::string& imageName,
+    const ModelImportContext& modelImportContext
+) {
     /*
     3 valid cases + 1 invalid case:
     
@@ -188,7 +174,13 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
     else: ERROR
     */
 
-    std::vector<std::unique_ptr<Asset>> importedAssets;
+    std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+        imageName,
+        Asset::AssetType::Image
+    );
+    RuntimeAssetMetadata* imageRuntimeMetadata =
+        modelImportContext.sourceAssetMetadata.TryGetSubAssetMetadata(subAssetIdentifier);
+
     if (image.buffer_view != nullptr) {
         /*
         case 1
@@ -202,7 +194,13 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
             bufferData,
             bufferData + image.buffer_view->size
         );
-        importedAssets = ImageImporter::LoadAssetFromMemory(encodedImageData);
+        return ImageImporter::LoadAssetFromMemory(
+            modelImportContext.sourceAssetMetadata,
+            modelImportContext.assetWarehouseService,
+            encodedImageData,
+            subAssetIdentifier,
+            imageRuntimeMetadata
+        );
     }
     else if (image.uri != nullptr && image.uri[0] != '\0'&& strncmp(image.uri, "data:", 5) == 0) {
         /*
@@ -210,7 +208,13 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
         decode the base64 data URI and load the image asset from memory
         */
         std::vector<unsigned char> decodedImageData = DecodeDataUri(image.uri);
-        importedAssets = ImageImporter::LoadAssetFromMemory(decodedImageData);
+        return ImageImporter::LoadAssetFromMemory(
+            modelImportContext.sourceAssetMetadata,
+            modelImportContext.assetWarehouseService,
+            decodedImageData,
+            subAssetIdentifier,
+            imageRuntimeMetadata
+        );
     }
     else if (image.uri != nullptr && image.uri[0] != '\0') {
         /*
@@ -225,34 +229,35 @@ std::unique_ptr<ImageAsset> ModelImporter::ProcessImage(const cgltf_image& image
         } catch (const std::exception& e) {
             throw std::runtime_error("Failed to resolve dependency for image asset: " + imagePath.string() + ". Error: " + e.what());
         }
-        if (!imageMetadata.loaded) {
-            importedAssets = ImageImporter::LoadAsset(imageMetadata);
+
+        if (imageMetadata.loaded) {
+            // pull from warehouse if already loaded
+
+            RuntimeAssetMetadata* runtimeMetadata = imageMetadata.GetPrimaryRuntimeMetadata();
+            if (runtimeMetadata == nullptr) {
+                throw std::runtime_error("Loaded image dependency is missing runtime metadata: " + imagePath.string());
+            }
+
+            const Asset* loadedAsset = modelImportContext.assetWarehouseService.GetLoadedAssetReadOnly(runtimeMetadata->id);
+            if (loadedAsset == nullptr) {
+                throw std::runtime_error("Loaded image dependency is missing warehouse asset: " + imagePath.string());
+            }
+            return static_cast<const ImageAsset*>(loadedAsset);
+        }
+        else {
+            // load from file if not already loaded
+
+            return ImageImporter::LoadAsset(imageMetadata, modelImportContext.assetWarehouseService);
         }
     }
     else {
         throw std::runtime_error("GLTF image must provide either a buffer view or URI.");
     }
-
-    // ensure that either 0 or 1 image asset was produced (if 0, it means the image was already loaded and we don't need to create a new asset)
-    // importedAssets should only contain new assets, not existing ones that were already loaded
-
-    if (importedAssets.empty()) {
-        return nullptr; // image was already loaded
-    }
-    if (importedAssets.size() != 1 || importedAssets.front() == nullptr) {
-        throw std::runtime_error("Image import did not produce exactly one asset.");
-    }
-    auto imageAsset = std::unique_ptr<ImageAsset>(
-        static_cast<ImageAsset*>(importedAssets.front().release())
-    );
-
-    return imageAsset;
 }
 
-std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
+const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
     
     // implement the same logic as ProcessImage, but for textures instead of images
-    std::vector<std::unique_ptr<Asset>> importedAssets;
     if (texture.image != nullptr) {
         // check modelImportContext to see if the image has already been imported
         auto imageIt = modelImportContext.importedImages.find(texture.image);
@@ -267,12 +272,13 @@ std::unique_ptr<TextureAsset> ModelImporter::ProcessTexture(const cgltf_texture&
         // }
     }
 
-}
-
-std::unique_ptr<MaterialAsset> ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {
     return nullptr;
 }
 
-std::unique_ptr<MeshAsset> ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
+const MaterialAsset* ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {
+    return nullptr;
+}
+
+const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
     return nullptr;
 }

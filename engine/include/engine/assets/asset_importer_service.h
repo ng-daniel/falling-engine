@@ -11,7 +11,7 @@ public:
     AssetImporterService() = default;
     ~AssetImporterService() = default;
 
-    std::vector<std::unique_ptr<Asset>> ImportSourceAsset(
+    std::vector<const Asset*> ImportSourceAsset(
         SourceAssetMetadata& metadata,
         AssetWarehouseService& assetWarehouseService
     );

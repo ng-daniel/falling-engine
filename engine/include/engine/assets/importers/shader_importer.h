@@ -3,6 +3,8 @@
 
 #include "engine/assets/asset_data.h"
 
+class AssetWarehouseService;
+
 /**
  * @brief Handles loading of shader assets.
  */
@@ -10,7 +12,7 @@ class ShaderImporter {
 public:
     ~ShaderImporter() = default;
 
-    static std::vector<std::unique_ptr<Asset>> LoadAsset(SourceAssetMetadata& metadata);
+    static const ShaderAsset* LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService);
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
 private:

@@ -4,6 +4,8 @@
 #include "engine/assets/asset_data.h"
 #include <vector>
 
+class AssetWarehouseService;
+
 /**
  * @brief Handles loading of texture assets.
  */
@@ -11,8 +13,12 @@ class TextureImporter {
 public:
     ~TextureImporter() = default;
 
-    static std::vector<std::unique_ptr<Asset>> ImportTexture(SourceAssetMetadata& metadata);
-    static std::vector<std::unique_ptr<Asset>> BuildDefaultTextureForImage(UUID imageId);
+    static const TextureAsset* ImportTexture(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService);
+    static const TextureAsset* BuildDefaultTextureForImage(
+        SourceAssetMetadata& metadata,
+        AssetWarehouseService& assetWarehouseService,
+        UUID imageId
+    );
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }
 private:

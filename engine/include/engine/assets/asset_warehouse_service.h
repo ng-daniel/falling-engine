@@ -31,7 +31,7 @@ public:
 	SourceAssetMetadata DependencyResolver(const std::filesystem::path& assetPath);
 	void StoreRuntimeMetadata(const RuntimeAssetMetadata& metadata);
 
-	void StoreLoadedAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset);
+	const Asset* StoreAsset(SourceAssetMetadata& metadata, std::unique_ptr<Asset> asset);
 	void Clear();
 
 private:

@@ -1,15 +1,19 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/importers/shader_importer.h"
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"
 /**
  * @brief Loads a shader asset from the given metadata.
  * @param metadata The metadata of the shader asset.
- * @return std::vector<std::unique_ptr<Asset>> The loaded shader asset.
+ * @return const ShaderAsset* The stored shader asset.
  */
-std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(SourceAssetMetadata& metadata) {
+const ShaderAsset* ShaderImporter::LoadAsset(
+    SourceAssetMetadata& metadata,
+    AssetWarehouseService& assetWarehouseService
+) {
     
     // load source from file
     std::ifstream shaderFile(metadata.path);
@@ -36,8 +40,7 @@ std::vector<std::unique_ptr<Asset>> ShaderImporter::LoadAsset(SourceAssetMetadat
         *shaderAsset
     );
 
-    std::vector<std::unique_ptr<Asset>> assets;
-    assets.push_back(std::move(shaderAsset));
-
-    return assets;
+    return static_cast<const ShaderAsset*>(
+        assetWarehouseService.StoreAsset(metadata, std::move(shaderAsset))
+    );
 }

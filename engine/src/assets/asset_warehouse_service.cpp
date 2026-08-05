@@ -162,11 +162,11 @@ SourceAssetMetadata AssetWarehouseService::DependencyResolver(const std::filesys
 }
 
 /**
- * @brief Stores a loaded asset in the warehouse.
+ * @brief Stores a loaded asset in the warehouse and returns the stored pointer.
  * @param sourceMetadata The source metadata of the asset to store.
  * @param asset The asset to store.
  */
-void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& sourceMetadata, std::unique_ptr<Asset> asset) {
+const Asset* AssetWarehouseService::StoreAsset(SourceAssetMetadata& sourceMetadata, std::unique_ptr<Asset> asset) {
 	if (!asset) {
 		throw std::runtime_error("Cannot store null asset.");
 	}
@@ -198,13 +198,16 @@ void AssetWarehouseService::StoreLoadedAsset(SourceAssetMetadata& sourceMetadata
 		*runtimeMetadata,
 		*asset
 	);
+	const UUID assetId = asset->id;
 
 	// flag the asset as loaded and store it in the proper maps
 	sourceMetadatas[sourceMetadata.id].loaded = true; // due to how importers work, importing one runtime asset
 													// guarantees all runtime assets in the source asset 
 													// metadata have been loaded  
 	runtimeMetadatas[asset->id].loaded = true;
-	loadedAssets.insert_or_assign(asset->id, std::move(asset));
+	loadedAssets.insert_or_assign(assetId, std::move(asset));
+
+	return loadedAssets.at(assetId).get();
 }
 
 /**

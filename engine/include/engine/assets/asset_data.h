@@ -33,6 +33,11 @@ struct SourceAssetMetadata {
         }
         return nullptr;
     }
+
+    RuntimeAssetMetadata* GetPrimaryRuntimeMetadata() {
+        const std::string primarySubAssetIdentifier = path.stem().string();
+        return TryGetSubAssetMetadata(primarySubAssetIdentifier);
+    }
 };
 
 /**

@@ -4,6 +4,8 @@
 #include "engine/assets/asset_data.h"
 #include <vector>
 
+class AssetWarehouseService;
+
 /**
  * @brief Handles loading of image assets.
  */
@@ -11,8 +13,14 @@ class ImageImporter {
 public:
     ~ImageImporter() = default;
 
-    static std::vector<std::unique_ptr<Asset>> LoadAsset(SourceAssetMetadata& metadata);
-    static std::vector<std::unique_ptr<Asset>> LoadAssetFromMemory(const std::vector<unsigned char>& data);
+    static const ImageAsset* LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService);
+    static const ImageAsset* LoadAssetFromMemory(
+        SourceAssetMetadata& metadata,
+        AssetWarehouseService& assetWarehouseService,
+        const std::vector<unsigned char>& data,
+        const std::string& subAssetIdentifier,
+        RuntimeAssetMetadata* runtimeMetadata = nullptr
+    );
     static std::vector<unsigned char> DecodeDataUri(const char * uri);
     static std::string_view GetName() { return importerName; }
     static std::string_view GetType() { return importerType; }

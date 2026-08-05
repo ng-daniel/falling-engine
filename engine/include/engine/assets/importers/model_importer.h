@@ -39,7 +39,7 @@ class ModelImporter {
 public:
     ~ModelImporter() = default;
 
-    static std::vector<std::unique_ptr<Asset>> LoadAsset(
+    static std::vector<const Asset*> LoadAsset(
         SourceAssetMetadata& metadata,
         AssetWarehouseService& assetWarehouseService
     );
@@ -49,10 +49,14 @@ private:
     constexpr static const std::string_view importerName = "ModelImporter";
     constexpr static const std::string_view importerType = "Model";
 
-    static std::unique_ptr<MeshAsset> ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& importData);
-    static std::unique_ptr<MaterialAsset> ProcessMaterial(const cgltf_material& material, const ModelImportContext& importData);
-    static std::unique_ptr<TextureAsset> ProcessTexture(const cgltf_texture& texture, const ModelImportContext& importData);
-    static std::unique_ptr<ImageAsset> ProcessImage(const cgltf_image& image, const ModelImportContext& importData);
+    static const MeshAsset* ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& importData);
+    static const MaterialAsset* ProcessMaterial(const cgltf_material& material, const ModelImportContext& importData);
+    static const TextureAsset* ProcessTexture(const cgltf_texture& texture, const ModelImportContext& importData);
+    static const ImageAsset* ProcessImage(
+        const cgltf_image& image,
+        const std::string& imageName,
+        const ModelImportContext& importData
+    );
 };
 
 #endif // ENGINE_ASSETS_MODEL_IMPORTER_H

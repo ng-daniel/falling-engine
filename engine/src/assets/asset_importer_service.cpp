@@ -12,21 +12,21 @@
  * @param metadata Metadata of the source asset to be imported.
  * @param assetWarehouseService Only required sometimes, specifically for Model imports since it 
  * depends on other assets, namely image assets that may already exist in the warehouse.
- * @return std::vector<std::unique_ptr<Asset>> 
+ * @return std::vector<const Asset*> 
  */
 
-std::vector<std::unique_ptr<Asset>> AssetImporterService::ImportSourceAsset(
+std::vector<const Asset*> AssetImporterService::ImportSourceAsset(
     SourceAssetMetadata& metadata,
     AssetWarehouseService& assetWarehouseService
 ) {
     try {
-        std::vector<std::unique_ptr<Asset>> assets;
+        std::vector<const Asset*> assets;
         switch (GetAssetTypeFromString(metadata.type)) {
             case Asset::AssetType::Image:
-                assets = ImageImporter::LoadAsset(metadata);
+                assets.push_back(ImageImporter::LoadAsset(metadata, assetWarehouseService));
                 break;
             case Asset::AssetType::Shader:
-                assets = ShaderImporter::LoadAsset(metadata);
+                assets.push_back(ShaderImporter::LoadAsset(metadata, assetWarehouseService));
                 break;
             case Asset::AssetType::Model:
                 assets = ModelImporter::LoadAsset(metadata, assetWarehouseService);
