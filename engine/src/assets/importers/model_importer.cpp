@@ -307,10 +307,10 @@ const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, 
         }
 
         TextureAsset* mutableTextureAsset = static_cast<TextureAsset*>(storedAsset);
-        mutableTextureAsset->mag_filter = static_cast<int>(texture.sampler->mag_filter);
-        mutableTextureAsset->min_filter = static_cast<int>(texture.sampler->min_filter);
-        mutableTextureAsset->wrap_s = static_cast<int>(texture.sampler->wrap_s);
-        mutableTextureAsset->wrap_t = static_cast<int>(texture.sampler->wrap_t);
+        mutableTextureAsset->mag_filter = static_cast<TextureAsset::FilterType>(texture.sampler->mag_filter);
+        mutableTextureAsset->min_filter = static_cast<TextureAsset::FilterType>(texture.sampler->min_filter);
+        mutableTextureAsset->wrap_s = static_cast<TextureAsset::WrapMode>(texture.sampler->wrap_s);
+        mutableTextureAsset->wrap_t = static_cast<TextureAsset::WrapMode>(texture.sampler->wrap_t);
     }
 
     return textureAsset;

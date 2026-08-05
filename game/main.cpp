@@ -26,7 +26,12 @@ int main() {
 
     const TextureAsset * tex = assetManager.RequestAssetReadOnly<TextureAsset>(GameAssets::TEXTURE__RYUJINTEX_TEXTURE); // Example usage of RequestAsset
     std::cout << "Finished loading texture asset with ID: " << GameAssets::TEXTURE__RYUJINTEX_TEXTURE.GetUUID() << std::endl;
-    std::cout << "Texture Asset Properties: " << tex->mag_filter << std::endl;
+    std::cout << "Texture Asset Properties: " 
+              << "mag_filter=" << static_cast<int>(tex->mag_filter) 
+              << ", min_filter=" << static_cast<int>(tex->min_filter) 
+              << ", wrap_s=" << static_cast<int>(tex->wrap_s) 
+              << ", wrap_t=" << static_cast<int>(tex->wrap_t) 
+              << std::endl;
 
     return 0;
 }

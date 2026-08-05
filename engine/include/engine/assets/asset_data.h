@@ -77,13 +77,28 @@ struct ImageAsset : public Asset {
 struct TextureAsset : public Asset {
     UUID image; // reference to an ImageAsset
 
-    // arbitrary integers that r code for filtering/wrapping modes
-    // every texture ref in glTF has a sampler
-    // see cgltf_sampler for more info
-    int mag_filter = 0;
-	int min_filter;
-	int wrap_s;
-	int wrap_t;
+    enum class FilterType
+    {
+        Undefined = 0,
+        Nearest = 9728,
+        Linear = 9729,
+        NearestMipmapNearest = 9984,
+        LinearMipmapNearest = 9985,
+        NearestMipmapLinear = 9986,
+        LinearMipmapLinear = 9987
+    };
+
+    enum class WrapMode
+    {
+        ClampToEdge = 33071,
+        MirroredRepeat = 33648,
+        Repeat = 10497
+    };
+    
+    FilterType mag_filter = FilterType::Undefined;
+    FilterType min_filter = FilterType::Undefined;
+    WrapMode wrap_s = WrapMode::Repeat;
+    WrapMode wrap_t = WrapMode::Repeat;
 };
 
 struct MaterialAsset : public Asset
