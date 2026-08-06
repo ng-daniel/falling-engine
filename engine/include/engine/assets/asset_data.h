@@ -15,7 +15,7 @@ struct RuntimeAssetMetadata {
     std::string exportName;         // unique name for the asset, editable by user, used to generate asset header file
     std::string subAssetIdentifier; // unique name for the asset, used for sub-assets
     std::string type;               // string representation of the asset type
-    bool loaded;                    // whether the asset is already loaded into memory
+    bool loaded = false;                    // whether the asset is already loaded into memory
 };
 
 struct SourceAssetMetadata {
@@ -23,7 +23,7 @@ struct SourceAssetMetadata {
     std::string type;
     std::filesystem::path path;
     std::vector<RuntimeAssetMetadata> assetMetadatas; // INCLUDES SOURCE ASSET METADATA
-    bool loaded;
+    bool loaded = false;
 
     RuntimeAssetMetadata* TryGetSubAssetMetadata(const std::string& subAssetIdentifier) {
         for (auto& runtimeMetadata : assetMetadatas) {

@@ -67,7 +67,6 @@ namespace {
     std::string BuildSubAssetNameFromGLTFName(const std::string& sourceName, const std::string& glTFName, Asset::AssetType assetType) {
         return sourceName + "_" + glTFName;
     }
-
 }
 
 /**
