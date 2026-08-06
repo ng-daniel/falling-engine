@@ -1,13 +1,13 @@
 {
-    "UUID": "4474494972493018318",
+    "UUID": "13468833836851060581",
     "assetType": "Shader",
     "path": "./game/assets/shaders/basic.vert",
     "runtimeAssets": [
         {
-            "UUID": "10975546141348692264",
+            "UUID": "11560314602712793923",
             "assetType": "Shader",
             "exportName": "basicVert",
-            "sourceUUID": "4474494972493018318",
+            "sourceUUID": "13468833836851060581",
             "subAssetIdentifier": "basic"
         }
     ]

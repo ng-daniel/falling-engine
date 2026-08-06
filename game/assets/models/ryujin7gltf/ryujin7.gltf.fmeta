@@ -1,14 +1,21 @@
 {
-    "UUID": "10728212761403024928",
+    "UUID": "2691427775164375874",
     "assetType": "Model",
     "path": "./game/assets/models/ryujin7gltf/ryujin7.gltf",
     "runtimeAssets": [
         {
-            "UUID": "6489485240002109459",
+            "UUID": "3438594978397471056",
             "assetType": "Texture",
-            "exportName": "Texture__ryujinTex",
-            "sourceUUID": "10728212761403024928",
-            "subAssetIdentifier": "Texture__ryujinTex"
+            "exportName": "ryujin7ryujinTex",
+            "sourceUUID": "2691427775164375874",
+            "subAssetIdentifier": "ryujin7ryujinTex"
+        },
+        {
+            "UUID": "10869912632166672088",
+            "assetType": "Material",
+            "exportName": "ryujin7Material",
+            "sourceUUID": "2691427775164375874",
+            "subAssetIdentifier": "ryujin7Material"
         }
     ]
 }

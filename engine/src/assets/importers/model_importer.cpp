@@ -1,5 +1,7 @@
 #include "engine/assets/asset_data.h"
 
+#include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -13,55 +15,59 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 
-/**
- * @brief HELPER: Decodes a data URI and returns the decoded image data as a vector of unsigned chars.
- * 
- * @param uri the data URI to decode.
- * @return std::vector<unsigned char> 
- */
-std::vector<unsigned char> DecodeDataUri(const char* uri) {
-    
-    // validate URI format
-    const char* comma = strchr(uri, ',');
-    if (comma == nullptr || comma - uri < 7 || strncmp(comma - 7, ";base64", 7) != 0) {
-        throw std::runtime_error("Unsupported data URI image format.");
+namespace {
+
+    /**
+    * @brief HELPER: Decodes a data URI and returns the decoded image data as a vector of unsigned chars.
+    * 
+    * @param uri the data URI to decode.
+    * @return std::vector<unsigned char> 
+    */
+    std::vector<unsigned char> DecodeDataUri(const char* uri) {
+        
+        // validate URI format
+        const char* comma = strchr(uri, ',');
+        if (comma == nullptr || comma - uri < 7 || strncmp(comma - 7, ";base64", 7) != 0) {
+            throw std::runtime_error("Unsupported data URI image format.");
+        }
+
+        // validate base64 payload
+        const char* base64Data = comma + 1;
+        size_t base64Length = strlen(base64Data);
+        if (base64Length == 0 || base64Length % 4 != 0) {
+            throw std::runtime_error("Malformed base64 image payload.");
+        }
+
+        // compute decoded size
+        size_t padding = 0;
+        if (base64Length >= 1 && base64Data[base64Length - 1] == '=') {
+            ++padding;
+        }
+        if (base64Length >= 2 && base64Data[base64Length - 2] == '=') {
+            ++padding;
+        }
+        size_t decodedSize = (base64Length / 4) * 3 - padding;
+
+        // decode base64 data using cgltf's base64 decoder
+        cgltf_options options {};
+        void * decodedData = nullptr;
+        cgltf_result decodeResult = cgltf_load_buffer_base64(&options, decodedSize, base64Data, &decodedData);
+        if (decodeResult != cgltf_result_success || decodedData == nullptr) {
+            throw std::runtime_error("Failed to decode data URI image payload.");
+        }
+
+        // convert to unsigned char vector format
+        unsigned char * bytes = static_cast<unsigned char *>(decodedData);
+        std::vector<unsigned char> imageData(bytes, bytes + decodedSize);
+
+        std::free(decodedData);
+        return imageData;
     }
 
-    // validate base64 payload
-    const char* base64Data = comma + 1;
-    size_t base64Length = strlen(base64Data);
-    if (base64Length == 0 || base64Length % 4 != 0) {
-        throw std::runtime_error("Malformed base64 image payload.");
+    std::string BuildSubAssetNameFromGLTFName(const std::string& sourceName, const std::string& glTFName, Asset::AssetType assetType) {
+        return sourceName + "_" + glTFName;
     }
 
-    // compute decoded size
-    size_t padding = 0;
-    if (base64Length >= 1 && base64Data[base64Length - 1] == '=') {
-        ++padding;
-    }
-    if (base64Length >= 2 && base64Data[base64Length - 2] == '=') {
-        ++padding;
-    }
-    size_t decodedSize = (base64Length / 4) * 3 - padding;
-
-    // decode base64 data using cgltf's base64 decoder
-    cgltf_options options {};
-    void * decodedData = nullptr;
-    cgltf_result decodeResult = cgltf_load_buffer_base64(&options, decodedSize, base64Data, &decodedData);
-    if (decodeResult != cgltf_result_success || decodedData == nullptr) {
-        throw std::runtime_error("Failed to decode data URI image payload.");
-    }
-
-    // convert to unsigned char vector format
-    unsigned char * bytes = static_cast<unsigned char *>(decodedData);
-    std::vector<unsigned char> imageData(bytes, bytes + decodedSize);
-
-    std::free(decodedData);
-    return imageData;
-}
-
-std::string BuildSubAssetNameFromGLTFName(const std::string&glTFName, Asset::AssetType assetType) {
-    return GetStringFromAssetType(assetType) + "__" + glTFName;
 }
 
 /**
@@ -120,21 +126,24 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
     {
         cgltf_texture * texture = &data->textures[i];
         const TextureAsset* textureAsset = ProcessTexture(*texture, modelImportContext);
-        if (textureAsset != nullptr) {
+        if (textureAsset) {
             modelImportContext.importedTextures[texture] = textureAsset->id;
             importedAssets.push_back(textureAsset);
         }
     }
-    
-    // // process all materials in the model
 
-    // for (cgltf_size i = 0; i < data->materials_count; ++i)
-    // {
-    //     cgltf_material * material = &data->materials[i];
-    //     std::unique_ptr<MaterialAsset> materialAsset = ProcessMaterial(*material, modelImportContext);
-    //     modelImportContext.importedMaterials[material] = materialAsset->id;
-    //     importedAssets.push_back(std::move(materialAsset));
-    // }
+    for (cgltf_size i = 0; i < data->materials_count; ++i)
+    {
+        cgltf_material * material = &data->materials[i];
+        const std::string materialName = material->name != nullptr && material->name[0] != '\0'
+            ? material->name
+            : "material_" + std::to_string(i);
+        const MaterialAsset* materialAsset = ProcessMaterial(*material, materialName, modelImportContext);
+        if (materialAsset) {
+            modelImportContext.importedMaterials[material] = materialAsset->id;
+            importedAssets.push_back(materialAsset);
+        }
+    }
 
     // // process all meshes in the model
 
@@ -176,6 +185,7 @@ const ImageAsset* ModelImporter::ProcessImage(
     */
 
     std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+        modelImportContext.sourceAssetMetadata.path.stem().string(),
         imageName,
         Asset::AssetType::Image
     );
@@ -263,24 +273,26 @@ const ImageAsset* ModelImporter::ProcessImage(
     }
 }
 
+/**
+ * @brief Imports a GLTF texture and returns a stored TextureAsset pointer.
+ * 
+ * @param texture The CGLTF texture structure to process.
+ * @param modelImportContext The context containing mappings and metadata for the import process.
+ * @return const TextureAsset* A pointer to the imported TextureAsset.
+ */
 const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
     if (texture.image == nullptr) {
         throw std::runtime_error("Texture is missing an image reference.");
     }
 
+    // all images must have already been imported, pull the img from the mapping
     UUID imageId;
     auto imageIt = modelImportContext.importedImages.find(texture.image);
     if (imageIt != modelImportContext.importedImages.end()) {
         imageId = imageIt->second;
+        std::cout << "Using already imported image asset with ID: " << imageId << std::endl;
     } else {
-        const std::string imageName = texture.image->name
-            ? texture.image->name
-            : "texture_image";
-        const ImageAsset* imageAsset = ProcessImage(*texture.image, imageName, modelImportContext);
-        if (imageAsset == nullptr) {
-            throw std::runtime_error("Failed to import texture image dependency.");
-        }
-        imageId = imageAsset->id;
+        throw std::runtime_error("Texture image has not been imported yet. Ensure that images are processed before textures.");
     }
 
     const std::string textureName = texture.name != nullptr && texture.name[0] != '\0'
@@ -289,6 +301,7 @@ const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, 
             ? texture.image->name
             : "texture");
     const std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+        modelImportContext.sourceAssetMetadata.path.stem().string(),
         textureName,
         Asset::AssetType::Texture
     );
@@ -316,8 +329,69 @@ const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, 
     return textureAsset;
 }
 
-const MaterialAsset* ModelImporter::ProcessMaterial(const cgltf_material& material, const ModelImportContext& modelImportContext) {
-    return nullptr;
+/**
+ * @brief Processes a GLTF material and returns a stored MaterialAsset pointer.
+ * 
+ * @param material The CGLTF material structure to process.
+ * @param materialName
+ * @param modelImportContext 
+ * @return const MaterialAsset* 
+ */
+const MaterialAsset* ModelImporter::ProcessMaterial(
+    const cgltf_material& material,
+    const std::string& materialName,
+    ModelImportContext& modelImportContext
+) {
+    auto materialAsset = std::make_unique<MaterialAsset>();
+    materialAsset->name = BuildSubAssetNameFromGLTFName(
+        modelImportContext.sourceAssetMetadata.path.stem().string(),
+        materialName,
+        Asset::AssetType::Material
+    );
+    materialAsset->type = Asset::AssetType::Material;
+
+    if (material.unlit) {
+        materialAsset->materialType = MaterialAsset::MaterialType::Unlit;
+    } else {
+        materialAsset->materialType = MaterialAsset::MaterialType::PBRMetallicRoughness;
+    }
+
+    if (material.has_pbr_metallic_roughness) {
+        const cgltf_pbr_metallic_roughness& pbr = material.pbr_metallic_roughness;
+        materialAsset->baseColorFactor = glm::vec4(
+            pbr.base_color_factor[0],
+            pbr.base_color_factor[1],
+            pbr.base_color_factor[2],
+            pbr.base_color_factor[3]
+        );
+        materialAsset->metallicFactor = pbr.metallic_factor;
+        materialAsset->roughnessFactor = pbr.roughness_factor;
+
+        if (pbr.base_color_texture.texture != nullptr) {
+            UUID textureId;
+            auto textureIt = modelImportContext.importedTextures.find(pbr.base_color_texture.texture);
+            if (textureIt != modelImportContext.importedTextures.end()) {
+                textureId = textureIt->second;
+            } else {
+                throw std::runtime_error("Base color texture has not been imported yet. Ensure that textures are processed before materials.");
+            }
+
+            materialAsset->baseColorTexture = textureId;
+        }
+    }
+
+    materialAsset->emissiveFactor = glm::vec3(
+        material.emissive_factor[0],
+        material.emissive_factor[1],
+        material.emissive_factor[2]
+    );
+
+    return static_cast<const MaterialAsset*>(
+        modelImportContext.assetWarehouseService.StoreAsset(
+            modelImportContext.sourceAssetMetadata,
+            std::move(materialAsset)
+        )
+    );
 }
 
 const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {

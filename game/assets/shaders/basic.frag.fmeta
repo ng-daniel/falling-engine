@@ -1,13 +1,13 @@
 {
-    "UUID": "12346889831963367860",
+    "UUID": "7225869207786566121",
     "assetType": "Shader",
     "path": "./game/assets/shaders/basic.frag",
     "runtimeAssets": [
         {
-            "UUID": "3735750682546085494",
+            "UUID": "13798149400201840211",
             "assetType": "Shader",
             "exportName": "basicFrag",
-            "sourceUUID": "12346889831963367860",
+            "sourceUUID": "7225869207786566121",
             "subAssetIdentifier": "basic"
         }
     ]
