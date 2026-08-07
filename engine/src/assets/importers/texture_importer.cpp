@@ -1,12 +1,12 @@
 #include "engine/assets/importers/texture_importer.h"
 
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 
 #include "engine/assets/asset_helpers.h"
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/importers/image_importer.h"
+#include "engine/debug/logger.h"
 
 const std::string TEX_SUBASSET_IDENTIFIER_SUFFIX = "_texture";
 
@@ -20,7 +20,11 @@ const TextureAsset* TextureImporter::LoadAsset(
 ) {
     const ImageAsset* imageAsset = ImageImporter::LoadAsset(metadata, assetWarehouseService);
     RuntimeAssetMetadata* runtimeMetadata = assetWarehouseService.FindRuntimeMetadata(imageAsset->id);
-    std::cout << "Loaded image asset with ID: " << imageAsset->id << " with name: " << runtimeMetadata->subAssetIdentifier << std::endl;
+    Logger::Info(
+        "TextureImporter::LoadAsset",
+        "Loaded image asset with ID: " + std::to_string(imageAsset->id)
+            + " with name: " + runtimeMetadata->subAssetIdentifier
+    );
 
     return LoadAssetFromImage(
         metadata,

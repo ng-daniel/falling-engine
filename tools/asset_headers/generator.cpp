@@ -1,9 +1,9 @@
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_importer_service.h"
+#include "engine/debug/logger.h"
 
 #include <fstream>
 #include <algorithm>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -80,11 +80,14 @@ void AssetHeaderGenerator::Generate(const std::string& assetRootDir, const std::
     // phase 2
 
     std::unordered_map<UUID, SourceAssetMetadata>& sourceMetadatas = assetWarehouseService.GetAllSourceMetadatasAsReference();
-    std::cout << "Source metadatas size: " << sourceMetadatas.size() << std::endl;
+    Logger::Info(
+        "AssetHeaderGenerator",
+        "Source metadatas size: " + std::to_string(sourceMetadatas.size())
+    );
 
     for (auto& [id, metadata] : sourceMetadatas) {
         
-        std::cout << "Importing asset: " << metadata.path.string() << std::endl;
+        Logger::Info("AssetHeaderGenerator", "Importing asset: " + metadata.path.string());
 
         assetImporterService.ImportSourceAsset(metadata, assetWarehouseService);
     }

@@ -1,9 +1,10 @@
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"
-#include <iostream>
 #include <string>
 #include <unordered_map>
+
+#include "engine/debug/logger.h"
 
 /**
  * @brief Constructs an AssetWarehouseService with the given asset root path.
@@ -41,12 +42,13 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
 void AssetWarehouseService::StoreRuntimeMetadata(const RuntimeAssetMetadata& runtimeMetadata) {
 	auto exportNameIterator = exportNameToUUIDMap.find(runtimeMetadata.exportName);
 	if (exportNameIterator != exportNameToUUIDMap.end() && exportNameIterator->second != runtimeMetadata.id) {
-		std::cerr << "Error: Duplicate export name '" << runtimeMetadata.exportName
-					<< "' found for assets with IDs '" << exportNameIterator->second
-					<< "' and '" << runtimeMetadata.id << "'."
-					<< "  Please rename one of the assets' export names in their respective asset metadata files."
-					<< " and rerun the asset header generator."
-					<< std::endl;
+		Logger::Error(
+			"AssetWarehouseService::StoreRuntimeMetadata",
+			"Duplicate export name '" + runtimeMetadata.exportName
+				+ "' found for assets with IDs '" + std::to_string(exportNameIterator->second)
+				+ "' and '" + std::to_string(runtimeMetadata.id)
+				+ "'. Please rename one of the assets' export names in their respective asset metadata files and rerun the asset header generator."
+		);
 	}
 	exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
 	runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;

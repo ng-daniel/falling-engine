@@ -1,5 +1,6 @@
 add_library(engine
     src/assets/asset_manager.cpp
+  src/debug/logger.cpp
     
     src/assets/asset_warehouse_service.cpp
     src/assets/asset_metadata_service.cpp

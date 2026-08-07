@@ -1,10 +1,9 @@
-#include <iostream>
-
 #include "engine/core/application.h"
+#include "engine/debug/logger.h"
 
 Application::Application(std::filesystem::path assetRoot) 
     : assetManager(std::move(assetRoot)) {
-    std::cout << "Application Initialized!" << std::endl;
+    Logger::Info("Application", "Application initialized.");
 }
 
 Application::~Application() {

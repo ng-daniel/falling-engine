@@ -1,6 +1,5 @@
 #include "engine/assets/asset_data.h"
 
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -8,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/assets/asset_helpers.h"
 #include "engine/assets/importers/model_importer.h"
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/importers/texture_importer.h"
+#include "engine/debug/logger.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
@@ -339,7 +338,10 @@ const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, 
     auto imageIt = modelImportContext.importedImages.find(texture.image);
     if (imageIt != modelImportContext.importedImages.end()) {
         imageId = imageIt->second;
-        std::cout << "Using already imported image asset with ID: " << imageId << std::endl;
+        Logger::Info(
+            "ModelImporter::ProcessTexture",
+            "Using already imported image asset with ID: " + std::to_string(imageId)
+        );
     } else {
         throw std::runtime_error("Texture image has not been imported yet. Ensure that images are processed before textures.");
     }

@@ -1,7 +1,6 @@
 #ifndef ENGINE_ASSETS_ASSET_MANAGER_H
 #define ENGINE_ASSETS_ASSET_MANAGER_H
 
-#include <iostream>
 #include <filesystem>
 
 #include "engine/assets/asset_handle.h"
@@ -9,6 +8,7 @@
 #include "engine/assets/asset_importer_service.h"
 
 #include "engine/assets/asset_helpers.h"
+#include "engine/debug/logger.h"
 
 
 /**
@@ -37,7 +37,10 @@ public:
     T* RequestAsset(UUID id) {
         RuntimeAssetMetadata* metadata = assetWarehouseService.FindRuntimeMetadata(id);
         if (!metadata) {
-            std::cout << "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata." << std::endl;
+            Logger::Warning(
+                "AssetManager::RequestAsset",
+                "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata."
+            );
             return nullptr;
         }
 
@@ -50,18 +53,27 @@ public:
         // retrieval and checks
         Asset* asset = assetWarehouseService.GetLoadedAsset(id);
         if (!asset) {
-            std::cout << "Asset with ID " + std::to_string(id) + " failed to load." << std::endl;
+            Logger::Error(
+                "AssetManager::RequestAsset",
+                "Asset with ID " + std::to_string(id) + " failed to load."
+            );
             return nullptr;
         }
         T* typedAssetPtr = static_cast<T*>(asset);
         if (!typedAssetPtr || 
             typedAssetPtr->type != GetAssetTypeFromString(metadata->type)
         ) {
-            std::cout << "Asset with ID " + std::to_string(id) + " is not of the requested type." << std::endl;
+            Logger::Error(
+                "AssetManager::RequestAsset",
+                "Asset with ID " + std::to_string(id) + " is not of the requested type."
+            );
             return nullptr;
         }
 
-        std::cout << "Asset with ID " + std::to_string(id) + " loaded and returned." << std::endl;
+        Logger::Info(
+            "AssetManager::RequestAsset",
+            "Asset with ID " + std::to_string(id) + " loaded and returned."
+        );
         return typedAssetPtr;
     }
     template <typename T>

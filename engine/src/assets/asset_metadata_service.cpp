@@ -1,9 +1,8 @@
-#include <iostream>
-
 #include "engine/assets/asset_metadata_service.h"
 
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_helpers.h"
+#include "engine/debug/logger.h"
 
 /**
  * @brief Loads asset metadata from the specified asset directory.
@@ -19,7 +18,7 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
 	const std::filesystem::path& assetDirectory) {
 	
 	std::unordered_map<UUID, SourceAssetMetadata> assetMetadatas;
-	std::cout << "Processing asset directory: " << assetDirectory.string() << std::endl;
+	Logger::Info("AssetMetadataService", "Processing asset directory: " + assetDirectory.string());
 
 	if (!std::filesystem::exists(assetDirectory)) {
 		throw std::runtime_error("Asset directory does not exist: " + assetDirectory.string());
@@ -36,7 +35,7 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
 			continue;
 		}
 
-		std::cout << "Found asset file: " << filePath.string() << std::endl;
+		Logger::Info("AssetMetadataService", "Found asset file: " + filePath.string());
 
 		std::filesystem::path metadataFilePath = GenerateMetadataFilePath(filePath);
 
@@ -46,8 +45,10 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
 				ValidateMetadataAndUUID(metadata, filePath);
 				assetMetadatas.emplace(metadata.id, metadata);
 			} catch (const std::runtime_error& e) {
-				std::cout << "Warning: Failed to read metadata for asset, regenerating: "
-						  << filePath.string() << ". " << e.what() << std::endl;
+				Logger::Warning(
+					"AssetMetadataService",
+					"Failed to read metadata for asset, regenerating: " + filePath.string() + ". " + e.what()
+				);
 			}
 		} else {
 			try {
@@ -55,8 +56,10 @@ std::unordered_map<UUID, SourceAssetMetadata> AssetMetadataService::LoadAssetMet
 				WriteMetadataAndUUID(metadata, filePath);
 				assetMetadatas.emplace(metadata.id, metadata);
 			} catch (const std::runtime_error& e) {
-				std::cout << "Warning: Failed to process asset: "
-						  << filePath.string() << ". " << e.what() << std::endl;
+				Logger::Warning(
+					"AssetMetadataService",
+					"Failed to process asset: " + filePath.string() + ". " + e.what()
+				);
 			}
 		}
 	}
@@ -164,11 +167,16 @@ void AssetMetadataService::ValidateMetadataAndUUID(
 	bool changed = false;
 
 	std::string realAssetPath = assetPath.string();
-	std::cout << "\tReal asset path: " << realAssetPath << std::endl;
-	std::cout << "\tRecorded asset path: " << metadata.path << std::endl;
+	Logger::Info("AssetMetadataService", "Real asset path: " + realAssetPath);
+	Logger::Info(
+		"AssetMetadataService",
+		"Recorded asset path: " + metadata.path.string()
+	);
 	if (realAssetPath != metadata.path) {
-		std::cout << "\tWarning: Asset path in metadata file does not match actual asset path. Updating metadata path."
-				  << std::endl;
+		Logger::Warning(
+			"AssetMetadataService",
+			"Asset path in metadata file does not match actual asset path. Updating metadata path."
+		);
 		metadata.path = realAssetPath;
 		changed = true;
 	}
