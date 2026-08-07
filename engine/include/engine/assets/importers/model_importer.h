@@ -24,6 +24,7 @@ public:
     SourceAssetMetadata& sourceAssetMetadata;
     AssetWarehouseService& assetWarehouseService;
     std::filesystem::path modelDirectory;
+    const cgltf_data* parsedData = nullptr;
 
     // cgltf to engine asset mappings in order of lowest to highest dependency level
     std::unordered_map<cgltf_image*, UUID> importedImages;

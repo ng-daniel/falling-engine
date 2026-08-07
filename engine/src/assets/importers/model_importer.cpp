@@ -1,6 +1,7 @@
 #include "engine/assets/asset_data.h"
 
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -64,8 +65,33 @@ namespace {
         return imageData;
     }
 
+    std::vector<std::string> invalidCharacters = { 
+        " ", 
+        "/", 
+        "\\",
+        ":",
+        "*",
+        "?",
+        "\"",
+        "<", 
+        ">", 
+        "|", 
+        "."
+    }; 
+
+
     std::string BuildSubAssetNameFromGLTFName(const std::string& sourceName, const std::string& glTFName, Asset::AssetType assetType) {
-        return sourceName + "_" + glTFName;
+        // replace invalid characters with underscores
+    
+        std::string normalizedGLTFName = glTFName;
+        for (const auto& invalidChar : invalidCharacters) {
+            size_t pos = 0;
+            while ((pos = normalizedGLTFName.find(invalidChar, pos)) != std::string::npos) {
+                normalizedGLTFName.replace(pos, invalidChar.length(), "_");
+                pos += 1;
+            }
+        }
+        return sourceName + "_" + normalizedGLTFName;
     }
 }
 
@@ -105,6 +131,7 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
         throw std::runtime_error("Failed to load glTF buffers.");
         return importedAssets;
     }
+    modelImportContext.parsedData = data;
 
     // process all assets in the model
 
@@ -144,15 +171,15 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
         }
     }
 
-    // // process all meshes in the model
-
-    // for (cgltf_size i = 0; i < data->meshes_count; ++i)
-    // {
-    //     cgltf_mesh * mesh = &data->meshes[i];
-    //     std::unique_ptr<MeshAsset> meshAsset = ProcessMesh(*mesh, modelImportContext);
-    //     modelImportContext.importedMeshes[mesh] = meshAsset->id;
-    //     importedAssets.push_back(std::move(meshAsset));
-    // }
+    for (cgltf_size i = 0; i < data->meshes_count; ++i)
+    {
+        cgltf_mesh * mesh = &data->meshes[i];
+        const MeshAsset* meshAsset = ProcessMesh(*mesh, modelImportContext);
+        if (meshAsset) {
+            modelImportContext.importedMeshes[mesh] = meshAsset->id;
+            importedAssets.push_back(meshAsset);
+        }
+    }
 
     cgltf_free(data);
 
@@ -393,6 +420,227 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
     );
 }
 
+/**
+ * @brief Processes a GLTF mesh and returns a stored MeshAsset pointer.
+ * 
+ * @param mesh 
+ * @param modelImportContext 
+ * @return const MeshAsset* 
+ */
 const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
-    return nullptr;
+    if (modelImportContext.parsedData == nullptr) {
+        throw std::runtime_error("Model import context is missing parsed glTF data.");
+    }
+    if (mesh.primitives_count == 0) {
+        throw std::runtime_error("Mesh is missing primitives.");
+    }
+
+    // configure the mesh asset with its name and type
+    auto meshAsset = std::make_unique<MeshAsset>();
+    const std::string meshName = mesh.name != nullptr && mesh.name[0] != '\0'
+        ? mesh.name
+        : "mesh_" + std::to_string(cgltf_mesh_index(modelImportContext.parsedData, &mesh));
+    meshAsset->name = BuildSubAssetNameFromGLTFName(
+        modelImportContext.sourceAssetMetadata.path.stem().string(),
+        meshName,
+        Asset::AssetType::Mesh
+    );
+    meshAsset->type = Asset::AssetType::Mesh;
+
+    // process each primitive(triangle) in the mesh
+    for (cgltf_size primitiveIndex = 0; primitiveIndex < mesh.primitives_count; ++primitiveIndex) {
+        
+        const cgltf_primitive& primitive = mesh.primitives[primitiveIndex];
+        if (primitive.type != cgltf_primitive_type_triangles
+            && primitive.type != cgltf_primitive_type_triangle_strip
+            && primitive.type != cgltf_primitive_type_triangle_fan) {
+            throw std::runtime_error("Mesh primitive type is not supported unless it is triangle-based.");
+        }
+
+        // declare accessors for all 4 vertex attributes
+        const cgltf_accessor* positionAccessor = nullptr;
+        const cgltf_accessor* normalAccessor = nullptr;
+        const cgltf_accessor* tangentAccessor = nullptr;
+        const cgltf_accessor* texCoordAccessor = nullptr;
+
+        // assign accessors based on the attribute type and 
+        // position accessor is required, while the others are optional
+        for (cgltf_size attributeIndex = 0; attributeIndex < primitive.attributes_count; ++attributeIndex) {
+            const cgltf_attribute& attribute = primitive.attributes[attributeIndex];
+            if (attribute.data == nullptr) {
+                continue;
+            }
+
+            if (attribute.type == cgltf_attribute_type_position && attribute.index == 0 && positionAccessor == nullptr) {
+                positionAccessor = attribute.data;
+            } else if (attribute.type == cgltf_attribute_type_normal && attribute.index == 0 && normalAccessor == nullptr) {
+                normalAccessor = attribute.data;
+            } else if (attribute.type == cgltf_attribute_type_tangent && attribute.index == 0 && tangentAccessor == nullptr) {
+                tangentAccessor = attribute.data;
+            } else if (attribute.type == cgltf_attribute_type_texcoord && attribute.index == 0 && texCoordAccessor == nullptr) {
+                texCoordAccessor = attribute.data;
+            }
+        }
+
+        // error checking
+        // 1. position accessor must exist
+        // 2. all accessors must have the same vertex count
+        // 3. vertex count must not exceed 32-bit index capacity
+
+        if (positionAccessor == nullptr) {
+            throw std::runtime_error("Mesh primitive is missing POSITION data.");
+        }
+        const cgltf_size vertexCount = positionAccessor->count;
+        if (vertexCount == 0) {
+            continue;
+        }
+        if ((normalAccessor != nullptr && normalAccessor->count != vertexCount)
+            || (tangentAccessor != nullptr && tangentAccessor->count != vertexCount)
+            || (texCoordAccessor != nullptr && texCoordAccessor->count != vertexCount)) {
+            throw std::runtime_error("Mesh primitive attributes must have matching vertex counts.");
+        }
+        const size_t vertexOffset = meshAsset->vertices.size();
+        if (vertexOffset + static_cast<size_t>(vertexCount) > static_cast<size_t>(std::numeric_limits<uint32_t>::max())) {
+            throw std::runtime_error("Mesh vertex count exceeds 32-bit index capacity.");
+        }
+
+        // read vertex data from accessors and populate the mesh asset's vertex buffer
+
+        meshAsset->vertices.resize(vertexOffset + static_cast<size_t>(vertexCount));
+        for (cgltf_size vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
+            
+            // initialize vertex and set defaults
+            
+            Vertex& vertex = meshAsset->vertices[vertexOffset + static_cast<size_t>(vertexIndex)];
+            vertex.normal = glm::vec3(0.0f);
+            vertex.tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            vertex.texCoord = glm::vec2(0.0f);
+
+            // read position
+
+            cgltf_float positionValues[3] = {};
+            if (!cgltf_accessor_read_float(positionAccessor, vertexIndex, positionValues, 3)) {
+                throw std::runtime_error("Failed to read mesh POSITION attribute data.");
+            }
+            vertex.position = glm::vec3(positionValues[0], positionValues[1], positionValues[2]);
+
+            // read normal
+
+            if (normalAccessor != nullptr) {
+                cgltf_float normalValues[3] = {};
+                if (!cgltf_accessor_read_float(normalAccessor, vertexIndex, normalValues, 3)) {
+                    throw std::runtime_error("Failed to read mesh NORMAL attribute data.");
+                }
+                vertex.normal = glm::vec3(normalValues[0], normalValues[1], normalValues[2]);
+            }
+
+            // read tangent
+
+            if (tangentAccessor != nullptr) {
+                cgltf_float tangentValues[4] = {};
+                if (!cgltf_accessor_read_float(tangentAccessor, vertexIndex, tangentValues, 4)) {
+                    throw std::runtime_error("Failed to read mesh TANGENT attribute data.");
+                }
+                vertex.tangent = glm::vec4(
+                    tangentValues[0],
+                    tangentValues[1],
+                    tangentValues[2],
+                    tangentValues[3]
+                );
+            }
+
+            // read texCoord
+
+            if (texCoordAccessor != nullptr) {
+                cgltf_float texCoordValues[2] = {};
+                if (!cgltf_accessor_read_float(texCoordAccessor, vertexIndex, texCoordValues, 2)) {
+                    throw std::runtime_error("Failed to read mesh TEXCOORD_0 attribute data.");
+                }
+                vertex.texCoord = glm::vec2(texCoordValues[0], texCoordValues[1]);
+            }
+        }
+
+        // read index data from the primitive's index accessor
+
+        std::vector<uint32_t> primitiveIndices;
+        if (primitive.indices != nullptr) {
+            primitiveIndices.reserve(static_cast<size_t>(primitive.indices->count));
+            for (cgltf_size index = 0; index < primitive.indices->count; ++index) {
+                const cgltf_size rawIndex = cgltf_accessor_read_index(primitive.indices, index);
+                if (rawIndex >= vertexCount) {
+                    throw std::runtime_error("Mesh primitive index is out of bounds for its vertex buffer.");
+                }
+                primitiveIndices.push_back(static_cast<uint32_t>(rawIndex));
+            }
+        } else {
+            primitiveIndices.reserve(static_cast<size_t>(vertexCount));
+            for (cgltf_size index = 0; index < vertexCount; ++index) {
+                primitiveIndices.push_back(static_cast<uint32_t>(index));
+            }
+        }
+
+        // populate mesh asset's index buffer based on the primitive type
+        // 1. triangles: every 3 indices form a triangle, non-overlapping
+        // 2. triangle strip: every 3 consecutive indices form a triangle, overlapping
+        // 3. triangle fan: first idx center, all others form fan around it
+
+        if (primitive.type == cgltf_primitive_type_triangles) {
+            if (primitiveIndices.size() % 3 != 0) {
+                throw std::runtime_error("Triangle mesh primitive index count must be divisible by 3.");
+            }
+            meshAsset->indices.reserve(meshAsset->indices.size() + primitiveIndices.size());
+            for (uint32_t primitiveVertexIndex : primitiveIndices) {
+                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + primitiveVertexIndex);
+            }
+        } else if (primitive.type == cgltf_primitive_type_triangle_strip) {
+            if (primitiveIndices.size() < 3) {
+                continue;
+            }
+            meshAsset->indices.reserve(meshAsset->indices.size() + (primitiveIndices.size() - 2) * 3);
+            for (size_t index = 0; index + 2 < primitiveIndices.size(); ++index) {
+                const uint32_t first = primitiveIndices[index];
+                const uint32_t second = primitiveIndices[index + 1];
+                const uint32_t third = primitiveIndices[index + 2];
+                if (first == second || second == third || first == third) {
+                    continue;
+                }
+
+                if (index % 2 == 0) {
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
+                } else {
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
+                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
+                }
+            }
+        } else {
+            if (primitiveIndices.size() < 3) {
+                continue;
+            }
+            meshAsset->indices.reserve(meshAsset->indices.size() + (primitiveIndices.size() - 2) * 3);
+            for (size_t index = 1; index + 1 < primitiveIndices.size(); ++index) {
+                const uint32_t first = primitiveIndices[0];
+                const uint32_t second = primitiveIndices[index];
+                const uint32_t third = primitiveIndices[index + 1];
+                if (first == second || second == third || first == third) {
+                    continue;
+                }
+
+                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
+                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
+                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
+            }
+        }
+
+        // done processing primitive
+    }
+
+    return static_cast<const MeshAsset*>(
+        modelImportContext.assetWarehouseService.StoreAsset(
+            modelImportContext.sourceAssetMetadata,
+            std::move(meshAsset)
+        )
+    );
 }
