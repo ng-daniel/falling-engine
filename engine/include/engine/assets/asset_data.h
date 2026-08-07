@@ -144,9 +144,6 @@ struct ModelAsset : public Asset
 {
     std::vector<UUID> meshes;
     std::vector<UUID> materials;
-    std::vector<UUID> textures;
-
-    UUID defaultScene;
 };
 
 #endif // ENGINE_ASSETS_ASSET_DATA_H

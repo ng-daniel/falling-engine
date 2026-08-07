@@ -72,6 +72,13 @@
             "exportName": "ryujin7_Cube_004",
             "sourceUUID": "1336280239422874960",
             "subAssetIdentifier": "ryujin7_Cube_004"
+        },
+        {
+            "UUID": "14642707926038405919",
+            "assetType": "Model",
+            "exportName": "ryujin7",
+            "sourceUUID": "1336280239422874960",
+            "subAssetIdentifier": "ryujin7"
         }
     ]
 }

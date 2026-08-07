@@ -52,15 +52,20 @@ private:
 
     static const MeshAsset* ProcessMesh(
         const cgltf_mesh& mesh,
-        const ModelImportContext& importData);
+        const ModelImportContext& importData
+    );
+
     static const MaterialAsset* ProcessMaterial(
         const cgltf_material& material,
         const std::string& materialName,
         ModelImportContext& importData
     );
+
     static const TextureAsset* ProcessTexture(
         const cgltf_texture& texture,
-        const ModelImportContext& importData);
+        const ModelImportContext& importData
+    );
+    
     static const ImageAsset* ProcessImage(
         const cgltf_image& image,
         const std::string& imageName,

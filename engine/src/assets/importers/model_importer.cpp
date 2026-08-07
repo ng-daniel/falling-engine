@@ -103,6 +103,7 @@ namespace {
  */
 std::vector<const Asset*>
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService) {
+    
     std::vector<const Asset*> importedAssets;
     ModelImportContext modelImportContext(
         metadata,
@@ -181,9 +182,31 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
         }
     }
 
-    cgltf_free(data);
+    // compile all assets into a single model asset
 
+    std::unique_ptr<ModelAsset> modelAsset = std::make_unique<ModelAsset>();
+    modelAsset->name = metadata.path.stem().string();
+    modelAsset->type = Asset::AssetType::Model;
+    modelAsset->meshes.reserve(modelImportContext.importedMeshes.size());
+    for (const auto& [meshPtr, meshId] : modelImportContext.importedMeshes) {
+        modelAsset->meshes.push_back(meshId);
+    }
+    modelAsset->materials.reserve(modelImportContext.importedMaterials.size());
+    for (const auto& [materialPtr, materialId] : modelImportContext.importedMaterials) {
+        modelAsset->materials.push_back(materialId);
+    }
+
+    // store it in the warehouse
+
+    const ModelAsset* storedModelAsset = static_cast<const ModelAsset*>(
+        assetWarehouseService.StoreAsset(metadata, std::move(modelAsset))
+    );
+    importedAssets.push_back(storedModelAsset);
+
+    cgltf_free(data);
     return importedAssets;
+
+    // FINALLY DONE :)
 }
 
 /**
