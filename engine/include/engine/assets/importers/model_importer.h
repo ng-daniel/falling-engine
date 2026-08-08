@@ -40,7 +40,7 @@ class ModelImporter {
 public:
     ~ModelImporter() = default;
 
-    static std::vector<const Asset*> LoadAsset(
+    static const ModelAsset * LoadAsset(
         SourceAssetMetadata& metadata,
         AssetWarehouseService& assetWarehouseService
     );

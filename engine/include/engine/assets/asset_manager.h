@@ -2,13 +2,11 @@
 #define ENGINE_ASSETS_ASSET_MANAGER_H
 
 #include <filesystem>
+#include <type_traits>
 
 #include "engine/assets/asset_handle.h"
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_importer_service.h"
-
-#include "engine/assets/asset_helpers.h"
-#include "engine/debug/logger.h"
 
 
 /**
@@ -19,62 +17,9 @@ public:
     AssetManager(std::filesystem::path root);
     ~AssetManager() = default;
 
-    /**
-     * @brief Requests an asset of the specified type and ID.
-     * 
-     * @tparam T The type of the asset to request.
-     * @param id The runtime asset ID of the asset to request.
-     * 
-     * @return A pointer to the requested asset, or nullptr if not found.
-     * 
-     * @details
-     * This is the main interface for external code to request assets from the AssetManager.
-     * First searches the asset warehouse for the asset.
-     * If not found, it loads the asset from disk by looking up metadata
-     * in the asset warehouse and storing the loaded asset there.
-     */
     template <typename T>
     T* RequestAsset(UUID id) {
-        RuntimeAssetMetadata* metadata = assetWarehouseService.FindRuntimeMetadata(id);
-        if (!metadata) {
-            Logger::Warning(
-                "AssetManager::RequestAsset",
-                "Asset with ID " + std::to_string(id) + " not found in asset warehouse metadata."
-            );
-            return nullptr;
-        }
-
-        // import and store in warehouse if not loaded
-        if (!assetWarehouseService.HasLoadedAsset(id)) {
-            SourceAssetMetadata* sourceMetadata = assetWarehouseService.FindSourceMetadata(metadata->id);
-            assetImporterService.ImportSourceAsset(*sourceMetadata, assetWarehouseService);
-        }
-
-        // retrieval and checks
-        Asset* asset = assetWarehouseService.GetLoadedAsset(id);
-        if (!asset) {
-            Logger::Error(
-                "AssetManager::RequestAsset",
-                "Asset with ID " + std::to_string(id) + " failed to load."
-            );
-            return nullptr;
-        }
-        T* typedAssetPtr = static_cast<T*>(asset);
-        if (!typedAssetPtr || 
-            typedAssetPtr->type != GetAssetTypeFromString(metadata->type)
-        ) {
-            Logger::Error(
-                "AssetManager::RequestAsset",
-                "Asset with ID " + std::to_string(id) + " is not of the requested type."
-            );
-            return nullptr;
-        }
-
-        Logger::Info(
-            "AssetManager::RequestAsset",
-            "Asset with ID " + std::to_string(id) + " loaded and returned."
-        );
-        return typedAssetPtr;
+        return static_cast<T*>(RequestAsset(id, GetRequestedAssetType<T>()));
     }
     template <typename T>
     T* RequestAsset(AssetHandle id) {
@@ -101,6 +46,27 @@ public:
     }
 
 private:
+    template <typename T>
+    static constexpr Asset::AssetType GetRequestedAssetType() {
+        if constexpr (std::is_same_v<T, ModelAsset>) {
+            return Asset::AssetType::Model;
+        } else if constexpr (std::is_same_v<T, MeshAsset>) {
+            return Asset::AssetType::Mesh;
+        } else if constexpr (std::is_same_v<T, MaterialAsset>) {
+            return Asset::AssetType::Material;
+        } else if constexpr (std::is_same_v<T, TextureAsset>) {
+            return Asset::AssetType::Texture;
+        } else if constexpr (std::is_same_v<T, ImageAsset>) {
+            return Asset::AssetType::Image;
+        } else if constexpr (std::is_same_v<T, ShaderAsset>) {
+            return Asset::AssetType::Shader;
+        } else {
+            static_assert(!sizeof(T*), "Unsupported asset type requested from AssetManager.");
+        }
+    }
+
+    Asset* RequestAsset(UUID id, Asset::AssetType expectedType);
+
     AssetImporterService assetImporterService;
     AssetWarehouseService assetWarehouseService;
 };

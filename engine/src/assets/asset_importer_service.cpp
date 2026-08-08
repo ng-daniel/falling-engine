@@ -30,7 +30,7 @@ std::vector<const Asset*> AssetImporterService::ImportSourceAsset(
                 assets.push_back(ShaderImporter::LoadAsset(metadata, assetWarehouseService));
                 break;
             case Asset::AssetType::Model:
-                assets = ModelImporter::LoadAsset(metadata, assetWarehouseService);
+                assets.push_back(ModelImporter::LoadAsset(metadata, assetWarehouseService));
                 break;
             default:
                 throw std::runtime_error("Unsupported asset type for import: " + metadata.type);

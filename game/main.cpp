@@ -1,25 +1,23 @@
-#include <iostream>
 #include <cmath>
 
-// #include "include/generated/asset_ids.h"
+#include "include/generated/asset_ids.h"
 #include "engine/core/application.h"
+
+#include "engine/debug/logger.h"
 
 int main() {
     Application app = Application("./game/assets");
     AssetManager& assetManager = app.GetAssetManager();
 
-    // // TESTING
-    // const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(GameAssets::BASICFRAG_SHADER); // Example usage of RequestAsset
-    // std::cout << "Shader Asset Source: " << shader->shaderSource << std::endl;
+    // TESTING
+    const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(GameAssets::BASICFRAG_SHADER); // Example usage of RequestAsset
+    Logger::Info("main", "Finished loading shader asset with ID: " + std::to_string(GameAssets::BASICFRAG_SHADER.GetUUID()));
 
-    // const TextureAsset * tex = assetManager.RequestAssetReadOnly<TextureAsset>(GameAssets::RYUJIN7_RYUJINTEX_TEXTURE); // Example usage of RequestAsset
-    // std::cout << "Finished loading texture asset with ID: " << GameAssets::RYUJIN7_RYUJINTEX_TEXTURE.GetUUID() << std::endl;
-    // std::cout << "Texture Asset Properties: " 
-    //           << "mag_filter=" << static_cast<int>(tex->mag_filter) 
-    //           << ", min_filter=" << static_cast<int>(tex->min_filter) 
-    //           << ", wrap_s=" << static_cast<int>(tex->wrap_s) 
-    //           << ", wrap_t=" << static_cast<int>(tex->wrap_t) 
-    //           << std::endl;
+    const ModelAsset * model = assetManager.RequestAssetReadOnly<ModelAsset>(GameAssets::RYUJIN7_MODEL.GetUUID()); // Example usage of RequestAsset
+    Logger::Info("main", "Finished loading model asset with ID: " + std::to_string(model->id));
+    Logger::Info("main", "Model has " + std::to_string(model->meshes.size()) + " meshes.");
+    const MeshAsset * mesh = assetManager.RequestAssetReadOnly<MeshAsset>(model->meshes[0]);
+    Logger::Info("main", "Finished loading mesh asset with ID: " + std::to_string(model->meshes[0]));
 
     return 0;
 }

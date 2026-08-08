@@ -100,7 +100,7 @@ namespace {
  * @param path The file path to the model asset.
  * @return A vector of stored asset pointers representing the loaded model.
  */
-std::vector<const Asset*>
+const ModelAsset *
 ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& assetWarehouseService) {
     
     std::vector<const Asset*> importedAssets;
@@ -122,14 +122,14 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
     if (result != cgltf_result_success)
     {
         throw std::runtime_error("Failed to parse glTF file.");
-        return importedAssets;
+        return nullptr;
     }
     result = cgltf_load_buffers(&options, data,
         gltf_path.c_str());
     if (result != cgltf_result_success) {
         cgltf_free(data);
         throw std::runtime_error("Failed to load glTF buffers.");
-        return importedAssets;
+        return nullptr;
     }
     modelImportContext.parsedData = data;
 
@@ -197,13 +197,13 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
 
     // store it in the warehouse
 
-    const ModelAsset* storedModelAsset = static_cast<const ModelAsset*>(
+    const ModelAsset * storedModelAsset = static_cast<const ModelAsset*>(
         assetWarehouseService.StoreAsset(metadata, std::move(modelAsset))
     );
     importedAssets.push_back(storedModelAsset);
 
     cgltf_free(data);
-    return importedAssets;
+    return storedModelAsset;
 
     // FINALLY DONE :)
 }
