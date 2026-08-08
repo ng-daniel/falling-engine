@@ -1,4 +1,4 @@
-#include "engine/editor/asset_browser/asset_browser.h"
+#include "editor/windows/asset_browser.h"
 #include "engine/assets/asset_manager.h"
 
 #include <imgui.h>

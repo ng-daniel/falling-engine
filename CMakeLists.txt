@@ -10,6 +10,7 @@ find_package(glad REQUIRED)
 find_package(glm REQUIRED)
 find_package(imgui REQUIRED)
 
+add_subdirectory(editor)
 add_subdirectory(engine)
 add_subdirectory(game)
 add_subdirectory(tools)

@@ -1,4 +1,4 @@
-#include "engine/editor/inspector/inspector.h"
+#include "editor/windows/inspector.h"
 #include "engine/assets/asset_manager.h"
 
 #include <imgui.h>

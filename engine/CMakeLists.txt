@@ -28,7 +28,6 @@ target_link_libraries(engine PRIVATE
     glfw 
     OpenGL::GL
     glad::glad
-    imgui::imgui
 )
 
 target_link_libraries(engine PUBLIC
