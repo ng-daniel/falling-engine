@@ -4,7 +4,6 @@
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_warehouse_service.h"
 #include <vector>
-#include <memory>
 
 class AssetImporterService {
 public:

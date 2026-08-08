@@ -13,7 +13,7 @@
 #include "engine/debug/logger.h"
 
 #define CGLTF_IMPLEMENTATION
-#include "cgltf.h"
+#include "external/cgltf.h"
 
 namespace {
 
