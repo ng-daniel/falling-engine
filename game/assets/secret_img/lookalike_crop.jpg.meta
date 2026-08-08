@@ -1,20 +1,20 @@
 {
-    "UUID": "3580380309879021452",
+    "UUID": "10111009761720823524",
     "assetType": "Texture",
     "path": "./game/assets/secret_img/lookalike_crop.jpg",
     "runtimeAssets": [
         {
-            "UUID": "17472528154521113941",
+            "UUID": "1675617045473147373",
             "assetType": "Image",
             "exportName": "lookalike_crop",
-            "sourceUUID": "3580380309879021452",
+            "sourceUUID": "10111009761720823524",
             "subAssetIdentifier": "lookalike_crop"
         },
         {
-            "UUID": "2584696721820083427",
+            "UUID": "8122656752314293127",
             "assetType": "Texture",
             "exportName": "lookalike_crop_texture",
-            "sourceUUID": "3580380309879021452",
+            "sourceUUID": "10111009761720823524",
             "subAssetIdentifier": "lookalike_crop_texture"
         }
     ]

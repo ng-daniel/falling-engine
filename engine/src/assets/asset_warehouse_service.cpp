@@ -22,6 +22,7 @@ AssetWarehouseService::AssetWarehouseService(const std::filesystem::path& assetR
 	
 	// iterates through all runtime metadata
 	for (const auto& [id, metadata] : sourceMetadatas) {
+		StoreSourceMetadata(metadata);
 		for (const auto& runtimeMetadata : metadata.assetMetadatas) {
 			// store the runtime metadata in the warehouse's maps
 			StoreRuntimeMetadata(runtimeMetadata);
@@ -52,9 +53,11 @@ void AssetWarehouseService::StoreRuntimeMetadata(const RuntimeAssetMetadata& run
 	}
 	exportNameToUUIDMap[runtimeMetadata.exportName] = runtimeMetadata.id;
 	runtimeMetadatas[runtimeMetadata.id] = runtimeMetadata;
+}
 
-	// store source metadata path to UUID mapping for sub-asset dependency resolving
-	filePathToUUIDMap[sourceMetadatas[runtimeMetadata.sourceId].path] = runtimeMetadata.sourceId;
+void AssetWarehouseService::StoreSourceMetadata(const SourceAssetMetadata& sourceMetadata) {
+	sourceMetadatas.emplace(sourceMetadata.id, sourceMetadata);
+	filePathToUUIDMap[sourceMetadata.path] = sourceMetadata.id;
 }
 
 /**
@@ -84,6 +87,20 @@ SourceAssetMetadata* AssetWarehouseService::FindSourceMetadata(UUID runtimeAsset
  */
 const SourceAssetMetadata* AssetWarehouseService::FindSourceMetadataReadOnly(UUID id) const {
 	auto iterator = sourceMetadatas.find(id);
+	if (iterator == sourceMetadatas.end()) {
+		return nullptr;
+	}
+
+	return &iterator->second;
+}
+
+/**
+ * @brief Finds the source metadata directly by its own (source) UUID, mutable version.
+ * @param sourceAssetId The UUID of the source asset itself (not a runtime asset UUID).
+ * @return A pointer to the source asset metadata, or nullptr if not found.
+ */
+SourceAssetMetadata* AssetWarehouseService::FindSourceMetadataById(UUID sourceAssetId) {
+	auto iterator = sourceMetadatas.find(sourceAssetId);
 	if (iterator == sourceMetadatas.end()) {
 		return nullptr;
 	}
@@ -155,11 +172,11 @@ const Asset* AssetWarehouseService::GetLoadedAssetReadOnly(UUID id) const {
 /**
  * @brief They call it the dependency resolver.
  */
-SourceAssetMetadata AssetWarehouseService::DependencyResolver(const std::filesystem::path& assetPath) {
+SourceAssetMetadata * AssetWarehouseService::DependencyResolver(const std::filesystem::path& assetPath) {
 	if (filePathToUUIDMap.find(assetPath) != filePathToUUIDMap.end()) {
-		return sourceMetadatas[filePathToUUIDMap[assetPath]];
+		return &sourceMetadatas[filePathToUUIDMap[assetPath]];
 	} else {
-		throw std::runtime_error("Asset not found in warehouse: " + assetPath.string());
+		return nullptr;
 	}
 }
 
@@ -219,4 +236,204 @@ void AssetWarehouseService::Clear() {
 	sourceMetadatas.clear();
 	loadedAssets.clear();
 	runtimeMetadatas.clear();
+}
+
+/**
+ * @brief Returns the UUIDs of every source asset currently tracked by the warehouse.
+ * Useful for GUI/CLI clients that need to enumerate the library without touching internal maps.
+ */
+std::vector<UUID> AssetWarehouseService::GetAllSourceAssetIds() const {
+	std::vector<UUID> ids;
+	ids.reserve(sourceMetadatas.size());
+	for (const auto& [id, metadata] : sourceMetadatas) {
+		ids.push_back(id);
+	}
+	return ids;
+}
+
+/**
+ * @brief Registers a new source asset file with the warehouse and persists its metadata.
+ * @param assetPath Path to the asset file, which must already exist on disk under the asset root
+ * and must not already be tracked by the warehouse.
+ * @return The UUID assigned to the new source asset.
+ */
+UUID AssetWarehouseService::ImportNewSourceAsset(const std::filesystem::path& assetPath) {
+	if (filePathToUUIDMap.find(assetPath) != filePathToUUIDMap.end()) {
+		throw std::runtime_error("Asset is already registered in the warehouse: " + assetPath.string());
+	}
+
+	SourceAssetMetadata metadata = assetMetadataService.GenerateSourceMetadata(assetPath);
+	assetMetadataService.WriteMetadataAndUUID(metadata, assetPath);
+
+	const UUID sourceId = metadata.id;
+	filePathToUUIDMap[assetPath] = sourceId;
+	
+	StoreSourceMetadata(metadata);
+
+	return sourceId;
+}
+
+/**
+ * @brief Renames a runtime asset's export name (the user-facing name used for header generation).
+ * Does not affect the underlying source file or the asset's stable sub-asset identifier.
+ */
+bool AssetWarehouseService::RenameRuntimeAsset(UUID runtimeAssetId, const std::string& newExportName) {
+	auto runtimeIt = runtimeMetadatas.find(runtimeAssetId);
+	if (runtimeIt == runtimeMetadatas.end()) {
+		Logger::Warning(
+			"AssetWarehouseService::RenameRuntimeAsset",
+			"Runtime asset not found: " + std::to_string(runtimeAssetId)
+		);
+		return false;
+	}
+
+	auto existingNameIt = exportNameToUUIDMap.find(newExportName);
+	if (existingNameIt != exportNameToUUIDMap.end() && existingNameIt->second != runtimeAssetId) {
+		Logger::Error(
+			"AssetWarehouseService::RenameRuntimeAsset",
+			"Export name '" + newExportName + "' is already in use by another asset."
+		);
+		return false;
+	}
+
+	RuntimeAssetMetadata& runtimeMetadata = runtimeIt->second;
+	auto sourceIt = sourceMetadatas.find(runtimeMetadata.sourceId);
+	if (sourceIt == sourceMetadatas.end()) {
+		Logger::Error(
+			"AssetWarehouseService::RenameRuntimeAsset",
+			"Runtime asset has no owning source asset metadata: " + std::to_string(runtimeAssetId)
+		);
+		return false;
+	}
+	SourceAssetMetadata& sourceMetadata = sourceIt->second;
+
+	exportNameToUUIDMap.erase(runtimeMetadata.exportName);
+	runtimeMetadata.exportName = newExportName;
+	exportNameToUUIDMap[newExportName] = runtimeAssetId;
+
+	// keep the copy stored inside the owning source metadata's assetMetadatas vector in sync
+	RuntimeAssetMetadata* subAssetMetadata = sourceMetadata.TryGetSubAssetMetadata(runtimeMetadata.subAssetIdentifier);
+	if (subAssetMetadata) {
+		subAssetMetadata->exportName = newExportName;
+	}
+
+	// keep an already-loaded asset instance's cached name in sync too
+	auto loadedIt = loadedAssets.find(runtimeAssetId);
+	if (loadedIt != loadedAssets.end()) {
+		loadedIt->second->name = newExportName;
+	}
+
+	assetMetadataService.WriteMetadataAndUUID(sourceMetadata, sourceMetadata.path);
+	return true;
+}
+
+/**
+ * @brief Moves a source asset's underlying file (and its .fmeta metadata file) to a new path.
+ * @note If the new path changes the file's stem, sub-asset identifiers generated from the old
+ * stem will not be retroactively updated; this is a pre-existing limitation of how sub-asset
+ * identity is derived, not something introduced here.
+ */
+bool AssetWarehouseService::MoveSourceAsset(UUID sourceAssetId, const std::filesystem::path& newPath) {
+	auto sourceIt = sourceMetadatas.find(sourceAssetId);
+	if (sourceIt == sourceMetadatas.end()) {
+		Logger::Warning(
+			"AssetWarehouseService::MoveSourceAsset",
+			"Source asset not found: " + std::to_string(sourceAssetId)
+		);
+		return false;
+	}
+	SourceAssetMetadata& sourceMetadata = sourceIt->second;
+
+	if (std::filesystem::exists(newPath)) {
+		Logger::Error(
+			"AssetWarehouseService::MoveSourceAsset",
+			"Destination path already exists: " + newPath.string()
+		);
+		return false;
+	}
+
+	const std::filesystem::path oldPath = sourceMetadata.path;
+	const std::filesystem::path oldMetadataPath = assetMetadataService.GenerateMetadataFilePath(oldPath);
+	const std::filesystem::path newMetadataPath = assetMetadataService.GenerateMetadataFilePath(newPath);
+
+	std::error_code ec;
+	std::filesystem::create_directories(newPath.parent_path(), ec);
+
+	std::filesystem::rename(oldPath, newPath, ec);
+	if (ec) {
+		Logger::Error(
+			"AssetWarehouseService::MoveSourceAsset",
+			"Failed to move asset file from '" + oldPath.string() + "' to '" + newPath.string() + "': " + ec.message()
+		);
+		return false;
+	}
+
+	filePathToUUIDMap.erase(oldPath);
+	sourceMetadata.path = newPath;
+	filePathToUUIDMap[newPath] = sourceAssetId;
+
+	// write metadata at the new location first, then remove the old metadata file
+	assetMetadataService.WriteMetadataAndUUID(sourceMetadata, newPath);
+	std::filesystem::remove(oldMetadataPath, ec);
+
+	return true;
+}
+
+/**
+ * @brief Deletes a source asset's underlying file, metadata file, and all associated
+ * runtime/loaded asset bookkeeping.
+ */
+bool AssetWarehouseService::DeleteSourceAsset(UUID sourceAssetId) {
+	auto sourceIt = sourceMetadatas.find(sourceAssetId);
+	if (sourceIt == sourceMetadatas.end()) {
+		Logger::Warning(
+			"AssetWarehouseService::DeleteSourceAsset",
+			"Source asset not found: " + std::to_string(sourceAssetId)
+		);
+		return false;
+	}
+
+	// copy out before erasing, since we still need the data (path, sub-assets) after removal
+	SourceAssetMetadata sourceMetadata = sourceIt->second;
+
+	for (const RuntimeAssetMetadata& runtimeMetadata : sourceMetadata.assetMetadatas) {
+		loadedAssets.erase(runtimeMetadata.id);
+		exportNameToUUIDMap.erase(runtimeMetadata.exportName);
+		runtimeMetadatas.erase(runtimeMetadata.id);
+	}
+
+	filePathToUUIDMap.erase(sourceMetadata.path);
+	sourceMetadatas.erase(sourceIt);
+
+	std::error_code ec;
+	std::filesystem::remove(sourceMetadata.path, ec);
+	std::filesystem::remove(assetMetadataService.GenerateMetadataFilePath(sourceMetadata.path), ec);
+
+	return true;
+}
+
+/**
+ * @brief Unloads a single runtime asset from memory, without touching its metadata.
+ */
+void AssetWarehouseService::UnloadAsset(UUID runtimeAssetId) {
+	auto runtimeIt = runtimeMetadatas.find(runtimeAssetId);
+	if (runtimeIt != runtimeMetadatas.end()) {
+		runtimeIt->second.loaded = false;
+	}
+	loadedAssets.erase(runtimeAssetId);
+}
+
+/**
+ * @brief Unloads every runtime asset associated with a source asset.
+ */
+void AssetWarehouseService::UnloadSourceAsset(UUID sourceAssetId) {
+	auto sourceIt = sourceMetadatas.find(sourceAssetId);
+	if (sourceIt == sourceMetadatas.end()) {
+		return;
+	}
+
+	for (const RuntimeAssetMetadata& runtimeMetadata : sourceIt->second.assetMetadatas) {
+		UnloadAsset(runtimeMetadata.id);
+	}
+	sourceIt->second.loaded = false;
 }
