@@ -8,7 +8,7 @@ find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glad REQUIRED)
 find_package(glm REQUIRED)
-find_package(assimp REQUIRED)
+find_package(imgui REQUIRED)
 
 add_subdirectory(engine)
 add_subdirectory(game)

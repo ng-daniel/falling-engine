@@ -4,6 +4,6 @@
     "glfw3",
     "glad",
     "glm",
-    "assimp"
+    "imgui"
   ]
 }
