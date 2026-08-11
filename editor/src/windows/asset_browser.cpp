@@ -2,6 +2,7 @@
 #include "editor/core/editor_state.h"
 #include "engine/assets/asset_manager.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <filesystem>
 #include <optional>
@@ -11,6 +12,190 @@
 #include <imgui.h>
 
 namespace {
+    struct AssetTreeNode {
+        std::string label;
+        std::filesystem::path path;
+        std::vector<AssetTreeNode> children;
+        std::optional<AssetInfo> asset; // no for nodes (directories), yes for leafs (assets)
+
+        bool IsDirectory() const {
+            return !asset.has_value();
+        }
+
+
+        /**
+         * @brief Convert the file path into a list of all the parts of the path ie. partA/partB/partC
+         * 
+         * @param path 
+         * @return std::vector<std::string> 
+         */
+        static std::vector<std::string> GetPathParts(const std::filesystem::path& path) {
+            std::vector<std::string> parts;
+            for (const std::filesystem::path& part : path.lexically_normal()) {
+                const std::string partString = part.string();
+                if (partString.empty() || partString == ".") {
+                    continue;
+                }
+                parts.push_back(partString);
+            }
+            return parts;
+        }
+
+        /**
+         * @brief Given a list of source assets, find the longest shared path prefix between them.
+         * Used only once to determine the root node of the asset tree.
+         * 
+         * @param sourceAssets 
+         * @return std::vector<std::string> 
+         */
+        static std::vector<std::string> GetSharedPathPrefix(const std::vector<AssetInfo>& sourceAssets) {
+            if (sourceAssets.empty()) {
+                return {};
+            }
+
+            std::vector<std::string> sharedPrefix = GetPathParts(sourceAssets.front().path);
+            for (size_t index = 1; index < sourceAssets.size() && !sharedPrefix.empty(); ++index) {
+                const std::vector<std::string> currentParts = GetPathParts(sourceAssets[index].path);
+                const size_t matchingCount = std::min(sharedPrefix.size(), currentParts.size());
+
+                size_t prefixLength = 0;
+                while (prefixLength < matchingCount && sharedPrefix[prefixLength] == currentParts[prefixLength]) {
+                    ++prefixLength;
+                }
+
+                sharedPrefix.resize(prefixLength);
+            }
+
+            return sharedPrefix;
+        }
+
+        /**
+         * @brief For a given path and parent, find the directory node in that parent
+         * that matches the given path. Create new node if no existing node matches.
+         * 
+         * @param parent 
+         * @param path 
+         * @param label 
+         * @return AssetTreeNode& 
+         */
+        static AssetTreeNode& FindOrCreateDirectoryNode(
+            AssetTreeNode& parent,
+            const std::filesystem::path& path,
+            const std::string& label
+        ) {
+            for (AssetTreeNode& child : parent.children) {
+                if (child.IsDirectory() && child.path == path) {
+                    return child;
+                }
+            }
+
+            // no existing matches, create new
+            parent.children.push_back(
+                    AssetTreeNode{
+                        label,
+                        path,
+                        {},
+                        std::nullopt // no asset for directories
+                    }
+                );
+            return parent.children.back();
+        }
+
+        /**
+         * @brief Recursively sorts the asset tree according to type (dir or asset) and label (alphabetically).
+         * 
+         * @param node typically root
+         */
+        static void SortAssetTree(AssetTreeNode& node) {
+            // primary sort directories before assets
+            // secondary sort alphabetically by label
+            std::sort(
+                node.children.begin(),
+                node.children.end(),
+                [](const AssetTreeNode& left, const AssetTreeNode& right) {
+                    if (left.IsDirectory() != right.IsDirectory()) {
+                        return left.IsDirectory() && !right.IsDirectory();
+                    }
+                    return left.label < right.label;
+                }
+            );
+
+            for (AssetTreeNode& child : node.children) {
+                if (child.IsDirectory()) {
+                    SortAssetTree(child);
+                }
+            }
+        }
+
+        /**
+         * @brief Builds an asset tree from a list of source assets.
+         * 
+         * @param sourceAssets The list of source assets to include in the tree.
+         * @return AssetTreeNode The root node of the constructed asset tree.
+         */
+        static AssetTreeNode BuildAssetTree(const std::filesystem::path& rootPath, const std::vector<AssetInfo>& sourceAssets) {
+            
+            // initialize root node
+            
+            AssetTreeNode root;
+            root.path = rootPath;
+            
+            // build tree by iterating through each source asset and creating nodes for each part of its path
+            // existing nodes don't get duplicated
+
+            std::vector<std::string> rootParts = GetPathParts(rootPath);
+            for (const AssetInfo& asset : sourceAssets) {
+                const std::vector<std::string> parts = GetPathParts(asset.path);
+                if (parts.empty()) {
+                    continue;
+                }
+
+                AssetTreeNode* currentNode = &root;
+                std::filesystem::path currentPath = rootPath;
+                for (size_t index = rootParts.size(); index + 1 < parts.size(); ++index) {
+                    currentPath /= parts[index];
+                    currentNode = &FindOrCreateDirectoryNode(*currentNode, currentPath, parts[index]);
+                }
+
+                std::string label = parts.back() + "  [" + asset.type + "]";
+                currentNode->children.push_back(AssetTreeNode{label, asset.path.lexically_normal(), {}, asset});
+            }
+
+            SortAssetTree(root);
+            return root;
+        }
+
+        static void DrawAssetTreeNode(const AssetTreeNode& node, std::optional<UUID>& selectedSourceAssetId) {
+            if (!node.IsDirectory()) {
+                const AssetInfo& asset = *node.asset;
+                const bool isSelected = selectedSourceAssetId.has_value() && *selectedSourceAssetId == asset.id;
+
+                ImGui::PushID(static_cast<int>(asset.id));
+                if (ImGui::Selectable(node.label.c_str(), isSelected)) {
+                    selectedSourceAssetId = asset.id;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", asset.path.string().c_str());
+                }
+                ImGui::PopID();
+                return;
+            }
+
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+            if (node.path == node.path.root_path()) {
+                flags |= ImGuiTreeNodeFlags_DefaultOpen;
+            }
+
+            const std::string nodeId = node.path.empty() ? std::string("AssetTreeRoot") : node.path.string();
+            if (ImGui::TreeNodeEx(nodeId.c_str(), flags, "%s", node.label.c_str())) {
+                for (const AssetTreeNode& child : node.children) {
+                    DrawAssetTreeNode(child, selectedSourceAssetId);
+                }
+                ImGui::TreePop();
+            }
+        }
+    };
+
     
     /**
      * @brief Utility function to copy a string into a fixed-size buffer,
@@ -54,23 +239,17 @@ void AssetBrowserWindow::Draw(EditorState& state) {
 
     ImGui::Separator();
 
-    /// Asset List
+    /// Asset Hierarchy
     /// ---------------------------------------------
 
     std::vector<AssetInfo> sourceAssets = state.assetManager.GetAllSourceAssets();
+    AssetTreeNode assetTree = AssetTreeNode::BuildAssetTree(state.assetManager.GetAssetRoot(), sourceAssets);
     ImGui::BeginChild("AssetList", ImVec2(0.0f, -160.0f), true);
-    for (const AssetInfo& asset : sourceAssets) {
-        bool isSelected = state.selectedSourceAssetId.has_value() && *state.selectedSourceAssetId == asset.id;
-        std::string label = asset.name + "  [" + asset.type + "]";
-
-        ImGui::PushID(static_cast<int>(asset.id));
-        if (ImGui::Selectable(label.c_str(), isSelected)) {
-            state.selectedSourceAssetId = asset.id;
-        }
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", asset.path.string().c_str());
-        }
-        ImGui::PopID();
+    for (const AssetTreeNode& child : assetTree.children) {
+        AssetTreeNode::DrawAssetTreeNode(child, state.selectedSourceAssetId);
+    }
+    if (assetTree.children.empty()) {
+        ImGui::TextDisabled("No source assets found.");
     }
     ImGui::EndChild();
 

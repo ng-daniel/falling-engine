@@ -36,7 +36,7 @@ public:
     AssetManager(std::filesystem::path root);
     ~AssetManager() = default;
 
-    /// Loading
+    /// Loading = put existing asset into memory
     /// -------------------------------------------------------------------------
 
     template <typename T>
@@ -63,7 +63,7 @@ public:
         return RequestAssetReadOnly<T>(id.GetUUID());
     }
 
-    /// Importing
+    /// Importing = add new file to asset directory
     /// -------------------------------------------------------------------------
 
     /**
@@ -84,7 +84,7 @@ public:
      */
     bool ReimportAsset(UUID sourceAssetId);
 
-    /// Unloading
+    /// Unloading = remove from memory, but keep metadata
     /// -------------------------------------------------------------------------
 
     /**
@@ -99,7 +99,7 @@ public:
      */
     void UnloadSourceAsset(UUID sourceAssetId);
 
-    /// Rename
+    /// Modifying and Deletion
     /// -------------------------------------------------------------------------
 
     /**
@@ -107,10 +107,6 @@ public:
      * Does not touch the underlying source file.
      */
     bool RenameAsset(UUID runtimeAssetId, const std::string& newExportName);
-
-    /// Move
-    /// -------------------------------------------------------------------------
-
     /**
      * @brief Moves a source asset's underlying file to a new path within the library.
      * @param sourceAssetId The UUID of the source asset to move.
@@ -118,10 +114,6 @@ public:
      * @return true on success.
      */
     bool MoveAsset(UUID sourceAssetId, const std::filesystem::path& newPath);
-
-    /// Delete
-    /// -------------------------------------------------------------------------
-
     /**
      * @brief Deletes a source asset's underlying file and all associated metadata/state.
      * @param sourceAssetId The UUID of the source asset to delete.
@@ -132,17 +124,13 @@ public:
     // Metadata Querying
     /// -------------------------------------------------------------------------
 
-    /// @brief Lists every source asset (i.e. every imported file) tracked by the library.
     std::vector<AssetInfo> GetAllSourceAssets() const;
-
-    /// @brief Gets metadata for a single source asset.
     std::optional<AssetInfo> GetSourceAssetInfo(UUID sourceAssetId) const;
-
-    /// @brief Lists the runtime sub-assets produced by importing a given source asset.
     std::vector<AssetInfo> GetRuntimeAssetsForSource(UUID sourceAssetId) const;
-
-    /// @brief Gets metadata for a single runtime asset.
     std::optional<AssetInfo> GetRuntimeAssetInfo(UUID runtimeAssetId) const;
+    std::filesystem::path GetAssetRoot() const {
+        return assetRoot;
+    }
 
 private:
     template <typename T>
