@@ -242,6 +242,8 @@ void AssetBrowserWindow::Draw(EditorState& state) {
     /// Asset Hierarchy
     /// ---------------------------------------------
 
+    ImGui::TextUnformatted(state.assetManager.GetAssetRoot().string().c_str());
+
     std::vector<AssetInfo> sourceAssets = state.assetManager.GetAllSourceAssets();
     AssetTreeNode assetTree = AssetTreeNode::BuildAssetTree(state.assetManager.GetAssetRoot(), sourceAssets);
     ImGui::BeginChild("AssetList", ImVec2(0.0f, -160.0f), true);
