@@ -27,17 +27,16 @@ public:
 	);
 	void WriteMetadataAndUUID(const SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
 
+	SourceAssetMetadata GenerateSourceMetadata(const std::filesystem::path& assetPath);
+	std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath) const;
+
 private:
-	const std::string assetMetadataExtension = ".fmeta";
+	const std::string assetMetadataExtension = ".meta";
 
 	AssetMetadataSerializer metadataSerializer;
 
-	SourceAssetMetadata GenerateSourceMetadata(const std::filesystem::path& assetPath);
-
 	SourceAssetMetadata ReadMetadataAndUUID(const std::filesystem::path& assetPath);
 	void ValidateMetadataAndUUID(SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
-
-	std::filesystem::path GenerateMetadataFilePath(const std::filesystem::path& assetPath) const;
 };
 
 #endif // ENGINE_ASSETS_METADATA_ASSET_METADATA_SERVICE_H

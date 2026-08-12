@@ -1,83 +1,83 @@
 {
-    "UUID": "1336280239422874960",
+    "UUID": "5330194602711728243",
     "assetType": "Model",
     "path": "./game/assets/models/ryujin7gltf/ryujin7.gltf",
     "runtimeAssets": [
         {
-            "UUID": "1675524771997020556",
+            "UUID": "9230108403010085417",
             "assetType": "Texture",
             "exportName": "ryujin7_ryujinTex",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_ryujinTex"
         },
         {
-            "UUID": "11275339714926865654",
+            "UUID": "2670167074602329293",
             "assetType": "Material",
             "exportName": "ryujin7_Material",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Material"
         },
         {
-            "UUID": "12137415529692989683",
+            "UUID": "14955657293555405315",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cube_006",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cube_006"
         },
         {
-            "UUID": "6199856708602071837",
+            "UUID": "16753390417746838657",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cube_005",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cube_005"
         },
         {
-            "UUID": "348068608331840264",
+            "UUID": "17125727901623547807",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cube_007",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cube_007"
         },
         {
-            "UUID": "3093839805381346144",
+            "UUID": "16555660123445742954",
             "assetType": "Mesh",
             "exportName": "ryujin7_Plane",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Plane"
         },
         {
-            "UUID": "2096326167396684293",
+            "UUID": "3102180992125355937",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cube_003",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cube_003"
         },
         {
-            "UUID": "5656352271304129390",
+            "UUID": "2322260862264490980",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cylinder_001",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cylinder_001"
         },
         {
-            "UUID": "16684135257233583642",
+            "UUID": "17952540419219671718",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cylinder_002",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cylinder_002"
         },
         {
-            "UUID": "11133026794853627038",
+            "UUID": "3035234733398688066",
             "assetType": "Mesh",
             "exportName": "ryujin7_Cube_004",
-            "sourceUUID": "1336280239422874960",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7_Cube_004"
         },
         {
-            "UUID": "14642707926038405919",
+            "UUID": "786939342570860908",
             "assetType": "Model",
-            "exportName": "ryujin7",
-            "sourceUUID": "1336280239422874960",
+            "exportName": "ryujin7gltf",
+            "sourceUUID": "5330194602711728243",
             "subAssetIdentifier": "ryujin7"
         }
     ]

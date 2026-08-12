@@ -3,7 +3,7 @@
 
 #include "engine/assets/asset_data.h"
 
-#include "cgltf.h"
+#include "external/cgltf.h"
 #include "engine/assets/asset_warehouse_service.h"
 
 /**

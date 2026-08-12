@@ -1,6 +1,6 @@
 add_library(engine
     src/assets/asset_manager.cpp
-  src/debug/logger.cpp
+    src/debug/logger.cpp
     
     src/assets/asset_warehouse_service.cpp
     src/assets/asset_metadata_service.cpp
@@ -25,11 +25,11 @@ target_include_directories(engine PUBLIC
 )
 
 target_link_libraries(engine PRIVATE 
-  glfw 
-  OpenGL::GL
-  glad::glad
+    glfw 
+    OpenGL::GL
+    glad::glad
 )
 
 target_link_libraries(engine PUBLIC
-  glm::glm
+    glm::glm
 )

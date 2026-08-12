@@ -1,9 +1,17 @@
 {
+  "name": "falling-engine",
+  "version-string": "0.1.0",
   "dependencies": [
     "opengl",
     "glfw3",
     "glad",
     "glm",
-    "assimp"
+    {
+      "name": "imgui",
+      "features": [
+        "glfw-binding",
+        "opengl3-binding"
+      ]
+    }
   ]
 }

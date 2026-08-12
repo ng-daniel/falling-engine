@@ -13,7 +13,7 @@
 #include "engine/debug/logger.h"
 
 #define CGLTF_IMPLEMENTATION
-#include "cgltf.h"
+#include "external/cgltf.h"
 
 namespace {
 
@@ -282,17 +282,13 @@ const ImageAsset* ModelImporter::ProcessImage(
         if not, load it from the file path
         */
         std::filesystem::path imagePath = modelImportContext.modelDirectory / image.uri;
-        SourceAssetMetadata imageMetadata;
-        try {
-            imageMetadata = modelImportContext.assetWarehouseService.DependencyResolver(imagePath);
-        } catch (const std::exception& e) {
-            throw std::runtime_error("Failed to resolve dependency for image asset: " + imagePath.string() + ". Error: " + e.what());
-        }
+        SourceAssetMetadata * imageMetadata;
+        imageMetadata = modelImportContext.assetWarehouseService.DependencyResolver(imagePath);
 
-        if (imageMetadata.loaded) {
+        if (imageMetadata && imageMetadata->loaded) {
             // pull from warehouse if already loaded
 
-            RuntimeAssetMetadata* runtimeMetadata = imageMetadata.GetPrimaryRuntimeMetadata();
+            const RuntimeAssetMetadata * runtimeMetadata = SourceAssetMetadata::GetPrimaryRuntimeMetadata(*imageMetadata);
             if (runtimeMetadata == nullptr) {
                 throw std::runtime_error("Loaded image dependency is missing runtime metadata: " + imagePath.string());
             }
@@ -310,7 +306,7 @@ const ImageAsset* ModelImporter::ProcessImage(
             // which is why we need to call the TextureImporter to load the image and create a texture asset for it
             // then query the image asset from the warehouse using the texture asset's image UUID
 
-            const TextureAsset* textureAsset = TextureImporter::LoadAsset(imageMetadata, modelImportContext.assetWarehouseService);
+            const TextureAsset* textureAsset = TextureImporter::LoadAsset(*imageMetadata, modelImportContext.assetWarehouseService);
             return static_cast<const ImageAsset*>(
                 modelImportContext.assetWarehouseService.GetLoadedAssetReadOnly(textureAsset->image)
             );

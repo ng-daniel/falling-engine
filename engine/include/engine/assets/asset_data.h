@@ -34,9 +34,9 @@ struct SourceAssetMetadata {
         return nullptr;
     }
 
-    RuntimeAssetMetadata* GetPrimaryRuntimeMetadata() {
-        const std::string primarySubAssetIdentifier = path.stem().string();
-        return TryGetSubAssetMetadata(primarySubAssetIdentifier);
+    static RuntimeAssetMetadata* GetPrimaryRuntimeMetadata(SourceAssetMetadata& sourceMetadata) {
+        const std::string primarySubAssetIdentifier = sourceMetadata.path.stem().string();
+        return sourceMetadata.TryGetSubAssetMetadata(primarySubAssetIdentifier);
     }
 };
 
