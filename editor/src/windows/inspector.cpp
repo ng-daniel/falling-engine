@@ -26,6 +26,7 @@ namespace {
 
     // Dependencies aren't part of AssetInfo, so for the asset types that reference other
     // assets we load them through the public API (by type) and display their UUIDs directly.
+    // only gets called when you click the dropdown to expand a sub-asset in the inspector
     void DrawDependencies(AssetManager& assetManager, const AssetInfo& runtimeAsset) {
         Asset::AssetType type;
         try {
@@ -34,6 +35,7 @@ namespace {
             return;
         }
 
+        // all the requests assets are low overhead once loaded so its fine i think
         switch (type) {
             case Asset::AssetType::Model: {
                 const ModelAsset* model = assetManager.RequestAssetReadOnly<ModelAsset>(runtimeAsset.id);
@@ -51,6 +53,7 @@ namespace {
                 break;
             }
             case Asset::AssetType::Material: {
+                
                 const MaterialAsset* material = assetManager.RequestAssetReadOnly<MaterialAsset>(runtimeAsset.id);
                 if (!material) {
                     return;
@@ -70,6 +73,7 @@ namespace {
                 DrawDependency("Image", texture->image);
                 break;
             }
+            // SHADER HAS NO DEPENDENCIES SO DON'T CARE HERE
             default:
                 break;
         }
@@ -85,6 +89,7 @@ void InspectorWindow::Draw(EditorState& state) {
         return;
     }
 
+    // cheap operation so OK
     std::optional<AssetInfo> source = state.assetManager.GetSourceAssetInfo(*state.selectedSourceAssetId);
     if (!source.has_value()) {
         ImGui::TextDisabled("Selected asset no longer exists.");
@@ -100,6 +105,7 @@ void InspectorWindow::Draw(EditorState& state) {
 
     ImGui::Separator();
     if (ImGui::Button("Reimport")) {
+        // expensive but not spammed every frame so OK
         state.assetManager.ReimportAsset(source->sourceId);
     }
     ImGui::SameLine();
@@ -108,6 +114,7 @@ void InspectorWindow::Draw(EditorState& state) {
     ImGui::Separator();
     ImGui::TextUnformatted("Runtime sub-assets:");
 
+    // relatively cheap operation
     std::vector<AssetInfo> runtimeAssets = state.assetManager.GetRuntimeAssetsForSource(source->sourceId);
     if (runtimeAssets.empty()) {
         ImGui::TextDisabled("None yet. Click Reimport to generate them.");
@@ -116,7 +123,7 @@ void InspectorWindow::Draw(EditorState& state) {
         ImGui::PushID(static_cast<int>(runtimeAsset.id));
         std::string header = runtimeAsset.name + "  [" + runtimeAsset.type + "]" +
             (runtimeAsset.loaded ? "" : "  (unloaded)");
-        if (ImGui::TreeNode("RuntimeAssetNode", "%s", header.c_str())) {
+        if (ImGui::TreeNodeEx("RuntimeAssetNode", ImGuiTreeNodeFlags_None, "%s", header.c_str())) {
             ImGui::Text("ID: %llu", static_cast<unsigned long long>(runtimeAsset.id));
             DrawDependencies(state.assetManager, runtimeAsset);
             ImGui::TreePop();

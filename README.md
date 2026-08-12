@@ -26,3 +26,8 @@ Crazy Features (probably not anytime soon)
 - vulkan rework
 - scriptable runtime
 - networking/multiplayer
+
+
+TODO
+1. fix asset request spam in the inspector
+2. figure out why some assets aren't identifying the source asset primary runtime asset
