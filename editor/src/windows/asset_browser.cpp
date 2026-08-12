@@ -209,16 +209,19 @@ namespace {
         std::snprintf(buffer, bufferSize, "%s", value.c_str());
     }
 
-    // The "primary" runtime sub-asset shares the file's stem as its export name by default
-    // (see SourceAssetMetadata::GetPrimaryRuntimeMetadata); it's the one users think of as
-    // "the asset" when renaming from the browser.
+    /**
+     * @brief Finds the primary runtime sub-asset for a given source asset.
+     * 
+     * @param assetManager The asset manager to query.
+     * @param source The source asset whose primary runtime asset is to be found.
+     * @return std::optional<AssetInfo> The primary runtime asset if found, std::nullopt otherwise.
+     */
     std::optional<AssetInfo> FindPrimaryRuntimeAsset(AssetManager& assetManager, const AssetInfo& source) {
-        for (const AssetInfo& runtimeAsset : assetManager.GetRuntimeAssetsForSource(source.sourceId)) {
-            if (runtimeAsset.name == source.name) {
-                return runtimeAsset;
-            }
-        }
-        return std::nullopt;
+        // The "primary" runtime sub-asset shares the file's stem as its export name by default
+        // (see SourceAssetMetadata::GetPrimaryRuntimeMetadata); it's the one users think of as
+        // "the asset" when renaming from the browser.
+        
+        return assetManager.GetPrimaryRuntimeAssetForSource(source.sourceId);
     }
 }
 
@@ -285,11 +288,12 @@ void AssetBrowserWindow::Draw(EditorState& state) {
 
     // rename
     std::optional<AssetInfo> primaryRuntimeAsset = FindPrimaryRuntimeAsset(state.assetManager, *selected);
+    ImGui::Text("Modify export name:");
     ImGui::SetNextItemWidth(-90.0f);
     ImGui::InputText("##RenamePath", renameBuffer, sizeof(renameBuffer));
     ImGui::SameLine();
     ImGui::BeginDisabled(!primaryRuntimeAsset.has_value());
-    if (ImGui::Button("Rename", ImVec2(80.0f, 0.0f)) && renameBuffer[0] != '\0') {
+    if (ImGui::Button("Update", ImVec2(80.0f, 0.0f)) && renameBuffer[0] != '\0') {
         state.assetManager.RenameAsset(primaryRuntimeAsset->id, renameBuffer);
     }
     ImGui::EndDisabled();
@@ -298,6 +302,7 @@ void AssetBrowserWindow::Draw(EditorState& state) {
     }
 
     // move
+    ImGui::Text("Move asset files:");
     ImGui::SetNextItemWidth(-90.0f);
     ImGui::InputText("##MovePath", movePathBuffer, sizeof(movePathBuffer));
     ImGui::SameLine();

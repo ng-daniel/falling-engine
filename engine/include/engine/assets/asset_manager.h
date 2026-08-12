@@ -127,6 +127,7 @@ public:
     std::vector<AssetInfo> GetAllSourceAssets() const;
     std::optional<AssetInfo> GetSourceAssetInfo(UUID sourceAssetId) const;
     std::vector<AssetInfo> GetRuntimeAssetsForSource(UUID sourceAssetId) const;
+    AssetInfo GetPrimaryRuntimeAssetForSource(UUID sourceAssetId) const;
     std::optional<AssetInfo> GetRuntimeAssetInfo(UUID runtimeAssetId) const;
     std::filesystem::path GetAssetRoot() const {
         return assetRoot;

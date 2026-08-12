@@ -230,6 +230,20 @@ std::vector<AssetInfo> AssetManager::GetRuntimeAssetsForSource(UUID sourceAssetI
     return result;
 }
 
+AssetInfo AssetManager::GetPrimaryRuntimeAssetForSource(UUID sourceAssetId) const {
+    const SourceAssetMetadata* sourceMetadata = assetWarehouseService.FindSourceMetadataReadOnly(sourceAssetId);
+    if (!sourceMetadata) {
+        throw std::runtime_error("Source asset not found: " + std::to_string(sourceAssetId));
+    }
+    const RuntimeAssetMetadata* primaryRuntimeMetadata = SourceAssetMetadata::GetPrimaryRuntimeMetadata(
+        *const_cast<SourceAssetMetadata*>(sourceMetadata)
+    );
+    if (!primaryRuntimeMetadata) {
+        throw std::runtime_error("Source asset has no primary runtime asset: " + std::to_string(sourceAssetId));
+    }
+    return BuildAssetInfo(*primaryRuntimeMetadata, *sourceMetadata);
+}
+
 std::optional<AssetInfo> AssetManager::GetRuntimeAssetInfo(UUID runtimeAssetId) const {
     const RuntimeAssetMetadata* runtimeMetadata = assetWarehouseService.FindRuntimeMetadataReadOnly(runtimeAssetId);
     if (!runtimeMetadata) {

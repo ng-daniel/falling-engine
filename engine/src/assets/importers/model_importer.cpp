@@ -288,7 +288,7 @@ const ImageAsset* ModelImporter::ProcessImage(
         if (imageMetadata && imageMetadata->loaded) {
             // pull from warehouse if already loaded
 
-            RuntimeAssetMetadata* runtimeMetadata = imageMetadata->GetPrimaryRuntimeMetadata();
+            const RuntimeAssetMetadata * runtimeMetadata = SourceAssetMetadata::GetPrimaryRuntimeMetadata(*imageMetadata);
             if (runtimeMetadata == nullptr) {
                 throw std::runtime_error("Loaded image dependency is missing runtime metadata: " + imagePath.string());
             }
