@@ -12,18 +12,6 @@
 #include "engine/assets/asset_importer_service.h"
 
 /**
- * @brief Public wrapper for asset metadata.
- */
-struct AssetInfo {
-    UUID id;                     // source/runtime GUID based on context
-    UUID sourceId;               // source GUID, identical to id for source assets
-    std::string name;            // display/export name
-    std::string type;            // type as string
-    std::filesystem::path path;  // source file path
-    bool loaded = false;         // is it loaded in memory (runtime assets only) ?
-};
-
-/**
  * @brief Public API for asset management: importing, loading, unloading, reimporting,
  * renaming, moving, deleting, and querying metadata.
  *

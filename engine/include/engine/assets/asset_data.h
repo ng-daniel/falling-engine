@@ -9,6 +9,19 @@
 
 #include "engine/utils/uuid.h"
 
+
+/**
+ * @brief Public wrapper for asset metadata.
+ */
+struct AssetInfo {
+    UUID id;                     // source/runtime GUID based on context
+    UUID sourceId;               // source GUID, identical to id for source assets
+    std::string name;            // display/export name
+    std::string type;            // type as string
+    std::filesystem::path path;  // source file path
+    bool loaded = false;         // is it loaded in memory (runtime assets only) ?
+};
+
 struct RuntimeAssetMetadata {
     UUID id;
     UUID sourceId;                  // reference to the source asset metadata
