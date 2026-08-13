@@ -1,0 +1,8 @@
+#ifndef ENGINE_SCENES_SCENE_MANAGER_H
+#define ENGINE_SCENES_SCENE_MANAGER_H
+
+class SceneManager {
+
+};
+
+#endif // ENGINE_SCENES_SCENE_MANAGER_H

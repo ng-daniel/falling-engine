@@ -11,6 +11,8 @@ add_library(engine
     src/assets/importers/shader_importer.cpp
     src/assets/importers/model_importer.cpp
 
+    src/scenes/scene_manager.cpp
+
     src/core/application.cpp
 
     src/serialization/asset_metadata_serializer.cpp
