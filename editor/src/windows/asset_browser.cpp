@@ -227,110 +227,114 @@ namespace {
 
 void AssetBrowserWindow::Draw(EditorState& state) {
     ImGui::Begin("Asset Browser");
+    if (ImGui::BeginTable("AssetBrowserColumns", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Assets", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch, 0.4f);
 
-    /// Import New File Fields
-    /// ---------------------------------------------
+        ImGui::TableNextColumn();
 
-    ImGui::TextUnformatted("Import external file:");
-    ImGui::SetNextItemWidth(-90.0f);
-    ImGui::InputText("##ImportPath", importPathBuffer, sizeof(importPathBuffer));
-    ImGui::SameLine();
-    if (ImGui::Button("Import", ImVec2(80.0f, 0.0f)) && importPathBuffer[0] != '\0') {
-        state.assetManager.ImportAsset(importPathBuffer);
-        importPathBuffer[0] = '\0';
-    }
+        /// Import New File Fields
+        /// ---------------------------------------------
 
-    ImGui::Separator();
-
-    /// Asset Hierarchy
-    /// ---------------------------------------------
-
-    ImGui::TextUnformatted(state.assetManager.GetAssetRoot().string().c_str());
-
-    std::vector<AssetInfo> sourceAssets = state.assetManager.GetAllSourceAssets();
-    AssetTreeNode assetTree = AssetTreeNode::BuildAssetTree(state.assetManager.GetAssetRoot(), sourceAssets);
-    ImGui::BeginChild("AssetList", ImVec2(0.0f, -160.0f), true);
-    for (const AssetTreeNode& child : assetTree.children) {
-        AssetTreeNode::DrawAssetTreeNode(child, state.selectedSourceAssetId);
-    }
-    if (assetTree.children.empty()) {
-        ImGui::TextDisabled("No source assets found.");
-    }
-    ImGui::EndChild();
-
-    ImGui::Separator();
-
-    /// Rename/Move/Delete Fields
-    /// ---------------------------------------------
-
-    if (!state.selectedSourceAssetId.has_value()) {
-        ImGui::TextDisabled("Select an asset to rename, move, or delete it.");
-        ImGui::End();
-        return;
-    }
-
-    std::optional<AssetInfo> selected = state.assetManager.GetSourceAssetInfo(*state.selectedSourceAssetId);
-    if (!selected.has_value()) {
-        // Selection no longer exists (e.g. deleted elsewhere).
-        state.selectedSourceAssetId.reset();
-        ImGui::End();
-        return;
-    }
-
-    if (buffersSyncedFor != selected->id) {
-        CopyToBuffer(movePathBuffer, sizeof(movePathBuffer), selected->path.string());
-        std::optional<AssetInfo> primary = FindPrimaryRuntimeAsset(state.assetManager, *selected);
-        CopyToBuffer(renameBuffer, sizeof(renameBuffer), primary.has_value() ? primary->name : selected->name);
-        buffersSyncedFor = selected->id;
-    }
-
-    ImGui::Text("Selected: %s [%s]", selected->name.c_str(), selected->type.c_str());
-
-    // rename
-    std::optional<AssetInfo> primaryRuntimeAsset = FindPrimaryRuntimeAsset(state.assetManager, *selected);
-    ImGui::Text("Modify export name:");
-    ImGui::SetNextItemWidth(-90.0f);
-    ImGui::InputText("##RenamePath", renameBuffer, sizeof(renameBuffer));
-    ImGui::SameLine();
-    ImGui::BeginDisabled(!primaryRuntimeAsset.has_value());
-    if (ImGui::Button("Update", ImVec2(80.0f, 0.0f)) && renameBuffer[0] != '\0') {
-        state.assetManager.RenameAsset(primaryRuntimeAsset->id, renameBuffer);
-    }
-    ImGui::EndDisabled();
-    if (!primaryRuntimeAsset.has_value()) {
-        ImGui::TextDisabled("Reimport (see Inspector) to populate rename data.");
-    }
-
-    // move
-    ImGui::Text("Move asset files:");
-    ImGui::SetNextItemWidth(-90.0f);
-    ImGui::InputText("##MovePath", movePathBuffer, sizeof(movePathBuffer));
-    ImGui::SameLine();
-    if (ImGui::Button("Move", ImVec2(80.0f, 0.0f)) && movePathBuffer[0] != '\0') {
-        if (state.assetManager.MoveAsset(selected->sourceId, std::filesystem::path(movePathBuffer))) {
-            buffersSyncedFor.reset();
-        }
-    }
-
-    // delete
-    if (ImGui::Button("Delete Asset")) {
-        ImGui::OpenPopup("Delete Asset?");
-    }
-    if (ImGui::BeginPopupModal("Delete Asset?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Delete '%s' and its underlying file?", selected->name.c_str());
-        ImGui::TextDisabled("This cannot be undone.");
-        ImGui::Separator();
-        if (ImGui::Button("Delete", ImVec2(120.0f, 0.0f))) {
-            state.assetManager.DeleteAsset(selected->sourceId);
-            state.selectedSourceAssetId.reset();
-            buffersSyncedFor.reset();
-            ImGui::CloseCurrentPopup();
-        }
+        ImGui::TextUnformatted("Import external file:");
+        ImGui::SetNextItemWidth(-90.0f);
+        ImGui::InputText("##ImportPath", importPathBuffer, sizeof(importPathBuffer));
         ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f))) {
-            ImGui::CloseCurrentPopup();
+        if (ImGui::Button("Import", ImVec2(80.0f, 0.0f)) && importPathBuffer[0] != '\0') {
+            state.assetManager.ImportAsset(importPathBuffer);
+            importPathBuffer[0] = '\0';
         }
-        ImGui::EndPopup();
+
+        ImGui::Separator();
+
+        /// Asset Hierarchy
+        /// ---------------------------------------------
+
+        ImGui::TextUnformatted(state.assetManager.GetAssetRoot().string().c_str());
+
+        std::vector<AssetInfo> sourceAssets = state.assetManager.GetAllSourceAssets();
+        AssetTreeNode assetTree = AssetTreeNode::BuildAssetTree(state.assetManager.GetAssetRoot(), sourceAssets);
+        ImGui::BeginChild("AssetList", ImVec2(0.0f, 0.0f), true);
+        for (const AssetTreeNode& child : assetTree.children) {
+            AssetTreeNode::DrawAssetTreeNode(child, state.selectedSourceAssetId);
+        }
+        if (assetTree.children.empty()) {
+            ImGui::TextDisabled("No source assets found.");
+        }
+        ImGui::EndChild();
+
+        ImGui::TableNextColumn();
+
+        /// Rename/Move/Delete Fields
+        /// ---------------------------------------------
+
+        if (!state.selectedSourceAssetId.has_value()) {
+            ImGui::TextDisabled("Select an asset to rename, move, or delete it.");
+        } else {
+            std::optional<AssetInfo> selected = state.assetManager.GetSourceAssetInfo(*state.selectedSourceAssetId);
+            if (!selected.has_value()) {
+                // Selection no longer exists (e.g. deleted elsewhere).
+                state.selectedSourceAssetId.reset();
+            } else {
+                if (buffersSyncedFor != selected->id) {
+                    CopyToBuffer(movePathBuffer, sizeof(movePathBuffer), selected->path.string());
+                    std::optional<AssetInfo> primary = FindPrimaryRuntimeAsset(state.assetManager, *selected);
+                    CopyToBuffer(renameBuffer, sizeof(renameBuffer), primary.has_value() ? primary->name : selected->name);
+                    buffersSyncedFor = selected->id;
+                }
+
+                ImGui::Text("Selected: %s [%s]", selected->name.c_str(), selected->type.c_str());
+
+                // rename
+                std::optional<AssetInfo> primaryRuntimeAsset = FindPrimaryRuntimeAsset(state.assetManager, *selected);
+                ImGui::Text("Modify export name:");
+                ImGui::SetNextItemWidth(-90.0f);
+                ImGui::InputText("##RenamePath", renameBuffer, sizeof(renameBuffer));
+                ImGui::SameLine();
+                ImGui::BeginDisabled(!primaryRuntimeAsset.has_value());
+                if (ImGui::Button("Update", ImVec2(80.0f, 0.0f)) && renameBuffer[0] != '\0') {
+                    state.assetManager.RenameAsset(primaryRuntimeAsset->id, renameBuffer);
+                }
+                ImGui::EndDisabled();
+                if (!primaryRuntimeAsset.has_value()) {
+                    ImGui::TextDisabled("Reimport (see Inspector) to populate rename data.");
+                }
+
+                // move
+                ImGui::Text("Move asset files:");
+                ImGui::SetNextItemWidth(-90.0f);
+                ImGui::InputText("##MovePath", movePathBuffer, sizeof(movePathBuffer));
+                ImGui::SameLine();
+                if (ImGui::Button("Move", ImVec2(80.0f, 0.0f)) && movePathBuffer[0] != '\0') {
+                    if (state.assetManager.MoveAsset(selected->sourceId, std::filesystem::path(movePathBuffer))) {
+                        buffersSyncedFor.reset();
+                    }
+                }
+
+                // delete
+                if (ImGui::Button("Delete Asset")) {
+                    ImGui::OpenPopup("Delete Asset?");
+                }
+                if (ImGui::BeginPopupModal("Delete Asset?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                    ImGui::Text("Delete '%s' and its underlying file?", selected->name.c_str());
+                    ImGui::TextDisabled("This cannot be undone.");
+                    ImGui::Separator();
+                    if (ImGui::Button("Delete", ImVec2(120.0f, 0.0f))) {
+                        state.assetManager.DeleteAsset(selected->sourceId);
+                        state.selectedSourceAssetId.reset();
+                        buffersSyncedFor.reset();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f))) {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+        }
+
+        ImGui::EndTable();
     }
 
     ImGui::End();
