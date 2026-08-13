@@ -2,7 +2,7 @@
 
 ---
 
-C++ game engine developed on top of the OpenGL graphics API \
+C++ game engine
 
 Goal
 - make a minimum viable engine with solid fundamentals and expandability
