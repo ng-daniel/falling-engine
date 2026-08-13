@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 
+#include "engine/ecs/ecs_data.h"
 #include "engine/utils/uuid.h"
-
 
 /**
  * @brief Public wrapper for asset metadata.
@@ -158,5 +158,16 @@ struct ModelAsset : public Asset
     std::vector<UUID> meshes;
     std::vector<UUID> materials;
 };
+
+/**
+ * @brief Represents a scene/prefab (same thing in this house)
+ * Gets serialized and deserialized n stuff
+ */
+class ThingAsset : public Asset {
+    UUID rootEntity;
+    std::vector<Entity> entities;
+    // still need to add the component store structures
+};
+
 
 #endif // ENGINE_ASSETS_ASSET_DATA_H

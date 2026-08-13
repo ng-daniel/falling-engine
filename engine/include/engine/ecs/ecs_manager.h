@@ -1,0 +1,8 @@
+#ifndef ENGINE_ECS_ECS_MANAGER_H
+#define ENGINE_ECS_ECS_MANAGER_H
+
+class ECS_Manager {
+
+};
+
+#endif // ENGINE_ECS_ECS_MANAGER_H
