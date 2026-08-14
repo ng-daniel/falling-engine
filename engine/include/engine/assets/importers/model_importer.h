@@ -2,6 +2,7 @@
 #define ENGINE_ASSETS_MODEL_IMPORTER_H
 
 #include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 
 #include "external/cgltf.h"
 #include "engine/assets/asset_warehouse_service.h"

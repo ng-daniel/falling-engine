@@ -2,6 +2,7 @@
 #define ENGINE_ASSETS_TEXTURE_IMPORTER_H
 
 #include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 
 class AssetWarehouseService;
 

@@ -1,5 +1,7 @@
 #include "engine/assets/asset_importer_service.h"
 
+#include "engine/assets/asset_structures.h"
+
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/importers/texture_importer.h"
 #include "engine/assets/importers/shader_importer.h"

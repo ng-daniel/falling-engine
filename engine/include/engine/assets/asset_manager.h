@@ -4,12 +4,12 @@
 #include <filesystem>
 #include <optional>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "engine/assets/asset_handle.h"
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_importer_service.h"
+#include "engine/assets/asset_structures.h"
 
 /**
  * @brief Public API for asset management: importing, loading, unloading, reimporting,

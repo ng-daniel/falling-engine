@@ -2,6 +2,7 @@
 #define ENGINE_ASSETS_SHADER_IMPORTER_H
 
 #include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 
 class AssetWarehouseService;
 
