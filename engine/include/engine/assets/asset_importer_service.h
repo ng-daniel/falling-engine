@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_ASSET_IMPORTER_SERVICE_H
 #define ENGINE_ASSETS_ASSET_IMPORTER_SERVICE_H
 
-#include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 #include "engine/assets/asset_warehouse_service.h"
 #include <vector>
 

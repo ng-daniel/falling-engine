@@ -1,5 +1,5 @@
 #include "engine/assets/asset_warehouse_service.h"
-#include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 #include "engine/assets/asset_helpers.h"
 #include <string>
 #include <unordered_map>

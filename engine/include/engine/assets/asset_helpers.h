@@ -1,7 +1,7 @@
 #ifndef ENGINE_ASSETS_ASSET_HELPERS_H
 #define ENGINE_ASSETS_ASSET_HELPERS_H
 
-#include "asset_data.h"
+#include "asset_structures.h"
 #include <stdexcept>
 #include <string>
 

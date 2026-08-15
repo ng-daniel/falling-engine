@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 #include "engine/serialization/asset_metadata_serializer.h"
 
 /**

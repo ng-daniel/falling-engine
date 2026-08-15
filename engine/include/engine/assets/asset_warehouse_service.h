@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/assets/asset_data.h"
+#include "engine/assets/asset_structures.h"
 #include "engine/assets/asset_metadata_service.h"
 
 /**

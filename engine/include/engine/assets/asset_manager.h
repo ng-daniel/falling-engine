@@ -10,6 +10,7 @@
 #include "engine/assets/asset_warehouse_service.h"
 #include "engine/assets/asset_importer_service.h"
 #include "engine/assets/asset_structures.h"
+#include "engine/assets/asset_data.h"
 
 /**
  * @brief Public API for asset management: importing, loading, unloading, reimporting,
