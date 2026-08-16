@@ -2,7 +2,7 @@
 #define ENGINE_ECS_ECS_WAREHOUSE_H
 
 #include "engine/utils/uuid.h"
-#include "engine/ecs/ecs_data.h"
+#include "engine/ecs/ecs_structures.h"
 
 #include <unordered_map>
 
@@ -12,8 +12,7 @@ public:
     void DeleteEntity();
 
 private:
-    std::unordered_map<UUID, long> sparseMap;
-    std::vector<Component> denseMap;
+
 };
 
 #endif // ENGINE_ECS_ECS_WAREHOUSE_H

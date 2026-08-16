@@ -2,7 +2,7 @@
 #define ENGINE_ECS_COMPONENTS_TRANSFORM_H
 
 #include "engine/utils/uuid.h"
-#include "engine/ecs/ecs_data.h"
+#include "engine/ecs/ecs_structures.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
