@@ -2,12 +2,13 @@
 #define ENGINE_ECS_ECS_COMPONENT_ARRAY_H
 
 #include <cstdint>
-#include <string>
 #include <limits>
+#include <string>
 #include <vector>
 
 class IEcsComponentArray {
 public:
+    virtual ~IEcsComponentArray() = default;
     virtual std::string GetComponentName() = 0;
     virtual void DeleteComponent(uint32_t entityIndex) = 0;
 };
@@ -16,10 +17,9 @@ template <typename T>
 class EcsComponentArray : public IEcsComponentArray {
 public:
     EcsComponentArray() {
-        entityToDenseMap.reserve(MAX_SIZE);
+        entityToDenseMap.resize(MAX_SIZE, TOMBSTONE);
+        denseArray.reserve(MAX_SIZE);
         denseToEntityMap.reserve(MAX_SIZE);
-        std::fill(entityToDenseMap.begin(), entityToDenseMap.end(), TOMBSTONE);
-        std::fill(denseToEntityMap.begin(), denseToEntityMap.end(), TOMBSTONE);
     }
     ~EcsComponentArray() = default;
 
@@ -29,34 +29,34 @@ public:
      * @param entityIndex 
      * @return T* 
      */
-    T * GetComponent(uint32_t entityIndex) {
-        if (entityIndex >= entityToDenseMap.size()) {
+    T * GetComponent(uint32_t entityRuntimeIdx) {
+        if (entityRuntimeIdx >= entityToDenseMap.size()) {
             return nullptr;
         }
 
-        uint32_t denseIdx = entityToDenseMap[entityIndex];
+        uint32_t denseIdx = entityToDenseMap[entityRuntimeIdx];
         if (denseIdx == TOMBSTONE) {
             return nullptr;
         }
 
         return &denseArray[denseIdx];
     }
-    const T * GetComponentReadOnly(uint32_t entityIndex) {
-        return GetComponent(entityIndex);
+    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) {
+        return GetComponent(entityRuntimeIdx);
     }
 
     /**
-     * @brief Creates a new component associated with the given entityIndex.
+     * @brief Creates a new component associated with the given entityRuntimeIdx.
      * 
-     * @param entityIndex 
+     * @param entityRuntimeIdx 
      * @return T* 
      */
-    T * NewComponent(uint32_t entityIndex) {
-        if (entityIndex >= entityToDenseMap.size()) {
+    T * NewComponent(uint32_t entityRuntimeIdx) {
+        if (entityRuntimeIdx >= MAX_SIZE) {
             return nullptr;
         }
-        if (entityToDenseMap[entityIndex] != TOMBSTONE) {
-            return nullptr; // component already exists for this entityIndex
+        if (entityToDenseMap[entityRuntimeIdx] != TOMBSTONE) {
+            return nullptr; // component already exists for this entityRuntimeIdx
         }
 
         // add component
@@ -64,8 +64,8 @@ public:
         uint32_t newIdx = denseArray.size() - 1;
         
         // update mappings
-        entityToDenseMap[entityIndex] = newIdx;
-        denseToEntityMap.push_back(entityIndex);
+        entityToDenseMap[entityRuntimeIdx] = newIdx;
+        denseToEntityMap.push_back(entityRuntimeIdx);
 
         return &denseArray[newIdx];
     }
@@ -73,35 +73,35 @@ public:
     /**
      * @brief Deletes the target component by removing 
      * 
-     * @param entityIndex 
+     * @param entityRuntimeIdx 
      */
-    void DeleteComponent(uint32_t entityIndex) {
-        if (entityIndex >= entityToDenseMap.size()) {
+    void DeleteComponent(uint32_t entityRuntimeIdx) {
+        if (entityRuntimeIdx >= entityToDenseMap.size()) {
             return;
         }
-        uint32_t targetIdx = entityToDenseMap[entityIndex];
+        uint32_t targetIdx = entityToDenseMap[entityRuntimeIdx];
         if (targetIdx == TOMBSTONE) {
             return;
         }
 
         // swap the target idx with the last idx
         uint32_t lastIdx = denseArray.size() - 1;
-        denseArray[targetIdx] = denseArray[lastIdx];
+        if (targetIdx != lastIdx) {
+            denseArray[targetIdx] = denseArray[lastIdx];
+
+            uint32_t swappedEntityRuntimeIdx = denseToEntityMap[lastIdx];
+            denseToEntityMap[targetIdx] = swappedEntityRuntimeIdx;
+            entityToDenseMap[swappedEntityRuntimeIdx] = targetIdx;
+        }
+
         denseArray.pop_back(); // delete the last idx, which is now our target
-
-        // don't forget to also swap the denseToEntityMap
-        denseToEntityMap[targetIdx] = denseToEntityMap[lastIdx];
         denseToEntityMap.pop_back();
-
-        // update the entityToDenseMap for the swapped entity
-        uint32_t swappedEntityIndex = denseToEntityMap[targetIdx];
-        entityToDenseMap[swappedEntityIndex] = targetIdx;
-        entityToDenseMap[entityIndex] = TOMBSTONE;
+        entityToDenseMap[entityRuntimeIdx] = TOMBSTONE;
     }
 
 private:
-    static constexpr uint32_t MAX_SIZE = std::numeric_limits<uint32_t>::max();
-    
+    static constexpr uint32_t MAX_SIZE = 1024;
+
     // reserve highest value of uint32_t as a tombstone marker
     static constexpr uint32_t TOMBSTONE = std::numeric_limits<uint32_t>::max(); 
     

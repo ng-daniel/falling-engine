@@ -13,6 +13,9 @@ add_library(engine
 
     src/core/application.cpp
 
+    src/ecs/ecs_warehouse.cpp
+    src/ecs/ecs_manager.cpp
+
     src/serialization/asset_metadata_serializer.cpp
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp

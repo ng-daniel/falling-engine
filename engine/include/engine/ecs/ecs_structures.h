@@ -18,7 +18,7 @@ struct IComponent {
  */
 struct Entity {
     UUID entityId;
-    uint32_t runtimeIdx; // used for runtime indexing into ECS component arrays
+    uint32_t entityRuntimeIdx; // used for runtime indexing into ECS component arrays
     std::string name;
 };
 

@@ -17,31 +17,54 @@ class EcsWarehouse {
 public:
     Entity CreateEntityNew();
     void DeleteEntity(Entity entity);
+    bool IsAlive(Entity entity) const;
+    Entity * FindEntity(UUID entityId);
+    const Entity * FindEntityReadOnly(UUID entityId) const;
 
     template <typename T>
-    T AddComponent(Entity entity) {
+    T * AddComponent(Entity entity) {
+        if (!IsAlive(entity)) {
+            return nullptr;
+        }
         if (!TryAddComponentArray<T>()) {
             // component array already exists for this type
         }
         EcsComponentArray<T> * array = GetArray<T>();
-        return *array->NewComponent(entity.runtimeIdx);
+        return array->NewComponent(entity.entityRuntimeIdx);
     }
     
     template <typename T>
     void RemoveComponent(Entity entity) {
+        if (!IsAlive(entity)) {
+            return;
+        }
         EcsComponentArray<T> * array = GetArray<T>();
         if (array) {
-            array->DeleteComponent(entity.runtimeIdx);
+            array->DeleteComponent(entity.entityRuntimeIdx);
         }
+    }
+    void RemoveAllComponents(Entity entity);
+
+    template <typename T>
+    T * GetComponent(Entity entity) {
+        if (!IsAlive(entity)) {
+            return nullptr;
+        }
+        EcsComponentArray<T> * array = GetArray<T>();
+        if (array) {
+            return array->GetComponent(entity.entityRuntimeIdx);
+        }
+        return nullptr;
     }
 
     template <typename T>
-    T GetComponent(Entity entity) {
-        EcsComponentArray<T> * array = GetArray<T>();
-        if (array) {
-            return *array->GetComponent(entity.runtimeIdx);
-        }
-        return T();
+    const T * GetComponentReadOnly(Entity entity) const {
+        return GetComponent<T>(entity);
+    }
+
+    template <typename T>
+    bool HasComponent(Entity entity) const {
+        return GetComponentReadOnly<T>(entity) != nullptr;
     }
 
 private:
@@ -50,7 +73,7 @@ private:
     std::vector<uint32_t> freeRuntimeIds;
 
     // primary storage maps
-    std::unordered_map<uint32_t, Entity> entities;
+    std::unordered_map<UUID, Entity> entities;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     
     template <typename T>
@@ -66,6 +89,11 @@ private:
             return nullptr;
         }
         return static_cast<EcsComponentArray<T> *>(componentArrays[typeId].get());
+    }
+
+    template <typename T>
+    const EcsComponentArray<T> * GetArrayReadOnly() const {
+        return GetArray<T>();
     }
 
     template <typename T>
