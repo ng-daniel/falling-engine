@@ -2,11 +2,18 @@
 #define ENGINE_ECS_ECS_COMPONENT_ARRAY_H
 
 #include <cstdint>
+#include <string>
 #include <limits>
 #include <vector>
 
+// just a flag
+class IEcsComponentArray {
+public:
+    virtual std::string GetComponentName() = 0;
+};
+
 template <typename T>
-class EcsComponentArray {
+class EcsComponentArray : public IEcsComponentArray {
 public:
     EcsComponentArray() {
         entityToDenseMap.reserve(MAX_SIZE);
@@ -22,7 +29,7 @@ public:
      * @param entityIndex 
      * @return T* 
      */
-    T * Get(uint32_t entityIndex) {
+    T * GetComponent(uint32_t entityIndex) {
         if (entityIndex >= entityToDenseMap.size()) {
             return nullptr;
         }
@@ -34,8 +41,8 @@ public:
 
         return &denseArray[denseIdx];
     }
-    const T * GetReadOnly(uint32_t entityIndex) {
-        return Get(entityIndex);
+    const T * GetComponentReadOnly(uint32_t entityIndex) {
+        return GetComponent(entityIndex);
     }
 
     /**
@@ -44,7 +51,7 @@ public:
      * @param entityIndex 
      * @return T* 
      */
-    T * New(uint32_t entityIndex) {
+    T * NewComponent(uint32_t entityIndex) {
         if (entityIndex >= entityToDenseMap.size()) {
             return nullptr;
         }
@@ -68,7 +75,7 @@ public:
      * 
      * @param entityIndex 
      */
-    void Delete(uint32_t entityIndex) {
+    void DeleteComponent(uint32_t entityIndex) {
         if (entityIndex >= entityToDenseMap.size()) {
             return;
         }
@@ -90,6 +97,14 @@ public:
         uint32_t swappedEntityIndex = denseToEntityMap[targetIdx];
         entityToDenseMap[swappedEntityIndex] = targetIdx;
         entityToDenseMap[entityIndex] = TOMBSTONE;
+    }
+
+    /**
+     * @brief Gets the name of the component based on the component type T
+     * @return std::string 
+     */
+    std::string GetComponentName() {
+        
     }
 
 private:

@@ -13,9 +13,8 @@
  * Values here are local
  * To get the world value of something, 
  * you need to apply the parent's transform.
- * 
  */
-struct Transform : public Component {
+struct Transform : public IComponent {
     glm::vec3 position;
     glm::vec4 rotation;
     glm::vec3 scale;
