@@ -405,7 +405,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
 
     if (material.has_pbr_metallic_roughness) {
         const cgltf_pbr_metallic_roughness& pbr = material.pbr_metallic_roughness;
-        materialAsset->baseColorFactor = glm::vec4(
+        materialAsset->baseColorFactor = Vector4(
             pbr.base_color_factor[0],
             pbr.base_color_factor[1],
             pbr.base_color_factor[2],
@@ -427,7 +427,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
         }
     }
 
-    materialAsset->emissiveFactor = glm::vec3(
+    materialAsset->emissiveFactor = Vector3(
         material.emissive_factor[0],
         material.emissive_factor[1],
         material.emissive_factor[2]
@@ -533,9 +533,9 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             // initialize vertex and set defaults
             
             Vertex& vertex = meshAsset->vertices[vertexOffset + static_cast<size_t>(vertexIndex)];
-            vertex.normal = glm::vec3(0.0f);
-            vertex.tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            vertex.texCoord = glm::vec2(0.0f);
+            vertex.normal = Vector3(0.0f);
+            vertex.tangent = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            vertex.texCoord = Vector2(0.0f);
 
             // read position
 
@@ -543,7 +543,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             if (!cgltf_accessor_read_float(positionAccessor, vertexIndex, positionValues, 3)) {
                 throw std::runtime_error("Failed to read mesh POSITION attribute data.");
             }
-            vertex.position = glm::vec3(positionValues[0], positionValues[1], positionValues[2]);
+            vertex.position = Vector3(positionValues[0], positionValues[1], positionValues[2]);
 
             // read normal
 
@@ -552,7 +552,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
                 if (!cgltf_accessor_read_float(normalAccessor, vertexIndex, normalValues, 3)) {
                     throw std::runtime_error("Failed to read mesh NORMAL attribute data.");
                 }
-                vertex.normal = glm::vec3(normalValues[0], normalValues[1], normalValues[2]);
+                vertex.normal = Vector3(normalValues[0], normalValues[1], normalValues[2]);
             }
 
             // read tangent
@@ -562,7 +562,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
                 if (!cgltf_accessor_read_float(tangentAccessor, vertexIndex, tangentValues, 4)) {
                     throw std::runtime_error("Failed to read mesh TANGENT attribute data.");
                 }
-                vertex.tangent = glm::vec4(
+                vertex.tangent = Vector4(
                     tangentValues[0],
                     tangentValues[1],
                     tangentValues[2],
@@ -577,7 +577,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
                 if (!cgltf_accessor_read_float(texCoordAccessor, vertexIndex, texCoordValues, 2)) {
                     throw std::runtime_error("Failed to read mesh TEXCOORD_0 attribute data.");
                 }
-                vertex.texCoord = glm::vec2(texCoordValues[0], texCoordValues[1]);
+                vertex.texCoord = Vector2(texCoordValues[0], texCoordValues[1]);
             }
         }
 

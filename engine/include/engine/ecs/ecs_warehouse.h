@@ -14,7 +14,7 @@
  */
 class EcsWarehouse {
 public:
-    Entity CreateEntity();
+    Entity CreateEntityNew();
     void DeleteEntity();
 
     template <typename T>

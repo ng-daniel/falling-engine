@@ -7,6 +7,7 @@
 
 #include "engine/assets/asset_structures.h"
 #include "engine/utils/uuid.h"
+#include "engine/utils/vector.h"
 
 struct ShaderAsset : public Asset {
     enum ShaderType {
@@ -56,14 +57,14 @@ struct MaterialAsset : public Asset {
         Custom
     };
     MaterialType materialType;
-    glm::vec4 baseColorFactor = glm::vec4(1.0f);
+    Vector4 baseColorFactor = Vector4(1.0f);
 
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
     float occlusionFactor = 1.0f;
     float normalFactor = 1.0f;
 
-    glm::vec3 emissiveFactor = glm::vec3(0.0f);
+    Vector3 emissiveFactor = Vector3(0.0f);
 
     UUID baseColorTexture;
     UUID metallicRoughnessTexture;
@@ -73,10 +74,10 @@ struct MaterialAsset : public Asset {
 };
 
 struct Vertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec4 tangent;
-    glm::vec2 texCoord;
+    Vector3 position;
+    Vector3 normal;
+    Vector4 tangent;
+    Vector2 texCoord;
 };
 
 struct MeshAsset : public Asset {
@@ -91,6 +92,10 @@ struct ModelAsset : public Asset {
 
 class EntityData {
     UUID entityId;
+};
+
+class ComponentData {
+    
 };
 
 class ThingAsset : public Asset {

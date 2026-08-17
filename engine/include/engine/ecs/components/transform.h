@@ -2,6 +2,7 @@
 #define ENGINE_ECS_COMPONENTS_TRANSFORM_H
 
 #include "engine/utils/uuid.h"
+#include "engine/utils/vector.h"
 #include "engine/ecs/ecs_structures.h"
 
 #include <glm/glm.hpp>
@@ -15,9 +16,9 @@
  * you need to apply the parent's transform.
  */
 struct Transform : public IComponent {
-    glm::vec3 position;
-    glm::vec4 rotation;
-    glm::vec3 scale;
+    Vector3 position;
+    Vector4 rotation;
+    Vector3 scale;
 
     // hierarchy references
     UUID parentEntityId;
@@ -34,14 +35,14 @@ class TransformOps {
 public:
     TransformOps() = delete;
 
-    static void SetPosition(Transform& transform, glm::vec3 newVal);
-    static void ChangeRotation(Transform& transform, glm::vec3 diff);
+    static void SetPosition(Transform& transform, Vector3 newVal);
+    static void ChangeRotation(Transform& transform, Vector3 diff);
 
-    static void SetRotation(Transform& transform, glm::vec4 newVal);
-    static void ChangeRotation(Transform& transform, glm::vec4 diff);
+    static void SetRotation(Transform& transform, Vector4 newVal);
+    static void ChangeRotation(Transform& transform, Vector4 diff);
 
-    static void SetScale(Transform& transform, glm::vec3 newVal);
-    static void ChangeScale(Transform& transform, glm::vec3 diff);
+    static void SetScale(Transform& transform, Vector3 newVal);
+    static void ChangeScale(Transform& transform, Vector3 diff);
 };
 
 #endif // ENGINE_ECS_COMPONENTS_TRANSFORM_H
