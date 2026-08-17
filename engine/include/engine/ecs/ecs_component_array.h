@@ -6,10 +6,10 @@
 #include <limits>
 #include <vector>
 
-// just a flag
 class IEcsComponentArray {
 public:
     virtual std::string GetComponentName() = 0;
+    virtual void DeleteComponent(uint32_t entityIndex) = 0;
 };
 
 template <typename T>
@@ -97,14 +97,6 @@ public:
         uint32_t swappedEntityIndex = denseToEntityMap[targetIdx];
         entityToDenseMap[swappedEntityIndex] = targetIdx;
         entityToDenseMap[entityIndex] = TOMBSTONE;
-    }
-
-    /**
-     * @brief Gets the name of the component based on the component type T
-     * @return std::string 
-     */
-    std::string GetComponentName() {
-        
     }
 
 private:

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_component_array.h"
@@ -15,7 +16,7 @@
 class EcsWarehouse {
 public:
     Entity CreateEntityNew();
-    void DeleteEntity();
+    void DeleteEntity(Entity entity);
 
     template <typename T>
     T AddComponent(Entity entity) {
@@ -44,6 +45,11 @@ public:
     }
 
 private:
+    // entity runtime ID assignment
+    uint32_t nextRuntimeId = 0;
+    std::vector<uint32_t> freeRuntimeIds;
+
+    // primary storage maps
     std::unordered_map<uint32_t, Entity> entities;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     
