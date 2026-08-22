@@ -1,5 +1,4 @@
-#ifndef EDITOR_CORE_WINDOW_H
-#define EDITOR_CORE_WINDOW_H
+#pragma once
 
 struct GLFWwindow;
 
@@ -26,5 +25,3 @@ public:
 private:
     GLFWwindow* handle = nullptr;
 };
-
-#endif // EDITOR_CORE_WINDOW_H

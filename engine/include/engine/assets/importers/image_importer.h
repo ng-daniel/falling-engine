@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_IMAGE_IMPORTER_H
-#define ENGINE_ASSETS_IMAGE_IMPORTER_H
+#pragma once
 
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_structures.h"
@@ -30,5 +29,3 @@ private:
     constexpr static const std::string_view importerName = "ImageImporter"; // should be same as class name
     constexpr static const std::string_view importerType = "Image"; // should be same as enum in asset_structures
 };
-
-#endif // ENGINE_ASSETS_IMAGE_IMPORTER_H

@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_HANDLE_H
-#define ENGINE_ASSETS_ASSET_HANDLE_H
+#pragma once
 
 #include "engine/utils/uuid.h"
 
@@ -13,5 +12,3 @@ public:
 private:
     UUID assetUUID;
 };
-
-#endif // ENGINE_ASSETS_ASSET_HANDLE_H

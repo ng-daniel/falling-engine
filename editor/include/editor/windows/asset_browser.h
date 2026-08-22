@@ -1,5 +1,4 @@
-#ifndef EDITOR_WINDOWS_ASSET_BROWSER_H
-#define EDITOR_WINDOWS_ASSET_BROWSER_H
+#pragma once
 
 #include <optional>
 
@@ -26,5 +25,3 @@ private:
     // when the selection changes but keep in-progress edits otherwise.
     std::optional<UUID> buffersSyncedFor;
 };
-
-#endif // EDITOR_WINDOWS_ASSET_BROWSER_H

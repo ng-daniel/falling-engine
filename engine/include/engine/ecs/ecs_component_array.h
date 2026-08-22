@@ -1,5 +1,4 @@
-#ifndef ENGINE_ECS_ECS_COMPONENT_ARRAY_H
-#define ENGINE_ECS_ECS_COMPONENT_ARRAY_H
+#pragma once
 
 #include <cstdint>
 #include <limits>
@@ -195,5 +194,3 @@ private:
     std::vector<uint32_t> denseToEntityMap; // denseIdx -> runtimeIdx
     // need this for the deletion swapping step
 };
-
-#endif // ENGINE_ECS_ECS_COMPONENT_ARRAY_H

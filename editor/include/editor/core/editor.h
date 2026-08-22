@@ -1,5 +1,4 @@
-#ifndef EDITOR_CORE_EDITOR_H
-#define EDITOR_CORE_EDITOR_H
+#pragma once
 
 #include "editor/core/editor_state.h"
 #include "editor/core/window.h"
@@ -23,5 +22,3 @@ private:
     AssetBrowserWindow assetBrowserWindow;
     InspectorWindow inspectorWindow;
 };
-
-#endif // EDITOR_CORE_EDITOR_H

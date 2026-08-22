@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_STRUCTURES_H
-#define ENGINE_ASSETS_ASSET_STRUCTURES_H
+#pragma once
 
 #include <filesystem>
 #include <string>
@@ -60,5 +59,3 @@ struct Asset {
     std::string name;
     AssetType type;
 };
-
-#endif // ENGINE_ASSETS_ASSET_STRUCTURES_H

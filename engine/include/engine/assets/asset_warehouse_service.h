@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_WAREHOUSE_ASSET_WAREHOUSE_SERVICE_H
-#define ENGINE_ASSETS_WAREHOUSE_ASSET_WAREHOUSE_SERVICE_H
+#pragma once
 
 #include <filesystem>
 #include <memory>
@@ -85,5 +84,3 @@ private:
 	std::unordered_map<UUID, RuntimeAssetMetadata> runtimeMetadatas;
 	std::unordered_map<UUID, std::unique_ptr<Asset>> loadedAssets;
 };
-
-#endif // ENGINE_ASSETS_WAREHOUSE_ASSET_WAREHOUSE_SERVICE_H

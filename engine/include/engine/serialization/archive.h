@@ -1,5 +1,4 @@
-#ifndef ENGINE_SERIALIZATION_ARCHIVE_H
-#define ENGINE_SERIALIZATION_ARCHIVE_H
+#pragma once
 
 #include <string>
 #include <filesystem>
@@ -36,5 +35,3 @@ public:
     virtual void Write(std::string_view key, bool value) = 0;
     virtual void Write(std::string_view key, const std::string& value) = 0;
 };
-
-#endif // ENGINE_SERIALIZATION_ARCHIVE_H

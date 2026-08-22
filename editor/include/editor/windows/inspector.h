@@ -1,5 +1,4 @@
-#ifndef EDITOR_WINDOWS_INSPECTOR_H
-#define EDITOR_WINDOWS_INSPECTOR_H
+#pragma once
 
 struct EditorState;
 
@@ -12,5 +11,3 @@ class InspectorWindow {
 public:
     void Draw(EditorState& state);
 };
-
-#endif // EDITOR_WINDOWS_INSPECTOR_H

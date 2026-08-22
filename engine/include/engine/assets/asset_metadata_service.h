@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_METADATA_ASSET_METADATA_SERVICE_H
-#define ENGINE_ASSETS_METADATA_ASSET_METADATA_SERVICE_H
+#pragma once
 
 #include <filesystem>
 #include <string>
@@ -39,4 +38,3 @@ private:
 	void ValidateMetadataAndUUID(SourceAssetMetadata& metadata, const std::filesystem::path& assetPath);
 };
 
-#endif // ENGINE_ASSETS_METADATA_ASSET_METADATA_SERVICE_H

@@ -1,5 +1,4 @@
-#ifndef ENGINE_ECS_ECS_STRUCTURES_H
-#define ENGINE_ECS_ECS_STRUCTURES_H
+#pragma once
 
 #include "engine/utils/uuid.h"
 #include <cstdint>
@@ -21,5 +20,3 @@ struct Entity {
     uint32_t entityRuntimeIdx; // used for runtime indexing into ECS component arrays
     std::string name;
 };
-
-#endif // ENGINE_ECS_ECS_STRUCTURES_H

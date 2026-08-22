@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_DATA_H
-#define ENGINE_ASSETS_ASSET_DATA_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -106,5 +105,3 @@ class SceneAsset : public Asset {
     UUID rootEntity;
     std::vector<EntityData> entities;
 };
-
-#endif // ENGINE_ASSETS_ASSET_DATA_H

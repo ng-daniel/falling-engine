@@ -1,5 +1,4 @@
-#ifndef EDITOR_CORE_EDITOR_STATE_H
-#define EDITOR_CORE_EDITOR_STATE_H
+#pragma once
 
 #include <filesystem>
 #include <optional>
@@ -19,5 +18,3 @@ struct EditorState {
     /// Source asset currently selected in the Asset Browser, shown by the Inspector.
     std::optional<UUID> selectedSourceAssetId;
 };
-
-#endif // EDITOR_CORE_EDITOR_STATE_H

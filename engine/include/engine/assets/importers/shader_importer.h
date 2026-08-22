@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_SHADER_IMPORTER_H
-#define ENGINE_ASSETS_SHADER_IMPORTER_H
+#pragma once
 
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_structures.h"
@@ -20,5 +19,3 @@ private:
     constexpr static const std::string_view importerName = "ShaderImporter";
     constexpr static const std::string_view importerType = "Shader";
 };
-
-#endif // ENGINE_ASSETS_SHADER_IMPORTER_H

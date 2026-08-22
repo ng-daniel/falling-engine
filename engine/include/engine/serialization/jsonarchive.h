@@ -1,5 +1,4 @@
-#ifndef ENGINE_SERIALIZATION_JSONARCHIVE_H
-#define ENGINE_SERIALIZATION_JSONARCHIVE_H
+#pragma once
 
 #include <cstddef>
 
@@ -52,5 +51,3 @@ private:
     std::vector<nlohmann::json*> m_Stack;
     std::vector<std::size_t> m_ArrayIndices;
 };
-
-#endif // ENGINE_SERIALIZATION_JSONARCHIVE_H

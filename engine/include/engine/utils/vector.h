@@ -1,5 +1,4 @@
-#ifndef ENGINE_UTILS_VECTOR_H
-#define ENGINE_UTILS_VECTOR_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -64,4 +63,3 @@ struct Vector4 {
 	}
 };
 
-#endif // ENGINE_UTILS_VECTOR_H

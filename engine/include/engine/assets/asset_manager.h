@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_MANAGER_H
-#define ENGINE_ASSETS_ASSET_MANAGER_H
+#pragma once
 
 #include <filesystem>
 #include <optional>
@@ -148,5 +147,3 @@ private:
     AssetImporterService assetImporterService;
     AssetWarehouseService assetWarehouseService;
 };
-
-#endif // ENGINE_ASSETS_ASSET_MANAGER_H

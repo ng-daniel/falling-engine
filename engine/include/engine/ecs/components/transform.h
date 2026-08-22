@@ -1,5 +1,4 @@
-#ifndef ENGINE_ECS_COMPONENTS_TRANSFORM_H
-#define ENGINE_ECS_COMPONENTS_TRANSFORM_H
+#pragma once
 
 #include "engine/utils/uuid.h"
 #include "engine/utils/vector.h"
@@ -44,5 +43,3 @@ public:
     static void SetScale(Transform& transform, Vector3 newVal);
     static void ChangeScale(Transform& transform, Vector3 diff);
 };
-
-#endif // ENGINE_ECS_COMPONENTS_TRANSFORM_H

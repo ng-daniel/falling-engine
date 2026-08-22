@@ -1,5 +1,4 @@
-#ifndef UUID_H
-#define UUID_H
+#pragma once
 
 #include <cstdint>
 #include <random>
@@ -23,4 +22,3 @@ private:
     static std::mt19937_64 gen;
     static std::uniform_int_distribution<UUID> dist;
 };
-#endif // UUID_H

@@ -1,5 +1,4 @@
-#ifndef ASSET_IDS_H
-#define ASSET_IDS_H
+#pragma once
 
 #include <engine/assets/asset_handle.h>
 #include <engine/utils/uuid.h>
@@ -26,4 +25,3 @@ namespace GameAssets
     constexpr AssetHandle RYUJIN7_PLANE_MESH{ 16555660123445742954 };
     constexpr AssetHandle RYUJIN7_CUBE_003_MESH{ 3102180992125355937 };
 }
-#endif // ASSET_IDS_H

@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_MODEL_IMPORTER_H
-#define ENGINE_ASSETS_MODEL_IMPORTER_H
+#pragma once
 
 #include "engine/assets/asset_data.h"
 #include "engine/assets/asset_structures.h"
@@ -73,5 +72,3 @@ private:
         const ModelImportContext& importData
     );
 };
-
-#endif // ENGINE_ASSETS_MODEL_IMPORTER_H

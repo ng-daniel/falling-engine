@@ -1,5 +1,4 @@
-#ifndef ENGINE_SERIALIZATION_SERIALIZATION_HELPERS_H
-#define ENGINE_SERIALIZATION_SERIALIZATION_HELPERS_H
+#pragma once
 
 #include <string>
 
@@ -7,5 +6,3 @@
 
 std::string ToString(UUID);
 UUID UUIDFromString(std::string_view);
-
-#endif // ENGINE_SERIALIZATION_SERIALIZATION_HELPERS_H

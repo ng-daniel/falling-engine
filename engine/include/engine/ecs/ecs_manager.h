@@ -1,5 +1,4 @@
-#ifndef ENGINE_ECS_ECS_MANAGER_H
-#define ENGINE_ECS_ECS_MANAGER_H
+#pragma once
 
 #include "engine/ecs/ecs_warehouse.h"
 
@@ -44,5 +43,3 @@ public:
 private:
 	EcsWarehouse warehouse;
 };
-
-#endif // ENGINE_ECS_ECS_MANAGER_H

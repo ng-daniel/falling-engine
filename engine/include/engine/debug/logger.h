@@ -1,5 +1,4 @@
-#ifndef ENGINE_DEBUG_LOGGER_H
-#define ENGINE_DEBUG_LOGGER_H
+#pragma once
 
 #include <string_view>
 
@@ -9,5 +8,3 @@ public:
     static void Warning(const char* location, std::string_view message);
     static void Error(const char* location, std::string_view message);
 };
-
-#endif // ENGINE_DEBUG_LOGGER_H

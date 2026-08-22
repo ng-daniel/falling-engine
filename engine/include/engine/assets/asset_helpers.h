@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_HELPERS_H
-#define ENGINE_ASSETS_ASSET_HELPERS_H
+#pragma once
 
 #include "asset_structures.h"
 #include <stdexcept>
@@ -75,5 +74,3 @@ inline void ApplyMetadataToAsset(
     asset.name = sourceMetadata.path.stem().string();
     asset.type = GetAssetTypeFromString(sourceMetadata.type);
 }
-
-#endif // ENGINE_ASSETS_ASSET_HELPERS_H

@@ -1,5 +1,4 @@
-#ifndef ENGINE_ECS_ECS_WAREHOUSE_H
-#define ENGINE_ECS_ECS_WAREHOUSE_H
+#pragma once
 
 #include <cassert>
 #include <memory>
@@ -110,5 +109,3 @@ private:
         }
     }
 };
-
-#endif // ENGINE_ECS_ECS_WAREHOUSE_H

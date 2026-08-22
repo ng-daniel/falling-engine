@@ -1,5 +1,4 @@
-#ifndef ENGINE_ASSETS_ASSET_IMPORTER_SERVICE_H
-#define ENGINE_ASSETS_ASSET_IMPORTER_SERVICE_H
+#pragma once
 
 #include "engine/assets/asset_structures.h"
 #include "engine/assets/asset_warehouse_service.h"
@@ -15,5 +14,3 @@ public:
         AssetWarehouseService& assetWarehouseService
     );
 };
-
-#endif // ENGINE_ASSETS_ASSET_IMPORTER_SERVICE_H
