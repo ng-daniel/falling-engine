@@ -5,6 +5,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "external/json.hpp"
+
 #include "engine/assets/asset_structures.h"
 #include "engine/utils/uuid.h"
 #include "engine/utils/vector.h"
@@ -90,15 +92,17 @@ struct ModelAsset : public Asset {
     std::vector<UUID> materials;
 };
 
+class ComponentData {
+    std::string componentType;
+    nlohmann::json componentData;
+};
+
 class EntityData {
     UUID entityId;
+    std::vector<ComponentData> components;
 };
 
-class ComponentData {
-    
-};
-
-class ThingAsset : public Asset {
+class SceneAsset : public Asset {
     UUID rootEntity;
     std::vector<EntityData> entities;
 };
