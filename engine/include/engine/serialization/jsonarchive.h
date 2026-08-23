@@ -33,12 +33,14 @@ public:
 
     void Read(std::string_view key, int& value) override;
     void Read(std::string_view key, uint32_t& value) override;
+    void Read(std::string_view key, uint64_t& value);
     void Read(std::string_view key, float& value) override;
     void Read(std::string_view key, bool& value) override;
     void Read(std::string_view key, std::string& value) override;
 
     void Write(std::string_view key, int value) override;
     void Write(std::string_view key, uint32_t value) override;
+    void Write(std::string_view key, uint64_t value);
     void Write(std::string_view key, float value) override;
     void Write(std::string_view key, bool value) override;
     void Write(std::string_view key, const std::string& value) override;

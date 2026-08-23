@@ -4,6 +4,8 @@
 #include "engine/utils/vector.h"
 #include "engine/ecs/ecs_structures.h"
 
+#include "engine/serialization/jsonarchive.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,6 +26,9 @@ struct Transform : public IComponent {
     UUID firstChildEntityId;
     UUID nextSiblingEntityId;
     UUID prevSiblingEntityId;
+
+    static void Serialize(JsonArchive& archive, const Transform& transform);
+    static Transform Deserialize(JsonArchive& archive);
 };
 
 /**

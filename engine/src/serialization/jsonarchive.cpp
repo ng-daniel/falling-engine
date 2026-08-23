@@ -67,6 +67,10 @@ void JsonArchive::Read(std::string_view key, uint32_t& value) {
     m_Stack.back()->at(std::string(key)).get_to(value);
 }
 
+void JsonArchive::Read(std::string_view key, uint64_t& value) {
+    m_Stack.back()->at(std::string(key)).get_to(value);
+}
+
 void JsonArchive::Read(std::string_view key, float& value) {
     m_Stack.back()->at(std::string(key)).get_to(value);
 }
@@ -89,6 +93,10 @@ void JsonArchive::Write(std::string_view key, int value) {
 }
 
 void JsonArchive::Write(std::string_view key, uint32_t value) {
+    (*m_Stack.back())[key] = value;
+}
+
+void JsonArchive::Write(std::string_view key, uint64_t value) {
     (*m_Stack.back())[key] = value;
 }
 
