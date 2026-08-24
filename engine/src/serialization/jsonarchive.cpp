@@ -23,6 +23,15 @@ bool JsonArchive::Open(const std::filesystem::path& path) {
     return true;
 }
 
+bool JsonArchive::OpenFromMemory(const nlohmann::json& json) {
+    m_Root = json;
+
+    m_Stack.clear();
+    m_Stack.push_back(&m_Root);
+
+    return true;
+}
+
 bool JsonArchive::Save(const std::filesystem::path& path) {
     std::ofstream file(path);
 
@@ -81,6 +90,24 @@ void JsonArchive::Read(std::string_view key, bool& value) {
 
 void JsonArchive::Read(std::string_view key, std::string& value) {
     m_Stack.back()->at(std::string(key)).get_to(value);
+}
+
+nlohmann::json& JsonArchive::GetArray(std::string_view name) {
+    if (name.empty())
+    {
+        return *m_Stack.back();
+    }
+
+    return m_Stack.back()->at(std::string(name));
+}
+
+const nlohmann::json& JsonArchive::GetArray(std::string_view name) const {
+    if (name.empty())
+    {
+        return *m_Stack.back();
+    }
+
+    return m_Stack.back()->at(std::string(name));
 }
 
 /*
@@ -150,6 +177,22 @@ void JsonArchive::EndObject() {
 void JsonArchive::BeginArray(std::string_view name) {
     if (name.empty())
     {
+        if (!m_Stack.back()->is_array())
+        {
+            return;
+        }
+
+        if (IsWriting())
+        {
+            m_Stack.back()->push_back(nlohmann::json::array());
+            m_Stack.push_back(&m_Stack.back()->back());
+            m_ArrayIndices.push_back(0);
+            return;
+        }
+
+        nlohmann::json& value = (*m_Stack.back())[CurrentArrayIndex()++];
+        m_Stack.push_back(&value);
+        m_ArrayIndices.push_back(0);
         return;
     }
 

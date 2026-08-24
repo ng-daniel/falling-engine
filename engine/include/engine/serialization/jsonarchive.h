@@ -17,6 +17,7 @@ public:
     JsonArchive(Mode mode);
 
     bool Open(const std::filesystem::path& path) override;
+    bool OpenFromMemory(const nlohmann::json& json);
     bool Save(const std::filesystem::path& path) override;
 
     bool IsReading() const override;
@@ -37,6 +38,9 @@ public:
     void Read(std::string_view key, float& value) override;
     void Read(std::string_view key, bool& value) override;
     void Read(std::string_view key, std::string& value) override;
+
+    nlohmann::json& GetArray(std::string_view name = "");
+    const nlohmann::json& GetArray(std::string_view name = "") const;
 
     void Write(std::string_view key, int value) override;
     void Write(std::string_view key, uint32_t value) override;

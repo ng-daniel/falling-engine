@@ -53,7 +53,8 @@ struct Asset {
         Material,
         Texture,
         Image,
-        Shader
+        Shader,
+        Scene
     };
     UUID id;
     std::string name;

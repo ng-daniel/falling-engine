@@ -5,6 +5,7 @@
 
 class ECSSceneService {
 public:
-	static SceneAsset Serialize(const EcsManager& ecsManager, UUID rootEntity);
-	static void Deserialize(const SceneAsset& scene, EcsManager& ecsManager);
+	static SceneAsset BuildSceneFromEntities(const EcsManager& ecsManager, UUID rootEntity);
+	static void LoadEntitiesFromScene(const SceneAsset& scene, EcsManager& ecsManager);
+private:
 };

@@ -91,17 +91,17 @@ struct ModelAsset : public Asset {
     std::vector<UUID> materials;
 };
 
-class ComponentData {
+struct ComponentData {
     std::string componentType;
     nlohmann::json componentData;
 };
 
-class EntityData {
+struct EntityData {
     UUID entityId;
     std::vector<ComponentData> components;
 };
 
-class SceneAsset : public Asset {
+struct SceneAsset : public Asset {
     UUID rootEntity;
     std::vector<EntityData> entities;
 };
