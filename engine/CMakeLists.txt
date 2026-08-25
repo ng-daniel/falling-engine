@@ -15,6 +15,7 @@ add_library(engine
 
     src/ecs/components/transform.cpp
     src/ecs/ecs_component_registry.cpp
+    src/ecs/ecs_scene_service.cpp
     src/ecs/ecs_warehouse.cpp
     src/ecs/ecs_manager.cpp
 

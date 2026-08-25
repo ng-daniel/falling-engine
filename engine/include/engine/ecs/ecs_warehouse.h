@@ -72,6 +72,7 @@ private:
     std::vector<uint32_t> freeRuntimeIds;
 
     // primary storage maps
+    UUID rootEntityId;
     std::unordered_map<UUID, Entity> entities;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     

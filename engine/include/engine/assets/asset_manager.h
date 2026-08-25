@@ -136,6 +136,8 @@ private:
             return Asset::AssetType::Image;
         } else if constexpr (std::is_same_v<T, ShaderAsset>) {
             return Asset::AssetType::Shader;
+        } else if constexpr (std::is_same_v<T, SceneAsset>) {
+            return Asset::AssetType::Scene;
         } else {
             static_assert(!sizeof(T*), "Unsupported asset type requested from AssetManager.");
         }

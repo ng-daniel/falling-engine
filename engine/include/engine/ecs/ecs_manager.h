@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/ecs/ecs_warehouse.h"
+#include "engine/ecs/ecs_component_registry.h"
 
 class EcsManager {
 public:
@@ -40,6 +41,16 @@ public:
 		return warehouse.HasComponent<T>(entity);
 	}
 
+	/// COMPONENT REGISTRATION
+	/// ----------------------------------------------
+
+	/**
+	 * @brief All component type registrations are hardcoded
+	 * Maybe I make a better version if I can think of one 
+	 */
+	void RegisterComponents();
+
 private:
 	EcsWarehouse warehouse;
+	ECSComponentRegistry componentRegistry;
 };

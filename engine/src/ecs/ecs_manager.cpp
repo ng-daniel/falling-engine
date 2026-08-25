@@ -1,5 +1,7 @@
 #include "engine/ecs/ecs_manager.h"
 
+#include "engine/ecs/components/transform.h"
+
 /**
  * @brief Creates a brand new entity and returns it
  * 
@@ -40,4 +42,12 @@ Entity * EcsManager::LookupEntity(UUID entityId) {
 }
 const Entity * EcsManager::LookupEntity(UUID entityId) const {
 	return warehouse.FindEntityReadOnly(entityId);
+}
+
+void EcsManager::RegisterComponents() {
+	componentRegistry.RegisterComponent<Transform>(
+		"Transform",
+		Transform::Serialize,
+		Transform::Deserialize
+	);
 }
