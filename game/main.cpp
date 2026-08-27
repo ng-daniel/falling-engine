@@ -27,14 +27,16 @@ int main() {
     /// ---------------------------------------------------------------
 
     EcsManager& ecsManager = app.GetECSManager();
-    const Entity * entity = ecsManager.CreateEntity();
-    Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
-    assert(entity != nullptr);
-    ecsManager.AddComponent<Transform>(*entity);
-    Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
-    const Transform * transform = ecsManager.GetComponentReadOnly<Transform>(*entity);
-    if (transform) {
-        Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
+    for (int i = 0; i < 10000; i++) {
+        const Entity * entity = ecsManager.CreateEntity();
+        Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
+        assert(entity != nullptr);
+        ecsManager.AddComponent<Transform>(*entity);
+        Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
+        const Transform * transform = ecsManager.GetComponentReadOnly<Transform>(*entity);
+        if (transform) {
+            Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
+        }
     }
 
     return 0;
