@@ -15,17 +15,17 @@ namespace {
  * 
  * @return Entity 
  */
-Entity EcsWarehouse::CreateEntityNew() {
+const Entity * EcsWarehouse::CreateEntityNew() {
     return CreateEntity(
         UUIDGenerator::GenerateUUID(),
         GenerateUniqueEntityName()
     );
 }
-Entity EcsWarehouse::CreateEntityFromScene(UUID entityId, std::string name) {
+const Entity * EcsWarehouse::CreateEntityFromScene(UUID entityId, std::string name) {
     return CreateEntity(entityId, name);
 }
 
-Entity EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
+Entity * EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
     Entity entity;
     entity.entityId = uuid;
     entity.name = name;
@@ -39,7 +39,7 @@ Entity EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
     }
 
     entities[entity.entityId] = entity;
-    return entity;
+    return &entities[entity.entityId];
 }
 
 /**

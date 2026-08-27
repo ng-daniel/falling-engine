@@ -54,7 +54,11 @@ public:
         pages.resize(newPageIndex + 1);
         pages[newPageIndex] = std::make_unique<T[]>(PAGE_SIZE);
         std::fill_n(pages[newPageIndex].get(), PAGE_SIZE, defaultValue);
+        pageCount++;
         return newPageIndex;
+    }
+    size_t GetPageCount() const {
+        return pageCount;
     }
 
     /**
@@ -67,10 +71,16 @@ public:
     {
         const size_t page = GetPageIndex(index);
         const size_t offset = GetPageOffset(index);
-        return pages[page][offset];
+        
+        // required because PagedArray technically requires random access,
+        // because if an older entity gets destroyed it's runtime id is reused
+        // so it's not all just push sequentially, even though most of the time it will be
+        return GetOrCreatePage(page)[offset];
     }
 private:
     T defaultValue;
+    size_t pageCount = 0;
+
     // MAIN DATA STORE
     std::vector<std::unique_ptr<T[]>> pages;
     
@@ -84,9 +94,12 @@ private:
     }
     T* GetOrCreatePage(size_t pageIndex)
     {
-        if (pageIndex >= pages.size())
+        if (pageIndex >= pages.size()) {
             pages.resize(pageIndex + 1);
-
+        }
+        if (pageIndex >= pageCount) {
+            pageCount = pageIndex + 1;
+        }
         if (!pages[pageIndex]) {
             pages[pageIndex] = std::make_unique<T[]>(PAGE_SIZE);
             std::fill_n(pages[pageIndex].get(), PAGE_SIZE, defaultValue);
@@ -99,7 +112,8 @@ class IEcsComponentArray {
 public:
     virtual ~IEcsComponentArray() = default;
     virtual IComponent * GetComponent(uint32_t entityIndex) = 0;
-    virtual const IComponent * GetComponentReadOnly(uint32_t entityIndex) = 0;
+    virtual const IComponent * GetComponentReadOnly(uint32_t entityIndex) const = 0;
+    virtual IComponent * CreateComponent(uint32_t entityIndex) = 0;
     virtual void DeleteComponent(uint32_t entityIndex) = 0;
 };
 
@@ -127,8 +141,17 @@ public:
 
         return &denseArray[*denseIdx];
     }
-    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) override {
-        return GetComponent(entityRuntimeIdx);
+    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) const override {
+        const uint32_t * denseIdx = entityToDenseMap.TryGetReadOnly(entityRuntimeIdx);
+        if (!denseIdx) {
+            return nullptr;
+        }
+
+        if (*denseIdx == TOMBSTONE) {
+            return nullptr;
+        }
+
+        return &denseArray[*denseIdx];
     }
 
     /**
@@ -137,7 +160,7 @@ public:
      * @param entityRuntimeIdx 
      * @return T* 
      */
-    T * NewComponent(uint32_t entityRuntimeIdx) {
+    T * CreateComponent(uint32_t entityRuntimeIdx) override {
         if (entityToDenseMap[entityRuntimeIdx] != TOMBSTONE) {
             return nullptr; // component already exists for this entityRuntimeIdx
         }
@@ -158,7 +181,7 @@ public:
      * 
      * @param entityRuntimeIdx 
      */
-    void DeleteComponent(uint32_t entityRuntimeIdx) {
+    void DeleteComponent(uint32_t entityRuntimeIdx) override {
         uint32_t * targetIdx = entityToDenseMap.TryGet(entityRuntimeIdx);
         if (!targetIdx) {
             return;

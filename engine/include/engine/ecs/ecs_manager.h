@@ -13,10 +13,10 @@ public:
     /// ENTITY OPS
     /// ----------------------------------------------
 
-	Entity Create();
-	Entity Create(UUID entityId, std::string name);
-	void Destroy(Entity entity);
-	bool IsAlive(Entity entity) const;
+	const Entity * CreateEntity();
+	const Entity * CreateEntity(UUID entityId, std::string name);
+	void DestroyEntity(Entity entity);
+	bool IsEntityAlive(Entity entity) const;
 
 	Entity * LookupEntity(UUID entityId);
 	const Entity * LookupEntity(UUID entityId) const;

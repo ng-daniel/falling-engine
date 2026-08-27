@@ -7,9 +7,12 @@
 
 int main() {
     Application app = Application("./game/assets");
+
+    /// ASSET TEST
+    /// ---------------------------------------------------------------
+
     AssetManager& assetManager = app.GetAssetManager();
 
-    // TESTING
     const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(GameAssets::BASICFRAG_SHADER); // Example usage of RequestAsset
     Logger::Info("main", "Finished loading shader asset with ID: " + std::to_string(GameAssets::BASICFRAG_SHADER.GetUUID()));
 
@@ -18,6 +21,21 @@ int main() {
     Logger::Info("main", "Model has " + std::to_string(model->meshes.size()) + " meshes.");
     const MeshAsset * mesh = assetManager.RequestAssetReadOnly<MeshAsset>(model->meshes[0]);
     Logger::Info("main", "Finished loading mesh asset with ID: " + std::to_string(model->meshes[0]));
+
+
+    /// ENTITY AND SCENE TEST
+    /// ---------------------------------------------------------------
+
+    EcsManager& ecsManager = app.GetECSManager();
+    const Entity * entity = ecsManager.CreateEntity();
+    Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
+    assert(entity != nullptr);
+    ecsManager.AddComponent<Transform>(*entity);
+    Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
+    const Transform * transform = ecsManager.GetComponentReadOnly<Transform>(*entity);
+    if (transform) {
+        Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
+    }
 
     return 0;
 }

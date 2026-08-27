@@ -6,7 +6,7 @@
 
 namespace {
     void LoadEntityToRuntime(const EntityData& entity, EcsManager& ecsManager) {
-        Entity entityRuntime = ecsManager.Create(entity.entityId, entity.name);
+        const Entity * entityRuntime = ecsManager.CreateEntity(entity.entityId, entity.name);
         for (const auto& componentData : entity.components) {
             const ComponentInfo * componentInfo = ecsManager.GetComponentInfo(componentData.type);
             if (!componentInfo) {
@@ -14,7 +14,7 @@ namespace {
             }
             JsonArchive tempArchive(JsonArchive::Mode::Reading);
             tempArchive.OpenFromMemory(componentData.data.dump());
-            IComponent * component = ecsManager.AddComponent(entityRuntime, componentData.type);
+            IComponent * component = ecsManager.AddComponent(*entityRuntime, componentData.type);
             componentInfo->deserializeFunc(tempArchive, *component);
         }
     }

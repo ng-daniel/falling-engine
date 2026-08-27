@@ -14,8 +14,8 @@
  */
 class EcsWarehouse {
 public:
-    Entity CreateEntityNew();
-    Entity CreateEntityFromScene(UUID entityId, std::string name);
+    const Entity * CreateEntityNew();
+    const Entity * CreateEntityFromScene(UUID entityId, std::string name);
     void DeleteEntity(Entity entity);
     bool IsAlive(Entity entity) const;
     Entity * FindEntity(UUID entityId);
@@ -30,7 +30,7 @@ public:
             // component array already exists for this type
         }
         EcsComponentArray<T> * array = GetArray<T>();
-        return array->NewComponent(entity.entityRuntimeIdx);
+        return array->CreateComponent(entity.entityRuntimeIdx);
     }
     
     template <typename T>
@@ -58,7 +58,14 @@ public:
     }
     template <typename T>
     const T * GetComponentReadOnly(Entity entity) const {
-        return GetComponent<T>(entity);
+        if (!IsAlive(entity)) {
+            return nullptr;
+        }
+        const EcsComponentArray<T> * array = GetArrayReadOnly<T>();
+        if (array) {
+            return array->GetComponentReadOnly(entity.entityRuntimeIdx);
+        }
+        return nullptr;
     }
     void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const;
 
@@ -86,10 +93,10 @@ private:
     std::unordered_map<UUID, Entity> entities;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     
-    Entity CreateEntity(UUID uuid, std::string name);
+    Entity * CreateEntity(UUID uuid, std::string name);
 
     template <typename T>
-    uint32_t GetComponentTypeId() {
+    const uint32_t GetComponentTypeId() const {
         static uint32_t typeId = componentArrays.size();
         return typeId;
     }
@@ -102,10 +109,13 @@ private:
         }
         return static_cast<EcsComponentArray<T> *>(componentArrays[typeId].get());
     }
-
     template <typename T>
     const EcsComponentArray<T> * GetArrayReadOnly() const {
-        return GetArray<T>();
+        uint32_t typeId = GetComponentTypeId<T>();
+        if (typeId >= componentArrays.size()) {
+            return nullptr;
+        }
+        return static_cast<const EcsComponentArray<T> *>(componentArrays[typeId].get());
     }
 
     template <typename T>

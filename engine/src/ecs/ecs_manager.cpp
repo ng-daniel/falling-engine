@@ -7,10 +7,10 @@
  * 
  * @return Entity 
  */
-Entity EcsManager::Create() {
+const Entity * EcsManager::CreateEntity() {
 	return warehouse.CreateEntityNew();
 }
-Entity EcsManager::Create(UUID entityId, std::string name) {
+const Entity * EcsManager::CreateEntity(UUID entityId, std::string name) {
 	return warehouse.CreateEntityFromScene(entityId, name);
 }
 
@@ -19,7 +19,7 @@ Entity EcsManager::Create(UUID entityId, std::string name) {
  * 
  * @param entity 
  */
-void EcsManager::Destroy(Entity entity) {
+void EcsManager::DestroyEntity(Entity entity) {
 	warehouse.DeleteEntity(entity);
 }
 
@@ -30,7 +30,7 @@ void EcsManager::Destroy(Entity entity) {
  * @return true 
  * @return false 
  */
-bool EcsManager::IsAlive(Entity entity) const {
+bool EcsManager::IsEntityAlive(Entity entity) const {
 	return warehouse.IsAlive(entity);
 }
 
