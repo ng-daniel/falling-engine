@@ -10,6 +10,9 @@
 Entity EcsManager::Create() {
 	return warehouse.CreateEntityNew();
 }
+Entity EcsManager::Create(UUID entityId, std::string name) {
+	return warehouse.CreateEntityFromScene(entityId, name);
+}
 
 /**
  * @brief Deletes an entity and all of its components

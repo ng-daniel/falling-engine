@@ -1,7 +1,11 @@
 #pragma once
 
+#include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_warehouse.h"
 #include "engine/ecs/ecs_component_registry.h"
+#include <string>
+
+#include "engine/ecs/components/transform.h"
 
 class EcsManager {
 public:
@@ -10,6 +14,7 @@ public:
     /// ----------------------------------------------
 
 	Entity Create();
+	Entity Create(UUID entityId, std::string name);
 	void Destroy(Entity entity);
 	bool IsAlive(Entity entity) const;
 
@@ -19,6 +24,13 @@ public:
     /// COMPONENT OPS
     /// pretty self explanatory these ones
     /// ----------------------------------------------
+
+	IComponent * AddComponent(Entity entity, std::string type) {
+		if (type == "Transform") {
+			return AddComponent<Transform>(entity);
+		}
+		return nullptr;
+	}
 
 	template <typename T>
 	T * AddComponent(Entity entity) {
@@ -39,6 +51,18 @@ public:
 	template <typename T>
 	bool HasComponent(Entity entity) const {
 		return warehouse.HasComponent<T>(entity);
+	}
+
+	const std::unordered_map<UUID, Entity>& GetEntityDump() const {
+		return warehouse.GetEntityDump();
+	}
+
+	const ComponentInfo * GetComponentInfo(const std::string& type) const {
+		return componentRegistry.GetComponentInfo(type);
+	}
+
+	void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const {
+		warehouse.GetAllComponents(entity, components);
 	}
 
 	/// COMPONENT REGISTRATION

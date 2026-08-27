@@ -11,6 +11,7 @@ namespace {
 
     // entity field names
     const char * ENTITY_ID_NAME = "entityId";
+    const char * ENTITY_NAME_NAME = "entityName";
     const char * COMPONENTS_ARRAY_NAME = "components";
 
     // scene field names
@@ -19,18 +20,18 @@ namespace {
 
     void SerializeComponentData(JsonArchive& archive, const ComponentData& componentData) {
         archive.BeginObject();
-        archive.Write(COMPONENT_TYPE_NAME, componentData.componentType);
-        archive.Write(COMPONENT_DATA_NAME, componentData.componentData.dump());
+        archive.Write(COMPONENT_TYPE_NAME, componentData.type);
+        archive.Write(COMPONENT_DATA_NAME, componentData.data.dump());
         archive.EndObject();
     }
 
     ComponentData DeserializeComponentData(JsonArchive& archive) {
         ComponentData componentData;
-        archive.Read(COMPONENT_TYPE_NAME, componentData.componentType);
+        archive.Read(COMPONENT_TYPE_NAME, componentData.type);
 
         std::string tempComponentData;
         archive.Read(COMPONENT_DATA_NAME, tempComponentData);
-        componentData.componentData = nlohmann::json::parse(tempComponentData);
+        componentData.data = nlohmann::json::parse(tempComponentData);
 
         return componentData;
     }
@@ -38,6 +39,7 @@ namespace {
     void SerializeEntityData(JsonArchive& archive, const EntityData& entityData) {
         archive.BeginObject();
         UUIDSerializer::Serialize(archive, entityData.entityId, ENTITY_ID_NAME);
+        archive.Write(ENTITY_NAME_NAME, entityData.name);
         archive.BeginArray(COMPONENTS_ARRAY_NAME);
         for (const auto& componentData : entityData.components) {
             SerializeComponentData(archive, componentData);
@@ -48,7 +50,8 @@ namespace {
 
     EntityData DeserializeEntityData(JsonArchive& archive) {
         EntityData entityData;
-        entityData.entityId = UUIDSerializer::Deserialize(archive, ENTITY_ID_NAME);
+        UUIDSerializer::Deserialize(archive, entityData.entityId, ENTITY_ID_NAME);
+        archive.Read(ENTITY_NAME_NAME, entityData.name);
         for (const auto& componentDataJson : archive.GetArray(COMPONENTS_ARRAY_NAME)) {
             entityData.components.push_back(DeserializeComponentData(archive));
         }
@@ -75,7 +78,7 @@ void SceneSerializer::Serialize(JsonArchive& archive, const SceneAsset& scene, s
 SceneAsset SceneSerializer::Deserialize(JsonArchive& archive, std::string_view name) {
     SceneAsset scene;
 
-    scene.rootEntity = UUIDSerializer::Deserialize(archive, ROOT_ENTITY_NAME);
+    UUIDSerializer::Deserialize(archive, scene.rootEntity, ROOT_ENTITY_NAME);
     for (const auto& entityDataJson : archive.GetArray(ENTITY_ARRAY_NAME)) {
         
         // build temporary archive

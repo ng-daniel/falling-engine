@@ -13,15 +13,12 @@ void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
     UUIDSerializer::Serialize(archive, transform.prevSiblingEntityId, "prevSiblingEntityId");
 }
 
-Transform Transform::Deserialize(JsonArchive& archive) {
-    Transform transform;
-    transform.position = VectorSerializer::DeserializeVector3(archive, "position");
-    transform.rotation = VectorSerializer::DeserializeVector4(archive, "rotation");
-    transform.scale = VectorSerializer::DeserializeVector3(archive, "scale");
-    transform.parentEntityId = UUIDSerializer::Deserialize(archive, "parentEntityId");
-    transform.firstChildEntityId = UUIDSerializer::Deserialize(archive, "firstChildEntityId");
-    transform.nextSiblingEntityId = UUIDSerializer::Deserialize(archive, "nextSiblingEntityId");
-    transform.prevSiblingEntityId = UUIDSerializer::Deserialize(archive, "prevSiblingEntityId");
-
-    return transform;
+void Transform::Deserialize(JsonArchive& archive, Transform& transform) {
+    VectorSerializer::DeserializeVector3(archive, transform.position, "position");
+    VectorSerializer::DeserializeVector4(archive, transform.rotation, "rotation");
+    VectorSerializer::DeserializeVector3(archive, transform.scale, "scale");
+    UUIDSerializer::Deserialize(archive, transform.parentEntityId, "parentEntityId");
+    UUIDSerializer::Deserialize(archive, transform.firstChildEntityId, "firstChildEntityId");
+    UUIDSerializer::Deserialize(archive, transform.nextSiblingEntityId, "nextSiblingEntityId");
+    UUIDSerializer::Deserialize(archive, transform.prevSiblingEntityId, "prevSiblingEntityId");
 }

@@ -218,3 +218,7 @@ void JsonArchive::EndArray() {
         m_Stack.pop_back();
     }
 }
+
+nlohmann::json JsonArchive::Dump() const {
+    return m_Root;
+}

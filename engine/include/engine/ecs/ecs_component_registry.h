@@ -10,8 +10,9 @@
  * @brief Util class with general component registry functionality
  */
 struct ComponentInfo {
+    std::string type;
     std::function<void(JsonArchive&, const IComponent&)> serializeFunc;
-    std::function<void*(JsonArchive&)> deserializeFunc;
+    std::function<void(JsonArchive&, IComponent&)> deserializeFunc;
 };
 
 class ECSComponentRegistry {
@@ -20,7 +21,7 @@ public:
     void RegisterComponent(
         std::string type,
         void (*serializeFunc)(JsonArchive&, const T&),
-        T (*deserializeFunc)(JsonArchive&)
+        void (*deserializeFunc)(JsonArchive&, T&)
     ) {
         static_assert(std::is_base_of_v<IComponent, T>, "Registered component type must derive from IComponent");
         if (componentRegistry.find(type) != componentRegistry.end()) {
@@ -28,16 +29,16 @@ public:
         }
         // create two lambda functions
         componentRegistry[type] = {
+            type,
             [serializeFunc](JsonArchive& archive, const IComponent& component) {
                 serializeFunc(archive, static_cast<const T&>(component));
             },
-            [deserializeFunc](JsonArchive& archive) -> void* {
-                return new T(deserializeFunc(archive));
+            [deserializeFunc](JsonArchive& archive, IComponent& component) {
+                deserializeFunc(archive, static_cast<T&>(component));
             }
         };
     }
-    template <typename T>
-    const ComponentInfo * GetComponentInfo(std::string type) {
+    const ComponentInfo * GetComponentInfo(const std::string& type) const {
         auto it = componentRegistry.find(type);
         if (it != componentRegistry.end()) {
             return &(it->second);

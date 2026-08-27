@@ -49,6 +49,8 @@ public:
     void Write(std::string_view key, bool value) override;
     void Write(std::string_view key, const std::string& value) override;
 
+    nlohmann::json Dump() const;
+
 private:
     std::size_t& CurrentArrayIndex();
 

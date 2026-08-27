@@ -15,6 +15,7 @@
 class EcsWarehouse {
 public:
     Entity CreateEntityNew();
+    Entity CreateEntityFromScene(UUID entityId, std::string name);
     void DeleteEntity(Entity entity);
     bool IsAlive(Entity entity) const;
     Entity * FindEntity(UUID entityId);
@@ -55,15 +56,24 @@ public:
         }
         return nullptr;
     }
-
     template <typename T>
     const T * GetComponentReadOnly(Entity entity) const {
         return GetComponent<T>(entity);
     }
+    void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const;
 
     template <typename T>
     bool HasComponent(Entity entity) const {
         return GetComponentReadOnly<T>(entity) != nullptr;
+    }
+
+    /**
+     * @brief Access a read only view of all entities
+     * 
+     * @return const std::unordered_map<UUID, Entity>& 
+     */
+    const std::unordered_map<UUID, Entity>& GetEntityDump() const {
+        return entities;
     }
 
 private:
@@ -76,6 +86,8 @@ private:
     std::unordered_map<UUID, Entity> entities;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     
+    Entity CreateEntity(UUID uuid, std::string name);
+
     template <typename T>
     uint32_t GetComponentTypeId() {
         static uint32_t typeId = componentArrays.size();

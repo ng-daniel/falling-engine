@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/ecs/ecs_structures.h"
 #include <cstdint>
 #include <limits>
 #include <algorithm>
@@ -97,7 +98,8 @@ private:
 class IEcsComponentArray {
 public:
     virtual ~IEcsComponentArray() = default;
-    virtual std::string GetComponentName() = 0;
+    virtual IComponent * GetComponent(uint32_t entityIndex) = 0;
+    virtual const IComponent * GetComponentReadOnly(uint32_t entityIndex) = 0;
     virtual void DeleteComponent(uint32_t entityIndex) = 0;
 };
 
@@ -113,7 +115,7 @@ public:
      * @param entityIndex 
      * @return T* 
      */
-    T * GetComponent(uint32_t entityRuntimeIdx) {
+    T * GetComponent(uint32_t entityRuntimeIdx) override {
         const uint32_t * denseIdx = entityToDenseMap.TryGet(entityRuntimeIdx);
         if (!denseIdx) {
             return nullptr;
@@ -125,7 +127,7 @@ public:
 
         return &denseArray[*denseIdx];
     }
-    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) {
+    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) override {
         return GetComponent(entityRuntimeIdx);
     }
 

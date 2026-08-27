@@ -9,11 +9,9 @@
  * 
  */
 struct IComponent {
-    UUID componentId;
-    std::string name;
-
-    static void Serialize(JsonArchive& archive);
-    static IComponent Deserialize(JsonArchive& archive);
+    static void Serialize(JsonArchive& archive, const IComponent& component);
+    static IComponent Deserialize(JsonArchive& archive, IComponent& component);
+    virtual std::string GetType() const = 0;
 };
 
 /**

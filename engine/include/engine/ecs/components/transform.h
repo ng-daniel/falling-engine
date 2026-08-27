@@ -17,6 +17,8 @@
  * you need to apply the parent's transform.
  */
 struct Transform : public IComponent {
+    std::string GetType() const override { return "Transform"; }
+    
     Vector3 position;
     Vector4 rotation;
     Vector3 scale;
@@ -28,12 +30,11 @@ struct Transform : public IComponent {
     UUID prevSiblingEntityId;
 
     static void Serialize(JsonArchive& archive, const Transform& transform);
-    static Transform Deserialize(JsonArchive& archive);
+    static void Deserialize(JsonArchive& archive, Transform& transform);
 };
 
 /**
  * @brief Utility class used to perform operations on transform components
- * 
  */
 class TransformOps {
 public:

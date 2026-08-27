@@ -1,5 +1,6 @@
 #include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_warehouse.h"
+#include <string>
 #include "engine/utils/uuid.h"
 
 namespace {
@@ -15,11 +16,20 @@ namespace {
  * @return Entity 
  */
 Entity EcsWarehouse::CreateEntityNew() {
+    return CreateEntity(
+        UUIDGenerator::GenerateUUID(),
+        GenerateUniqueEntityName()
+    );
+}
+Entity EcsWarehouse::CreateEntityFromScene(UUID entityId, std::string name) {
+    return CreateEntity(entityId, name);
+}
+
+Entity EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
     Entity entity;
-    
-    // generate UUID
-    entity.entityId = UUIDGenerator::GenerateUUID();
-    
+    entity.entityId = uuid;
+    entity.name = name;
+
     // assign runtime index
     if (!freeRuntimeIds.empty()) {
         entity.entityRuntimeIdx = freeRuntimeIds.back();
@@ -27,7 +37,6 @@ Entity EcsWarehouse::CreateEntityNew() {
     } else {
         entity.entityRuntimeIdx = nextRuntimeId++;
     }
-    entity.name = GenerateUniqueEntityName();
 
     entities[entity.entityId] = entity;
     return entity;
@@ -101,6 +110,28 @@ void EcsWarehouse::RemoveAllComponents(Entity entity) {
     for (auto& array : componentArrays) {
         if (array) {
             array->DeleteComponent(entity.entityRuntimeIdx);
+        }
+    }
+}
+
+/**
+ * @brief Gets all components
+ * 
+ * @param entity 
+ * @param components 
+ *
+ * @details Iterate over each component array, if entity has component there, add it to the components vector
+ * component vector is readonly, getallcomponents should not be used for modifying stuff
+ */
+void EcsWarehouse::GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const {
+    int numComponentTypes = componentArrays.size();
+    for (int i = 0; i < numComponentTypes; i++) {
+        auto& array = componentArrays[i];
+        if (array) {
+            const IComponent* component = array->GetComponent(entity.entityRuntimeIdx);
+            if (component) {
+                components.push_back(component);
+            }
         }
     }
 }

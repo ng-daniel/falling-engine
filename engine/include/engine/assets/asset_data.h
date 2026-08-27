@@ -92,12 +92,13 @@ struct ModelAsset : public Asset {
 };
 
 struct ComponentData {
-    std::string componentType;
-    nlohmann::json componentData;
+    std::string type;
+    nlohmann::json data;
 };
 
 struct EntityData {
     UUID entityId;
+    std::string name;
     std::vector<ComponentData> components;
 };
 

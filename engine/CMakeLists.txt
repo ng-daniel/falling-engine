@@ -1,17 +1,17 @@
 add_library(engine
-    src/assets/asset_manager.cpp
-    src/debug/logger.cpp
     
-    src/assets/asset_warehouse_service.cpp
-    src/assets/asset_metadata_service.cpp
-    src/assets/asset_importer_service.cpp
-
     src/assets/importers/image_importer.cpp
     src/assets/importers/texture_importer.cpp
     src/assets/importers/shader_importer.cpp
     src/assets/importers/model_importer.cpp
+    src/assets/asset_manager.cpp
+    src/assets/asset_warehouse_service.cpp
+    src/assets/asset_metadata_service.cpp
+    src/assets/asset_importer_service.cpp
 
     src/core/application.cpp
+
+    src/debug/logger.cpp
 
     src/ecs/components/transform.cpp
     src/ecs/ecs_component_registry.cpp
