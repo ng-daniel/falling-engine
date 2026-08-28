@@ -31,14 +31,6 @@ struct Transform : public IComponent {
 
     static void Serialize(JsonArchive& archive, const Transform& transform);
     static void Deserialize(JsonArchive& archive, Transform& transform);
-};
-
-/**
- * @brief Utility class used to perform operations on transform components
- */
-class TransformOps {
-public:
-    TransformOps() = delete;
 
     static void SetPosition(Transform& transform, Vector3 newVal);
     static void ChangePosition(Transform& transform, Vector3 diff);

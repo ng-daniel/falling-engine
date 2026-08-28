@@ -27,32 +27,32 @@ void Transform::Deserialize(JsonArchive& archive, Transform& transform) {
     UUIDSerializer::Deserialize(archive, transform.prevSiblingEntityId, "prevSiblingEntityId");
 }
 
-void TransformOps::SetPosition(Transform& transform, Vector3 newVal) {
+void Transform::SetPosition(Transform& transform, Vector3 newVal) {
     transform.position = newVal;
 }
 
-void TransformOps::ChangePosition(Transform& transform, Vector3 diff) {
+void Transform::ChangePosition(Transform& transform, Vector3 diff) {
     transform.position.x += diff.x;
     transform.position.y += diff.y;
     transform.position.z += diff.z;
 }
 
-void TransformOps::SetRotation(Transform& transform, Vector4 newVal) {
+void Transform::SetRotation(Transform& transform, Vector4 newVal) {
     transform.rotation = newVal;
 }
 
-void TransformOps::ChangeRotation(Transform& transform, Vector4 diff) {
+void Transform::ChangeRotation(Transform& transform, Vector4 diff) {
     transform.rotation.x += diff.x;
     transform.rotation.y += diff.y;
     transform.rotation.z += diff.z;
     transform.rotation.w += diff.w;
 }
 
-void TransformOps::SetScale(Transform& transform, Vector3 newVal) {
+void Transform::SetScale(Transform& transform, Vector3 newVal) {
     transform.scale = newVal;
 }
 
-void TransformOps::ChangeScale(Transform& transform, Vector3 diff) {
+void Transform::ChangeScale(Transform& transform, Vector3 diff) {
     transform.scale.x += diff.x;
     transform.scale.y += diff.y;
     transform.scale.z += diff.z;

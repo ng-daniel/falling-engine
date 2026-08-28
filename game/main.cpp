@@ -35,7 +35,7 @@ int main() {
         ecsManager.AddComponent<Transform>(*entity);
         Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
         Transform * transform = ecsManager.GetComponent<Transform>(*entity);
-        TransformOps::ChangePosition(*transform, Vector3(6.7, 4.2, 0.1));
+        Transform::ChangePosition(*transform, Vector3(6.7, 4.2, 0.1));
         if (transform) {
             Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
         }
