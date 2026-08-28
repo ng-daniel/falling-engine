@@ -26,6 +26,7 @@ add_library(engine
     src/serialization/vector_serializer.cpp
 
     src/utils/uuid.cpp
+    src/utils/random.cpp
 )
 
 target_include_directories(engine PUBLIC

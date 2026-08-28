@@ -5,6 +5,7 @@
 #include "engine/core/application.h"
 
 #include "engine/debug/logger.h"
+#include "engine/utils/random.h"
 
 int main() {
     Application app = Application("./game/assets");
@@ -28,14 +29,22 @@ int main() {
     /// ---------------------------------------------------------------
 
     EcsManager& ecsManager = app.GetECSManager();
-    for (int i = 0; i < 100; i++) {
+    Random::SetSeed(15);
+    for (int i = 0; i < 10000; i++) {
         const Entity * entity = ecsManager.CreateEntity();
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         assert(entity != nullptr);
         ecsManager.AddComponent<Transform>(*entity);
         Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
         Transform * transform = ecsManager.GetComponent<Transform>(*entity);
-        Transform::ChangePosition(*transform, Vector3(6.7, 4.2, 0.1));
+        Transform::ChangePosition(
+            *transform,
+            Vector3(
+                Random::RandFloat(0.0f, 10.0f),
+                Random::RandFloat(0.0f, 10.0f),
+                Random::RandFloat(0.0f, 10.0f)
+            )
+        );
         if (transform) {
             Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
         }
