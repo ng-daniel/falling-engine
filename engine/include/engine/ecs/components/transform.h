@@ -41,7 +41,7 @@ public:
     TransformOps() = delete;
 
     static void SetPosition(Transform& transform, Vector3 newVal);
-    static void ChangeRotation(Transform& transform, Vector3 diff);
+    static void ChangePosition(Transform& transform, Vector3 diff);
 
     static void SetRotation(Transform& transform, Vector4 newVal);
     static void ChangeRotation(Transform& transform, Vector4 diff);

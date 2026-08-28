@@ -1,5 +1,6 @@
 #include <cmath>
 
+#include "engine/ecs/components/transform.h"
 #include "include/generated/asset_ids.h"
 #include "engine/core/application.h"
 
@@ -27,13 +28,14 @@ int main() {
     /// ---------------------------------------------------------------
 
     EcsManager& ecsManager = app.GetECSManager();
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 100; i++) {
         const Entity * entity = ecsManager.CreateEntity();
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         assert(entity != nullptr);
         ecsManager.AddComponent<Transform>(*entity);
         Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
-        const Transform * transform = ecsManager.GetComponentReadOnly<Transform>(*entity);
+        Transform * transform = ecsManager.GetComponent<Transform>(*entity);
+        TransformOps::ChangePosition(*transform, Vector3(6.7, 4.2, 0.1));
         if (transform) {
             Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
         }
