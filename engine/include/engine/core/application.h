@@ -1,7 +1,7 @@
 #pragma once
 
 #include <filesystem>
-
+#include "engine/core/window.h"
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
 
@@ -12,9 +12,11 @@ public:
     ~Application();
 
     void Run();
+
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
 private:
+    Window window;
     AssetManager assetManager;
     EcsManager ecsManager;
 };

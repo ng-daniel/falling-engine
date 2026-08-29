@@ -10,6 +10,7 @@ add_library(engine
     src/assets/asset_importer_service.cpp
 
     src/core/application.cpp
+    src/core/window.cpp
 
     src/debug/logger.cpp
 

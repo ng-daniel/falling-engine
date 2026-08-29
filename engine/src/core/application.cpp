@@ -2,7 +2,7 @@
 #include "engine/debug/logger.h"
 
 Application::Application(std::filesystem::path assetRoot) 
-    : assetManager(std::move(assetRoot)) {
+    : assetManager(assetRoot) {
     Logger::Info("Application", "Application initialized.");
 }
 
@@ -11,5 +11,11 @@ Application::~Application() {
 }
 
 void Application::Run() {
-    return;
+    while (!window.ShouldClose()) {
+        window.BeginFrame();
+
+        
+
+        window.EndFrame();
+    }
 }
