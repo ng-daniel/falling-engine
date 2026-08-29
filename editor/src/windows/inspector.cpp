@@ -46,9 +46,18 @@ namespace {
                 for (UUID meshId : model->meshes) {
                     DrawDependency("Mesh", meshId);
                 }
-                ImGui::Text("Materials (%zu):", model->materials.size());
-                for (UUID materialId : model->materials) {
-                    DrawDependency("Material", materialId);
+                break;
+            }
+            case Asset::AssetType::Mesh: {
+                const MeshAsset* mesh = assetManager.RequestAssetReadOnly<MeshAsset>(runtimeAsset.id);
+                if (!mesh) {
+                    return;
+                }
+                ImGui::Text("Primitives (%zu):", mesh->primitives.size());
+                for (const PrimitiveData& primitive : mesh->primitives) {
+                    if (primitive.material != 0) {
+                        DrawDependency("Material", primitive.material);
+                    }
                 }
                 break;
             }

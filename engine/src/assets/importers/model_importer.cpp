@@ -190,10 +190,6 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
     for (const auto& [meshPtr, meshId] : modelImportContext.importedMeshes) {
         modelAsset->meshes.push_back(meshId);
     }
-    modelAsset->materials.reserve(modelImportContext.importedMaterials.size());
-    for (const auto& [materialPtr, materialId] : modelImportContext.importedMaterials) {
-        modelAsset->materials.push_back(materialId);
-    }
 
     // store it in the warehouse
 
@@ -468,7 +464,11 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
     );
     meshAsset->type = Asset::AssetType::Mesh;
 
-    // process each primitive(triangle) in the mesh
+    meshAsset->primitives.reserve(static_cast<size_t>(mesh.primitives_count));
+
+    // Process every glTF primitive into an independent vertex/index buffer.  A
+    // glTF mesh may contain primitives with different materials or topology, so
+    // flattening them into one buffer loses that boundary.
     for (cgltf_size primitiveIndex = 0; primitiveIndex < mesh.primitives_count; ++primitiveIndex) {
         
         const cgltf_primitive& primitive = mesh.primitives[primitiveIndex];
@@ -520,19 +520,27 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             || (texCoordAccessor != nullptr && texCoordAccessor->count != vertexCount)) {
             throw std::runtime_error("Mesh primitive attributes must have matching vertex counts.");
         }
-        const size_t vertexOffset = meshAsset->vertices.size();
-        if (vertexOffset + static_cast<size_t>(vertexCount) > static_cast<size_t>(std::numeric_limits<uint32_t>::max())) {
+        if (vertexCount > static_cast<cgltf_size>(std::numeric_limits<uint32_t>::max())) {
             throw std::runtime_error("Mesh vertex count exceeds 32-bit index capacity.");
         }
 
-        // read vertex data from accessors and populate the mesh asset's vertex buffer
+        PrimitiveData primitiveData;
+        if (primitive.material != nullptr) {
+            const auto materialIt = modelImportContext.importedMaterials.find(primitive.material);
+            if (materialIt == modelImportContext.importedMaterials.end()) {
+                throw std::runtime_error("Mesh primitive material has not been imported yet.");
+            }
+            primitiveData.material = materialIt->second;
+        }
+        primitiveData.vertices.resize(static_cast<size_t>(vertexCount));
 
-        meshAsset->vertices.resize(vertexOffset + static_cast<size_t>(vertexCount));
+        // Read vertex data from accessors and populate this primitive's buffer.
+
         for (cgltf_size vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
             
             // initialize vertex and set defaults
             
-            Vertex& vertex = meshAsset->vertices[vertexOffset + static_cast<size_t>(vertexIndex)];
+            Vertex& vertex = primitiveData.vertices[static_cast<size_t>(vertexIndex)];
             vertex.normal = Vector3(0.0f);
             vertex.tangent = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             vertex.texCoord = Vector2(0.0f);
@@ -600,7 +608,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             }
         }
 
-        // populate mesh asset's index buffer based on the primitive type
+        // Populate this primitive's index buffer based on topology
         // 1. triangles: every 3 indices form a triangle, non-overlapping
         // 2. triangle strip: every 3 consecutive indices form a triangle, overlapping
         // 3. triangle fan: first idx center, all others form fan around it
@@ -609,53 +617,51 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             if (primitiveIndices.size() % 3 != 0) {
                 throw std::runtime_error("Triangle mesh primitive index count must be divisible by 3.");
             }
-            meshAsset->indices.reserve(meshAsset->indices.size() + primitiveIndices.size());
+            primitiveData.indices.reserve(primitiveIndices.size());
             for (uint32_t primitiveVertexIndex : primitiveIndices) {
-                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + primitiveVertexIndex);
+                primitiveData.indices.push_back(primitiveVertexIndex);
             }
         } else if (primitive.type == cgltf_primitive_type_triangle_strip) {
-            if (primitiveIndices.size() < 3) {
-                continue;
-            }
-            meshAsset->indices.reserve(meshAsset->indices.size() + (primitiveIndices.size() - 2) * 3);
-            for (size_t index = 0; index + 2 < primitiveIndices.size(); ++index) {
-                const uint32_t first = primitiveIndices[index];
-                const uint32_t second = primitiveIndices[index + 1];
-                const uint32_t third = primitiveIndices[index + 2];
-                if (first == second || second == third || first == third) {
-                    continue;
-                }
+            if (primitiveIndices.size() >= 3) {
+                primitiveData.indices.reserve((primitiveIndices.size() - 2) * 3);
+                for (size_t index = 0; index + 2 < primitiveIndices.size(); ++index) {
+                    const uint32_t first = primitiveIndices[index];
+                    const uint32_t second = primitiveIndices[index + 1];
+                    const uint32_t third = primitiveIndices[index + 2];
+                    if (first == second || second == third || first == third) {
+                        continue;
+                    }
 
-                if (index % 2 == 0) {
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
-                } else {
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
-                    meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
+                    if (index % 2 == 0) {
+                        primitiveData.indices.push_back(first);
+                        primitiveData.indices.push_back(second);
+                        primitiveData.indices.push_back(third);
+                    } else {
+                        primitiveData.indices.push_back(second);
+                        primitiveData.indices.push_back(first);
+                        primitiveData.indices.push_back(third);
+                    }
                 }
             }
         } else {
-            if (primitiveIndices.size() < 3) {
-                continue;
-            }
-            meshAsset->indices.reserve(meshAsset->indices.size() + (primitiveIndices.size() - 2) * 3);
-            for (size_t index = 1; index + 1 < primitiveIndices.size(); ++index) {
-                const uint32_t first = primitiveIndices[0];
-                const uint32_t second = primitiveIndices[index];
-                const uint32_t third = primitiveIndices[index + 1];
-                if (first == second || second == third || first == third) {
-                    continue;
-                }
+            if (primitiveIndices.size() >= 3) {
+                primitiveData.indices.reserve((primitiveIndices.size() - 2) * 3);
+                for (size_t index = 1; index + 1 < primitiveIndices.size(); ++index) {
+                    const uint32_t first = primitiveIndices[0];
+                    const uint32_t second = primitiveIndices[index];
+                    const uint32_t third = primitiveIndices[index + 1];
+                    if (first == second || second == third || first == third) {
+                        continue;
+                    }
 
-                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + first);
-                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + second);
-                meshAsset->indices.push_back(static_cast<uint32_t>(vertexOffset) + third);
+                    primitiveData.indices.push_back(first);
+                    primitiveData.indices.push_back(second);
+                    primitiveData.indices.push_back(third);
+                }
             }
         }
 
-        // done processing primitive
+        meshAsset->primitives.push_back(std::move(primitiveData));
     }
 
     return static_cast<const MeshAsset*>(

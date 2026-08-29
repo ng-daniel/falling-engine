@@ -81,14 +81,22 @@ struct Vertex {
     Vector2 texCoord;
 };
 
-struct MeshAsset : public Asset {
+/**
+ * @brief GLTF spec says meshes are composed of primitives
+ * https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_009_Meshes.html
+ */
+struct PrimitiveData {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+    UUID material = 0;
+};
+
+struct MeshAsset : public Asset {
+    std::vector<PrimitiveData> primitives;
 };
 
 struct ModelAsset : public Asset {
     std::vector<UUID> meshes;
-    std::vector<UUID> materials;
 };
 
 struct ComponentData {
