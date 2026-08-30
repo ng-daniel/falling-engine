@@ -83,6 +83,19 @@ public:
         return entities;
     }
 
+    /**
+     * @brief Pull the raw dense entity array, without knowledge of who owns each component.
+     * Only use for component-wide operations (like physics updates)
+     * 
+     * @tparam T 
+     * @return std::vector<T>& 
+     */
+    template <typename T>
+    std::vector<T>& GetAllComponentsOfType() {
+        std::vector<T>& denseArray = GetArray<T>()->GetDenseArray();
+        return denseArray;
+    }
+
 private:
     // entity runtime ID assignment
     uint32_t nextRuntimeId = 0;

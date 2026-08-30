@@ -204,6 +204,10 @@ public:
         *targetIdx = TOMBSTONE;
     }
 
+    std::vector<T> & GetDenseArray() {
+        return denseArray;
+    }
+
 private:
     static constexpr uint32_t PAGE_SIZE = 1024;
 

@@ -56,7 +56,7 @@ int main() {
 
     EcsManager& ecsManager = app.GetECSManager();
     Random::SetSeed(15);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10000; i++) {
         const Entity * entity = ecsManager.CreateEntity();
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         assert(entity != nullptr);
@@ -76,7 +76,7 @@ int main() {
         }
     }
     
-    app.Run();
+    // app.Run();
 
     return 0;
 }
