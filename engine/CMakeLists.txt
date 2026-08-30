@@ -25,9 +25,12 @@ add_library(engine
     src/serialization/serialization_helpers.cpp
     src/serialization/scene_serializer.cpp
     src/serialization/vector_serializer.cpp
+    src/serialization/quaternion_serializer.cpp
 
     src/utils/uuid.cpp
     src/utils/random.cpp
+    src/utils/vector.cpp
+    src/utils/quaternion.cpp
 )
 
 target_include_directories(engine PUBLIC

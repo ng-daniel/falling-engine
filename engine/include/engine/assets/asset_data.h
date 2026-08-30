@@ -9,6 +9,7 @@
 #include "engine/assets/asset_structures.h"
 #include "engine/utils/uuid.h"
 #include "engine/utils/vector.h"
+#include "engine/utils/quaternion.h"
 
 struct ShaderAsset : public Asset {
     enum ShaderType {
@@ -95,8 +96,19 @@ struct MeshAsset : public Asset {
     std::vector<PrimitiveData> primitives;
 };
 
+struct ModelNode {
+    UUID meshId = 0;
+    bool hasMesh = false;
+    std::string name;
+    Vector3 relativePosition = Vector3(0.0f);
+    Quaternion relativeRotation = Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+    Vector3 relativeScale = Vector3(1.0f);
+    std::vector<ModelNode> children;
+};
+
 struct ModelAsset : public Asset {
-    std::vector<UUID> meshes;
+    std::vector<UUID> meshes; // all mesh references contained in the scene hierarchies
+    std::vector<ModelNode> trees; // scene hierarchies
 };
 
 struct ComponentData {

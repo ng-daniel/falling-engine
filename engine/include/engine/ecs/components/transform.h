@@ -2,13 +2,10 @@
 
 #include "engine/utils/uuid.h"
 #include "engine/utils/vector.h"
+#include "engine/utils/quaternion.h"
 #include "engine/ecs/ecs_structures.h"
 
 #include "engine/serialization/jsonarchive.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 /**
  * @brief The transform component
@@ -20,7 +17,7 @@ struct Transform : public IComponent {
     std::string GetType() const override { return "Transform"; }
     
     Vector3 position;
-    Vector4 rotation;
+    Quaternion rotation;
     Vector3 scale;
 
     // hierarchy references
@@ -35,8 +32,8 @@ struct Transform : public IComponent {
     static void SetPosition(Transform& transform, Vector3 newVal);
     static void ChangePosition(Transform& transform, Vector3 diff);
 
-    static void SetRotation(Transform& transform, Vector4 newVal);
-    static void ChangeRotation(Transform& transform, Vector4 diff);
+    static void SetRotation(Transform& transform, Quaternion newVal);
+    static void ChangeRotation(Transform& transform, Quaternion diff);
 
     static void SetScale(Transform& transform, Vector3 newVal);
     static void ChangeScale(Transform& transform, Vector3 diff);

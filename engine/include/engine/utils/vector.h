@@ -38,6 +38,16 @@ struct Vector3 {
 		z = value.z;
 		return *this;
 	}
+
+	constexpr Vector3 operator+(const Vector3& other) const {
+		return Vector3(x + other.x, y + other.y, z + other.z);
+	}
+	constexpr Vector3 operator*(const Vector3& other) const {
+		return Vector3(x * other.x, y * other.y, z * other.z);
+	}
+
+	static Vector3 MatrixToScale(const float matrix[16]);
+	static Vector3 MatrixToTranslation(const float matrix[16]);
 };
 
 struct Vector4 {

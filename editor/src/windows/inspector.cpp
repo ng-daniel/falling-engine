@@ -43,8 +43,8 @@ namespace {
                     return;
                 }
                 ImGui::Text("Meshes (%zu):", model->meshes.size());
-                for (UUID meshId : model->meshes) {
-                    DrawDependency("Mesh", meshId);
+                for (ModelNode modelNode : model->trees) {
+                    DrawDependency("Mesh", modelNode.meshId);
                 }
                 break;
             }

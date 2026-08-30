@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -11,6 +12,11 @@
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/importers/texture_importer.h"
 #include "engine/debug/logger.h"
+
+#include "engine/utils/quaternion.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #define CGLTF_IMPLEMENTATION
 #include "external/cgltf.h"
@@ -81,7 +87,7 @@ namespace {
 
     std::string BuildSubAssetNameFromGLTFName(const std::string& sourceName, const std::string& glTFName, Asset::AssetType assetType) {
         // replace invalid characters with underscores
-    
+
         std::string normalizedGLTFName = glTFName;
         for (const auto& invalidChar : invalidCharacters) {
             size_t pos = 0;
@@ -182,14 +188,7 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
     }
 
     // compile all assets into a single model asset
-
-    std::unique_ptr<ModelAsset> modelAsset = std::make_unique<ModelAsset>();
-    modelAsset->name = metadata.path.stem().string();
-    modelAsset->type = Asset::AssetType::Model;
-    modelAsset->meshes.reserve(modelImportContext.importedMeshes.size());
-    for (const auto& [meshPtr, meshId] : modelImportContext.importedMeshes) {
-        modelAsset->meshes.push_back(meshId);
-    }
+    std::unique_ptr<ModelAsset> modelAsset = CompileModelAsset(*data->scenes, modelImportContext);
 
     // store it in the warehouse
 
@@ -670,4 +669,149 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
             std::move(meshAsset)
         )
     );
+}
+
+/**
+ * @brief Recursively processes a node and its children to build the model hierarchy.
+ * 
+ * @param node CGLTF node to process
+ * @param parentModelNode ModelNode struct of parent cglft node
+ * @param importData Context containing imported meshes and asset warehouse service.
+ * @return std::optional<ModelNode> 
+ */
+std::optional<ModelNode> ProcessNode(const cgltf_node * node,ModelImportContext& importData) {    
+    ModelNode modelNode;
+    if (importData.importedMeshes.find(node->mesh) != importData.importedMeshes.end()) {
+        modelNode.hasMesh = true;
+        modelNode.meshId = importData.importedMeshes[node->mesh];
+    }
+
+    modelNode.name = node->name != nullptr ? node->name : "<unnamed>";
+    
+    cgltf_float matrix[16];
+    cgltf_node_transform_local(node, matrix);
+    modelNode.relativePosition = Vector3::MatrixToTranslation(matrix);
+    modelNode.relativeRotation = Quaternion::MatrixToQuaternion(matrix);
+    modelNode.relativeScale = Vector3::MatrixToScale(matrix);
+
+    Logger::Info("ModelImporter", "Processing node with name: " +
+        modelNode.name);
+    Logger::Info("ModelImporter", "Node relative position: (" +
+        std::to_string(modelNode.relativePosition.x) + ", " +
+        std::to_string(modelNode.relativePosition.y) + ", " +
+        std::to_string(modelNode.relativePosition.z) + ")");
+    
+    // process children nodes
+    for (int i = 0; i < node->children_count; ++i) {
+        const cgltf_node * childNode = node->children[i];
+        if (std::optional<ModelNode> child = ProcessNode(childNode,importData)) {
+            modelNode.children.push_back(std::move(*child));
+        }
+    }
+    return modelNode;
+}
+
+/**
+ * @brief Compress a model node into a matching hierarchy only consisting of mesh nodes.
+ * Builds a mirror of the raw tree, retaining only the nodes that contain meshes.
+ * Accumulate transformations from parent nodes to maintain correct positioning of mesh nodes.
+ * 
+ * @param node 
+ * @return std::vector<ModelNode> 
+ */
+std::vector<ModelNode> CompressNode(ModelNode rawTreeNode, ModelNode * parent) {
+    std::vector<ModelNode> compressedNodes;
+    ModelNode compressedTreeNode = rawTreeNode;
+
+    // aggregate transform data into compressedTreeNode
+    if (parent != nullptr) {
+        const glm::quat parentRotation(
+            parent->relativeRotation.w,
+            parent->relativeRotation.x,
+            parent->relativeRotation.y,
+            parent->relativeRotation.z
+        );
+        const glm::vec3 parentScale(
+            parent->relativeScale.x,
+            parent->relativeScale.y,
+            parent->relativeScale.z
+        );
+        const glm::vec3 childPosition(
+            rawTreeNode.relativePosition.x,
+            rawTreeNode.relativePosition.y,
+            rawTreeNode.relativePosition.z
+        );
+
+        // scale and rotate the child position by the parent's transform
+        const Vector3 realPosition = parent->relativePosition + (parentRotation * (parentScale * childPosition));
+
+        compressedTreeNode.relativePosition = realPosition;
+        compressedTreeNode.relativeRotation = parent->relativeRotation * rawTreeNode.relativeRotation;
+        compressedTreeNode.relativeScale = parent->relativeScale * rawTreeNode.relativeScale;
+    }
+
+    // case 1: current node has a mesh, retain it and compress its children relative to this node
+
+    if (rawTreeNode.hasMesh) {
+        // retain mesh nodes and keep descendants relative to this one
+        // rebuild children array with the compressed children
+        Logger::Info("ModelImporter", "Compressing node with mesh: " + rawTreeNode.name);
+        compressedTreeNode.children.clear();
+        for (auto& child : rawTreeNode.children) {
+            std::vector<ModelNode> compressedChildren = CompressNode(std::move(child), nullptr);
+            compressedTreeNode.children.insert(
+                compressedTreeNode.children.end(),
+                std::make_move_iterator(compressedChildren.begin()),
+                std::make_move_iterator(compressedChildren.end())
+            );
+        }
+        // push final compressed node to our list of compressed nodes
+        compressedNodes.push_back(std::move(compressedTreeNode));
+        return compressedNodes;
+    }
+
+    // case 2: current node doesn't have mesh, 
+
+    for (auto& child : rawTreeNode.children) {
+        std::vector<ModelNode> childNodes = CompressNode(std::move(child), &compressedTreeNode);
+        for (auto& childNode : childNodes) {
+            compressedNodes.push_back(std::move(childNode));
+        }
+    }
+
+    return compressedNodes;
+}
+
+const std::unique_ptr<ModelAsset> ModelImporter::CompileModelAsset(const cgltf_scene& scene, ModelImportContext& importData) {
+    std::unique_ptr<ModelAsset> modelAsset = std::make_unique<ModelAsset>();
+    
+    modelAsset->name = importData.sourceAssetMetadata.path.stem().string();
+    modelAsset->type = Asset::AssetType::Model;
+    modelAsset->meshes.reserve(importData.importedMeshes.size());
+    for (const auto& [mesh, meshId] : importData.importedMeshes) {
+        modelAsset->meshes.push_back(meshId);
+    }
+
+    // traverse the entire scene tree and build the model hierarchy
+
+    std::vector<ModelNode> rawTrees;
+    for (int i = 0; i < scene.nodes_count; ++i) {
+        const cgltf_node * node = scene.nodes[i];
+        if (std::optional<ModelNode> modelNode = ProcessNode(node, importData)) {
+            rawTrees.push_back(std::move(*modelNode));
+        }
+    }
+
+    // compress the model hierarchy to be meshes only
+
+    std::vector<ModelNode> compressedTrees;
+    for (auto& rawTree : rawTrees) {
+        auto compressed = CompressNode(rawTree, nullptr);
+        for (auto& node : compressed) {
+            compressedTrees.push_back(std::move(node));
+        }
+    }
+
+    modelAsset->trees = std::move(compressedTrees);
+    return modelAsset;
 }

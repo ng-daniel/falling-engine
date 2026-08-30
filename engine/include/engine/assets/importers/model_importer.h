@@ -71,4 +71,9 @@ private:
         const std::string& imageName,
         const ModelImportContext& importData
     );
+
+    static const std::unique_ptr<ModelAsset> CompileModelAsset(
+        const cgltf_scene& scene,
+        ModelImportContext& importData
+    );
 };

@@ -1,6 +1,7 @@
 #include "engine/ecs/components/transform.h"
 #include "engine/serialization/jsonarchive.h"
 #include "engine/serialization/vector_serializer.h"
+#include "engine/serialization/quaternion_serializer.h"
 #include "engine/serialization/uuid_serializer.h"
 
 #include <glm/glm.hpp>
@@ -9,7 +10,7 @@
 
 void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
     VectorSerializer::Serialize(archive, transform.position, "position");
-    VectorSerializer::Serialize(archive, transform.rotation, "rotation");
+    QuaternionSerializer::Serialize(archive, transform.rotation, "rotation");
     VectorSerializer::Serialize(archive, transform.scale, "scale");
     UUIDSerializer::Serialize(archive, transform.parentEntityId, "parentEntityId");
     UUIDSerializer::Serialize(archive, transform.firstChildEntityId, "firstChildEntityId");
@@ -19,7 +20,7 @@ void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
 
 void Transform::Deserialize(JsonArchive& archive, Transform& transform) {
     VectorSerializer::DeserializeVector3(archive, transform.position, "position");
-    VectorSerializer::DeserializeVector4(archive, transform.rotation, "rotation");
+    QuaternionSerializer::Deserialize(archive, transform.rotation, "rotation");
     VectorSerializer::DeserializeVector3(archive, transform.scale, "scale");
     UUIDSerializer::Deserialize(archive, transform.parentEntityId, "parentEntityId");
     UUIDSerializer::Deserialize(archive, transform.firstChildEntityId, "firstChildEntityId");
@@ -37,15 +38,12 @@ void Transform::ChangePosition(Transform& transform, Vector3 diff) {
     transform.position.z += diff.z;
 }
 
-void Transform::SetRotation(Transform& transform, Vector4 newVal) {
+void Transform::SetRotation(Transform& transform, Quaternion newVal) {
     transform.rotation = newVal;
 }
 
-void Transform::ChangeRotation(Transform& transform, Vector4 diff) {
-    transform.rotation.x += diff.x;
-    transform.rotation.y += diff.y;
-    transform.rotation.z += diff.z;
-    transform.rotation.w += diff.w;
+void Transform::ChangeRotation(Transform& transform, Quaternion diff) {
+    transform.rotation = transform.rotation * diff;
 }
 
 void Transform::SetScale(Transform& transform, Vector3 newVal) {
