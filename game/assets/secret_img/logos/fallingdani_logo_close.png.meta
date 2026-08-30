@@ -1,0 +1,21 @@
+{
+    "UUID": "11019649631344339484",
+    "assetType": "Texture",
+    "path": "./game/assets/secret_img/logos/fallingdani_logo_close.png",
+    "runtimeAssets": [
+        {
+            "UUID": "6853716999972585016",
+            "assetType": "Image",
+            "exportName": "fallingdani_logo_close",
+            "sourceUUID": "11019649631344339484",
+            "subAssetIdentifier": "fallingdani_logo_close"
+        },
+        {
+            "UUID": "11865686047122679251",
+            "assetType": "Texture",
+            "exportName": "fallingdani_logo_close_texture",
+            "sourceUUID": "11019649631344339484",
+            "subAssetIdentifier": "fallingdani_logo_close_texture"
+        }
+    ]
+}

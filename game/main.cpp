@@ -14,6 +14,14 @@ void PrintModelNodeTree(ModelNode node, int depth = 0) {
         std::to_string(node.relativePosition.x) + ", " +
         std::to_string(node.relativePosition.y) + ", " +
         std::to_string(node.relativePosition.z) + ")");
+    Logger::Info("main", indent + "Rotation: (" +
+        std::to_string(node.relativeRotation.x) + ", " +
+        std::to_string(node.relativeRotation.y) + ", " +
+        std::to_string(node.relativeRotation.z) + ")");
+    Logger::Info("main", indent + "Scale: (" +
+        std::to_string(node.relativeScale.x) + ", " +
+        std::to_string(node.relativeScale.y) + ", " +
+        std::to_string(node.relativeScale.z) + ")");
     for (auto& child : node.children) {
         PrintModelNodeTree(child, depth + 1);
     }
@@ -46,29 +54,29 @@ int main() {
     /// ENTITY AND SCENE TEST
     /// ---------------------------------------------------------------
 
-    // EcsManager& ecsManager = app.GetECSManager();
-    // Random::SetSeed(15);
-    // for (int i = 0; i < 10; i++) {
-    //     const Entity * entity = ecsManager.CreateEntity();
-    //     Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
-    //     assert(entity != nullptr);
-    //     ecsManager.AddComponent<Transform>(*entity);
-    //     Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
-    //     Transform * transform = ecsManager.GetComponent<Transform>(*entity);
-    //     Transform::ChangePosition(
-    //         *transform,
-    //         Vector3(
-    //             Random::RandFloat(0.0f, 10.0f),
-    //             Random::RandFloat(0.0f, 10.0f),
-    //             Random::RandFloat(0.0f, 10.0f)
-    //         )
-    //     );
-    //     if (transform) {
-    //         Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
-    //     }
-    // }
-    // 
-    // app.Run();
+    EcsManager& ecsManager = app.GetECSManager();
+    Random::SetSeed(15);
+    for (int i = 0; i < 10; i++) {
+        const Entity * entity = ecsManager.CreateEntity();
+        Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
+        assert(entity != nullptr);
+        ecsManager.AddComponent<Transform>(*entity);
+        Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
+        Transform * transform = ecsManager.GetComponent<Transform>(*entity);
+        Transform::ChangePosition(
+            *transform,
+            Vector3(
+                Random::RandFloat(0.0f, 10.0f),
+                Random::RandFloat(0.0f, 10.0f),
+                Random::RandFloat(0.0f, 10.0f)
+            )
+        );
+        if (transform) {
+            Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
+        }
+    }
+    
+    app.Run();
 
     return 0;
 }
