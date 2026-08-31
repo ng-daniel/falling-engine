@@ -96,6 +96,10 @@ public:
         return denseArray;
     }
 
+    UUID GetRootEntityId() const {
+        return rootEntityId;
+    }
+
 private:
     // entity runtime ID assignment
     uint32_t nextRuntimeId = 0;

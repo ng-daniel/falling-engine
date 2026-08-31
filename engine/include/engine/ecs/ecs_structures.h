@@ -21,4 +21,8 @@ struct Entity {
     UUID entityId;
     uint32_t entityRuntimeIdx; // used for runtime indexing into ECS component arrays
     std::string name;
+
+    void SetName(const std::string& newName) {
+        name = newName;
+    }
 };

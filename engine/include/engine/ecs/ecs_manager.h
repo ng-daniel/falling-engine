@@ -74,7 +74,18 @@ public:
 	 */
 	void RegisterComponents();
 
+	/// HIERARCHY OPS
+	/// ----------------------------------------------
+
+	// Adds child to the end of parent's circular sibling list. Invalid entities,
+	// self-parenting, and descendant-parenting requests are ignored.
+	void Parent(Entity& parent, Entity& child);
+	// Removes child from its current parent. The child becomes root-level.
+	void UnParent(Entity& child);
+
 private:
 	EcsWarehouse warehouse;
 	ECSComponentRegistry componentRegistry;
+
+	void DetachEntity(Entity& entity);
 };

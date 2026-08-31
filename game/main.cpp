@@ -55,13 +55,15 @@ int main() {
     /// ---------------------------------------------------------------
 
     EcsManager& ecsManager = app.GetECSManager();
+    Entity * rootEntity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
+    Logger::Info("main", "Created root entity with ID: " + std::to_string(rootEntity->entityId) + "and runtime idx: " + std::to_string(rootEntity->entityRuntimeIdx));
+
     Random::SetSeed(15);
     for (int i = 0; i < 10000; i++) {
-        const Entity * entity = ecsManager.CreateEntity();
+        Entity * entity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
+        ecsManager.Parent(*rootEntity, *entity); // Parent the newly created entity to the root entity
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         assert(entity != nullptr);
-        ecsManager.AddComponent<Transform>(*entity);
-        Logger::Info("main", "Added Transform component to entity with ID: " + std::to_string(entity->entityId));
         Transform * transform = ecsManager.GetComponent<Transform>(*entity);
         Transform::ChangePosition(
             *transform,
@@ -74,6 +76,14 @@ int main() {
         if (transform) {
             Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
         }
+    }
+    Transform * rootTransform = ecsManager.GetComponent<Transform>(*rootEntity);
+    while (rootTransform->firstChildEntityId != 0) {
+        Entity * entity = ecsManager.LookupEntity(rootTransform->firstChildEntityId);
+        if (entity) {
+            Logger::Info("main", "Child entity ID: " + std::to_string(entity->entityId) + " and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
+        }
+        ecsManager.DestroyEntity(*entity);
     }
     
     // app.Run();

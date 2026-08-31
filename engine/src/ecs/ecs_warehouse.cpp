@@ -2,6 +2,7 @@
 #include "engine/ecs/ecs_warehouse.h"
 #include <string>
 #include "engine/utils/uuid.h"
+#include "engine/ecs/components/transform.h"
 
 namespace {
     std::string GenerateUniqueEntityName() {
@@ -39,6 +40,10 @@ Entity * EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
     }
 
     entities[entity.entityId] = entity;
+    
+    // add transform by default
+    AddComponent<Transform>(entity);
+
     return &entities[entity.entityId];
 }
 
@@ -73,10 +78,7 @@ void EcsWarehouse::DeleteEntity(Entity entity) {
  */
 bool EcsWarehouse::IsAlive(Entity entity) const {
     auto found = entities.find(entity.entityId);
-    return (
-        found != entities.end() &&
-        found->second.entityRuntimeIdx == entity.entityRuntimeIdx
-    );
+    return found != entities.end();
 }
 
 /**

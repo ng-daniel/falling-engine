@@ -21,10 +21,10 @@ struct Transform : public IComponent {
     Vector3 scale;
 
     // hierarchy references
-    UUID parentEntityId;
-    UUID firstChildEntityId;
-    UUID nextSiblingEntityId;
-    UUID prevSiblingEntityId;
+    UUID parentEntityId = 0;
+    UUID firstChildEntityId = 0;
+    UUID nextSiblingEntityId = 0;
+    UUID prevSiblingEntityId = 0;
 
     static void Serialize(JsonArchive& archive, const Transform& transform);
     static void Deserialize(JsonArchive& archive, Transform& transform);
