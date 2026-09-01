@@ -10,5 +10,5 @@
  */
 class ECSExtras {
 public:
-    static Entity BuildEntityFromModel(AssetManager& assetManager, EcsManager& ecsManager, UUID modelId);
+    static Entity * BuildEntityFromModel(AssetManager& assetManager, EcsManager& ecsManager, UUID modelId);
 };

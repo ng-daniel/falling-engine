@@ -1,8 +1,11 @@
 #include <cmath>
+#include <thread>
 
 #include "engine/ecs/components/transform.h"
 #include "include/generated/asset_ids.h"
 #include "engine/core/application.h"
+
+#include "engine/ecs/ecs_extras.h"
 
 #include "engine/debug/logger.h"
 #include "engine/utils/random.h"
@@ -59,7 +62,7 @@ int main() {
     Logger::Info("main", "Created root entity with ID: " + std::to_string(rootEntity->entityId) + "and runtime idx: " + std::to_string(rootEntity->entityRuntimeIdx));
 
     Random::SetSeed(15);
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 10; i++) {
         Entity * entity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
         ecsManager.Parent(*rootEntity, *entity); // Parent the newly created entity to the root entity
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
@@ -81,9 +84,20 @@ int main() {
     while (rootTransform->firstChildEntityId != 0) {
         Entity * entity = ecsManager.LookupEntity(rootTransform->firstChildEntityId);
         if (entity) {
-            Logger::Info("main", "Child entity ID: " + std::to_string(entity->entityId) + " and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
+            Logger::Info("main", "Destroying child entity ID: " + std::to_string(entity->entityId) + " and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         }
         ecsManager.DestroyEntity(*entity);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    
+    /// MODEL BUILDER TEST
+    /// ---------------------------------------------------------------
+    for (int i = 0; i < 10; i++) {
+        Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_MODEL.GetUUID());
+        if (modelRootEntity) {
+            Logger::Info("main", "Created model root entity with ID: " + std::to_string(modelRootEntity->entityId) + " and runtime idx: " + std::to_string(modelRootEntity->entityRuntimeIdx));
+        }
+        ecsManager.Parent(*rootEntity, *modelRootEntity);
     }
     
     // app.Run();

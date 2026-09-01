@@ -15,7 +15,9 @@ add_library(engine
     src/debug/logger.cpp
 
     src/ecs/components/transform.cpp
+    src/ecs/components/mesh_renderer.cpp
     src/ecs/ecs_component_registry.cpp
+    src/ecs/ecs_extras.cpp
     src/ecs/ecs_scene_service.cpp
     src/ecs/ecs_warehouse.cpp
     src/ecs/ecs_manager.cpp
