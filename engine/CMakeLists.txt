@@ -28,11 +28,13 @@ add_library(engine
     src/serialization/scene_serializer.cpp
     src/serialization/vector_serializer.cpp
     src/serialization/quaternion_serializer.cpp
+    src/serialization/matrix_serializer.cpp
 
     src/utils/uuid.cpp
     src/utils/random.cpp
     src/utils/vector.cpp
     src/utils/quaternion.cpp
+    src/utils/matrix.cpp
 )
 
 target_include_directories(engine PUBLIC

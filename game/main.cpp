@@ -76,7 +76,8 @@ int main() {
             )
         );
         if (transform) {
-            Logger::Info("main", "Transform Data: " + std::to_string(transform->position.x) + ", " + std::to_string(transform->position.y) + ", " + std::to_string(transform->position.z));
+            const Vector3 position = transform->GetPosition();
+            Logger::Info("main", "Transform Data: " + std::to_string(position.x) + ", " + std::to_string(position.y) + ", " + std::to_string(position.z));
         }
     }
     Transform * rootTransform = ecsManager.GetComponent<Transform>(*rootEntity);

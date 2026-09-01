@@ -3,6 +3,7 @@
 #include "engine/utils/uuid.h"
 #include "engine/utils/vector.h"
 #include "engine/utils/quaternion.h"
+#include "engine/utils/matrix.h"
 #include "engine/ecs/ecs_structures.h"
 
 #include "engine/serialization/jsonarchive.h"
@@ -16,9 +17,7 @@
 struct Transform : public IComponent {
     std::string GetType() const override { return "Transform"; }
     
-    Vector3 position;
-    Quaternion rotation;
-    Vector3 scale;
+    Matrix4 matrix;
 
     // hierarchy references
     UUID parentEntityId = 0;
@@ -37,4 +36,10 @@ struct Transform : public IComponent {
 
     static void SetScale(Transform& transform, Vector3 newVal);
     static void ChangeScale(Transform& transform, Vector3 diff);
+
+    Vector3 GetPosition() const;
+    Quaternion GetRotation() const;
+    Vector3 GetScale() const;
+
+    static void ComposeTransforms(Transform& result, const Transform& parent, const Transform& child);
 };

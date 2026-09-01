@@ -19,9 +19,9 @@ namespace {
 
         // apply transform data
         Transform* transform = ecsManager.GetComponent<Transform>(*entity);
-        transform->position = modelNode.relativePosition;
-        transform->rotation = modelNode.relativeRotation;
-        transform->scale = modelNode.relativeScale;
+        Transform::SetPosition(*transform, modelNode.relativePosition);
+        Transform::SetRotation(*transform, modelNode.relativeRotation);
+        Transform::SetScale(*transform, modelNode.relativeScale);
 
         // add mesh renderer if the node has a mesh
         if (modelNode.hasMesh) {
