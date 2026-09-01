@@ -26,9 +26,7 @@ public:
         if (!IsAlive(entity)) {
             return nullptr;
         }
-        if (!TryAddComponentArray<T>()) {
-            // component array already exists for this type
-        }
+        TryAddComponentArray<T>();
         EcsComponentArray<T> * array = GetArray<T>();
         return array->CreateComponent(entity.entityRuntimeIdx);
     }
@@ -136,16 +134,13 @@ private:
     }
 
     template <typename T>
-    bool TryAddComponentArray() {
+    void TryAddComponentArray() {
         uint32_t typeId = GetComponentTypeId<T>();
         if (typeId >= componentArrays.size()) {
+            // add new component array
             componentArrays.push_back(std::make_unique<EcsComponentArray<T>>());
             assert(componentArrays.size() == typeId + 1);
-            return true;
         }
-        else {
-            // component array already exists for this type
-            return false;
-        }
+        // component array already exists
     }
 };
