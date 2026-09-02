@@ -46,8 +46,6 @@ struct Vector3 {
 		return Vector3(x * other.x, y * other.y, z * other.z);
 	}
 
-	static Vector3 MatrixToScale(const float matrix[16]);
-	static Vector3 MatrixToTranslation(const float matrix[16]);
 };
 
 struct Vector4 {

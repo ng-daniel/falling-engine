@@ -12,11 +12,8 @@
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/importers/texture_importer.h"
 #include "engine/debug/logger.h"
-
-#include "engine/utils/quaternion.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include "engine/utils/matrix.h"
+#include "engine/utils/transform_utils.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "external/cgltf.h"
@@ -688,18 +685,47 @@ std::optional<ModelNode> ProcessNode(const cgltf_node * node,ModelImportContext&
 
     modelNode.name = node->name != nullptr ? node->name : "<unnamed>";
     
-    cgltf_float matrix[16];
-    cgltf_node_transform_local(node, matrix);
-    modelNode.relativePosition = Vector3::MatrixToTranslation(matrix);
-    modelNode.relativeRotation = Quaternion::MatrixToQuaternion(matrix);
-    modelNode.relativeScale = Vector3::MatrixToScale(matrix);
+    if (node->has_matrix) {
+        const TransformDecomposition decomposition = TransformUtils::Decompose(Matrix4(node->matrix));
+        modelNode.relativePosition = decomposition.translation;
+        modelNode.relativeRotation = decomposition.rotation;
+        modelNode.relativeScale = decomposition.scale;
+    } else {
+        if (node->has_translation) {
+            modelNode.relativePosition = Vector3(
+                node->translation[0],
+                node->translation[1],
+                node->translation[2]
+            );
+        }
+        if (node->has_rotation) {
+            modelNode.relativeRotation = Quaternion(
+                node->rotation[0],
+                node->rotation[1],
+                node->rotation[2],
+                node->rotation[3]
+            );
+            Logger::Info("ModelImporter", std::string(node->name) + ": Node relative rotation: (" +
+                std::to_string(modelNode.relativeRotation.x) + ", " +
+                std::to_string(modelNode.relativeRotation.y) + ", " +
+                std::to_string(modelNode.relativeRotation.z) + ", " +
+                std::to_string(modelNode.relativeRotation.w) + ")");
+        }
+        if (node->has_scale) {
+            modelNode.relativeScale = Vector3(
+                node->scale[0],
+                node->scale[1],
+                node->scale[2]
+            );
+        }
+    }
 
     Logger::Info("ModelImporter", "Processing node with name: " +
         modelNode.name);
-    Logger::Info("ModelImporter", "Node relative position: (" +
-        std::to_string(modelNode.relativePosition.x) + ", " +
-        std::to_string(modelNode.relativePosition.y) + ", " +
-        std::to_string(modelNode.relativePosition.z) + ")");
+    // Logger::Info("ModelImporter", "Node relative position: (" +
+    //     std::to_string(modelNode.relativePosition.x) + ", " +
+    //     std::to_string(modelNode.relativePosition.y) + ", " +
+    //     std::to_string(modelNode.relativePosition.z) + ")");
     
     // process children nodes
     for (int i = 0; i < node->children_count; ++i) {
@@ -725,29 +751,25 @@ std::vector<ModelNode> CompressNode(ModelNode rawTreeNode, ModelNode * parent) {
 
     // aggregate transform data into compressedTreeNode
     if (parent != nullptr) {
-        const glm::quat parentRotation(
-            parent->relativeRotation.w,
-            parent->relativeRotation.x,
-            parent->relativeRotation.y,
-            parent->relativeRotation.z
+        // Compose exactly as the runtime hierarchy does. Combining the TRS
+        // components independently is not equivalent to matrix multiplication
+        // when rotations and non-uniform scales are mixed.
+        const Matrix4 parentTransform = TransformUtils::FromTRS(
+            parent->relativePosition,
+            parent->relativeRotation,
+            parent->relativeScale
         );
-        const glm::vec3 parentScale(
-            parent->relativeScale.x,
-            parent->relativeScale.y,
-            parent->relativeScale.z
+        const Matrix4 childTransform = TransformUtils::FromTRS(
+            rawTreeNode.relativePosition,
+            rawTreeNode.relativeRotation,
+            rawTreeNode.relativeScale
         );
-        const glm::vec3 childPosition(
-            rawTreeNode.relativePosition.x,
-            rawTreeNode.relativePosition.y,
-            rawTreeNode.relativePosition.z
-        );
+        const Matrix4 combinedTransform = parentTransform * childTransform;
 
-        // scale and rotate the child position by the parent's transform
-        const Vector3 realPosition = parent->relativePosition + (parentRotation * (parentScale * childPosition));
-
-        compressedTreeNode.relativePosition = realPosition;
-        compressedTreeNode.relativeRotation = parent->relativeRotation * rawTreeNode.relativeRotation;
-        compressedTreeNode.relativeScale = parent->relativeScale * rawTreeNode.relativeScale;
+        const TransformDecomposition decomposition = TransformUtils::Decompose(combinedTransform);
+        compressedTreeNode.relativePosition = decomposition.translation;
+        compressedTreeNode.relativeRotation = decomposition.rotation;
+        compressedTreeNode.relativeScale = decomposition.scale;
     }
 
     // case 1: current node has a mesh, retain it and compress its children relative to this node

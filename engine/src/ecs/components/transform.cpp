@@ -1,13 +1,7 @@
 #include "engine/ecs/components/transform.h"
 #include "engine/serialization/jsonarchive.h"
-#include "engine/serialization/vector_serializer.h"
-#include "engine/serialization/quaternion_serializer.h"
 #include "engine/serialization/matrix_serializer.h"
 #include "engine/serialization/uuid_serializer.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
     MatrixSerializer::Serialize(archive, transform.matrix);
@@ -26,7 +20,9 @@ void Transform::Deserialize(JsonArchive& archive, Transform& transform) {
 }
 
 void Transform::SetPosition(Transform& transform, Vector3 newVal) {
-    transform.matrix.SetPosition(newVal);
+    transform.matrix(0, 3) = newVal.x;
+    transform.matrix(1, 3) = newVal.y;
+    transform.matrix(2, 3) = newVal.z;
 }
 
 void Transform::ChangePosition(Transform& transform, Vector3 diff) {
@@ -34,7 +30,8 @@ void Transform::ChangePosition(Transform& transform, Vector3 diff) {
 }
 
 void Transform::SetRotation(Transform& transform, Quaternion newVal) {
-    transform.matrix.SetRotation(newVal);
+    const TransformDecomposition decomposition = transform.GetDecomposition();
+    transform.matrix = FromTRS(decomposition.translation, newVal, decomposition.scale);
 }
 
 void Transform::ChangeRotation(Transform& transform, Quaternion diff) {
@@ -42,16 +39,51 @@ void Transform::ChangeRotation(Transform& transform, Quaternion diff) {
 }
 
 void Transform::SetScale(Transform& transform, Vector3 newVal) {
-    transform.matrix.SetScale(newVal);
+    const TransformDecomposition decomposition = transform.GetDecomposition();
+    const Vector3 currentScale = decomposition.scale;
+    const float requested[3] = {newVal.x, newVal.y, newVal.z};
+    const float current[3] = {currentScale.x, currentScale.y, currentScale.z};
+
+    for (std::size_t column = 0; column < 3; ++column) {
+        if (current[column] == 0.0f) {
+            transform.matrix = FromTRS(decomposition.translation, decomposition.rotation, newVal);
+            return;
+        }
+
+        const float ratio = requested[column] / current[column];
+        for (std::size_t row = 0; row < 3; ++row) {
+            transform.matrix(row, column) *= ratio;
+        }
+    }
 }
 
 void Transform::ChangeScale(Transform& transform, Vector3 diff) {
     SetScale(transform, transform.GetScale() + diff);
 }
 
-Vector3 Transform::GetPosition() const { return matrix.GetPosition(); }
-Quaternion Transform::GetRotation() const { return matrix.GetRotation(); }
-Vector3 Transform::GetScale() const { return matrix.GetScale(); }
+Vector3 Transform::GetPosition() const {
+    return GetDecomposition().translation;
+}
+
+Quaternion Transform::GetRotation() const {
+    return GetDecomposition().rotation;
+}
+
+Vector3 Transform::GetScale() const {
+    return GetDecomposition().scale;
+}
+
+TransformDecomposition Transform::GetDecomposition() const {
+    return TransformUtils::Decompose(matrix);
+}
+
+Matrix4 Transform::FromTRS(
+    const Vector3& position,
+    const Quaternion& rotation,
+    const Vector3& scale
+) {
+    return TransformUtils::FromTRS(position, rotation, scale);
+}
 
 /**
  * @brief Produce the world transform into result based on the parent and child transforms.
@@ -60,6 +92,6 @@ Vector3 Transform::GetScale() const { return matrix.GetScale(); }
  * @param parent
  * @param child
  */
-void Transform::ComposeTransforms(Transform &result, const Transform &parent, const Transform &child) {
-    result.matrix = parent.matrix * child.matrix;
+Matrix4 Transform::ComposeTransforms(const Matrix4 &parentTransform, const Matrix4 &childTransform) {
+    return parentTransform * childTransform;
 }

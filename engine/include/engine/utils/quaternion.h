@@ -34,5 +34,5 @@ struct Quaternion {
 			w * other.w - x * other.x - y * other.y - z * other.z
 		);
 	}
-	static Quaternion MatrixToQuaternion(const float matrix[16]);
+	static Quaternion EulerToQuaternion(float pitch, float yaw, float roll);
 };

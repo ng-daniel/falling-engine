@@ -98,6 +98,10 @@ public:
         return rootEntityId;
     }
 
+    void SetScene(Entity& entity) {
+        rootEntityId = entity.entityId;
+    }
+
 private:
     // entity runtime ID assignment
     uint32_t nextRuntimeId = 0;

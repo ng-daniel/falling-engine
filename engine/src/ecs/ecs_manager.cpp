@@ -185,3 +185,81 @@ void EcsManager::Parent(Entity& parent, Entity& child) {
 void EcsManager::UnParent(Entity& child) {
 	DetachEntity(child);
 }
+
+/**
+ * @brief Computes the world transform of the given entity
+ * 
+ * @param entity 
+ * @return Transform 
+ */
+Transform EcsManager::ComputeWorldTransform(Entity entity) {
+	const Transform * localTransform = warehouse.GetComponent<Transform>(entity);
+	if (!localTransform) {
+		throw std::runtime_error("Local transform not found for entity");
+	}
+	Transform worldTransform = *localTransform;
+	Entity * currentEntity = &entity;
+	while (currentEntity->entityId != warehouse.GetRootEntityId()) {
+		// get parent transform
+		Entity * parentEntity = warehouse.FindEntity(worldTransform.parentEntityId);
+		if (!parentEntity) {
+			throw std::runtime_error("Parent entity not found for entity");
+			break;
+		}
+		const Transform * parentTransform = warehouse.GetComponent<Transform>(*parentEntity);
+		if (!parentTransform) {
+			throw std::runtime_error("Parent transform not found for entity");
+			break;
+		}
+		
+		// use parent's family pointers but the aggregated transform matrix
+		Transform result = *parentTransform;
+		result.matrix = Transform::ComposeTransforms(parentTransform->matrix, worldTransform.matrix);
+		worldTransform = result;
+
+		// move up the tree
+		currentEntity = parentEntity;
+	}
+	return worldTransform;
+}
+
+Entity* EcsManager::GetParent(Entity& child) {
+	Transform* childTransform = warehouse.GetComponent<Transform>(child);
+	if (!childTransform) {
+		return nullptr;
+	}
+	UUID parentId = childTransform->parentEntityId;
+	if (parentId == 0) {
+		return nullptr;
+	}
+	return warehouse.FindEntity(parentId);
+}
+
+std::vector<Entity*> EcsManager::GetChildren(Entity& parent) {
+	std::vector<Entity*> children;
+	Transform* parentTransform = warehouse.GetComponent<Transform>(parent);
+	if (!parentTransform) {
+		return children;
+	}
+	UUID childId = parentTransform->firstChildEntityId;
+	if (childId == 0) {
+		return children;
+	}
+	do {
+		Entity* child = warehouse.FindEntity(childId);
+		if (!child) {
+			break;
+		}
+		children.push_back(child);
+		Transform* childTransform = warehouse.GetComponent<Transform>(*child);
+		if (!childTransform) {
+			break;
+		}
+		childId = childTransform->nextSiblingEntityId;
+	} while (childId != parentTransform->firstChildEntityId);
+	return children;
+}
+
+void EcsManager::SetScene(Entity& entity) {
+	warehouse.SetScene(entity);
+}

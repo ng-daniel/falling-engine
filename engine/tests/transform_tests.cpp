@@ -48,8 +48,21 @@ namespace {
         Transform::SetScale(parent, Vector3(2.0f));
         Transform::SetPosition(child, Vector3(1.0f, 0.0f, 0.0f));
 
-        Transform::ComposeTransforms(result, parent, child);
+        result.matrix = Transform::ComposeTransforms(parent.matrix, child.matrix);
         AssertVector(result.GetPosition(), Vector3(10.0f, 2.0f, 0.0f));
+    }
+
+    void TestRotationExtractionHandlesNegativeScale() {
+        Transform transform;
+        const Quaternion expected(0.0f, -1.0f, 0.0f, 0.0f);
+        Transform::SetRotation(transform, expected);
+        Transform::SetScale(transform, Vector3(-0.0788578f, -0.0788578f, -0.0628706f));
+
+        const Quaternion actual = transform.GetRotation();
+        // q and -q describe the same rotation, so compare their absolute dot.
+        const float dot = actual.x * expected.x + actual.y * expected.y
+            + actual.z * expected.z + actual.w * expected.w;
+        assert(Near(std::abs(dot), 1.0f));
     }
 
     void TestSerializationPreservesTheExactMatrix() {
@@ -80,6 +93,8 @@ int main() {
     TestModificationFunctions();
     Logger::Info("TransformTests", "Running TestCompositionAppliesParentRotationAndScale");
     TestCompositionAppliesParentRotationAndScale();
+    Logger::Info("TransformTests", "Running TestRotationExtractionHandlesNegativeScale");
+    TestRotationExtractionHandlesNegativeScale();
     Logger::Info("TransformTests", "Running TestSerializationPreservesTheExactMatrix");
     TestSerializationPreservesTheExactMatrix();
     Logger::Info("TransformTests", "Finished Transform Tests");

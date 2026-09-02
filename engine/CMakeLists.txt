@@ -35,6 +35,7 @@ add_library(engine
     src/utils/vector.cpp
     src/utils/quaternion.cpp
     src/utils/matrix.cpp
+    src/utils/transform_utils.cpp
 )
 
 target_include_directories(engine PUBLIC

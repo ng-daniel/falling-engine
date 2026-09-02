@@ -82,6 +82,14 @@ public:
 	void Parent(Entity& parent, Entity& child);
 	// Removes child from its current parent. The child becomes root-level.
 	void UnParent(Entity& child);
+	Transform ComputeWorldTransform(Entity entity);
+	Entity* GetParent(Entity& child);
+	std::vector<Entity*> GetChildren(Entity& parent);
+
+	/// SCENE OPS
+	/// ----------------------------------------------
+
+	void SetScene(Entity& entity);
 
 private:
 	EcsWarehouse warehouse;

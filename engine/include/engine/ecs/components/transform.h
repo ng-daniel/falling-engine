@@ -4,6 +4,7 @@
 #include "engine/utils/vector.h"
 #include "engine/utils/quaternion.h"
 #include "engine/utils/matrix.h"
+#include "engine/utils/transform_utils.h"
 #include "engine/ecs/ecs_structures.h"
 
 #include "engine/serialization/jsonarchive.h"
@@ -40,6 +41,8 @@ struct Transform : public IComponent {
     Vector3 GetPosition() const;
     Quaternion GetRotation() const;
     Vector3 GetScale() const;
+    TransformDecomposition GetDecomposition() const;
 
-    static void ComposeTransforms(Transform& result, const Transform& parent, const Transform& child);
+    static Matrix4 FromTRS(const Vector3& position, const Quaternion& rotation, const Vector3& scale);
+    static Matrix4 ComposeTransforms(const Matrix4 &parentTransform, const Matrix4 &childTransform);
 };
