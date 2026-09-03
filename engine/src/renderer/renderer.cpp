@@ -17,7 +17,7 @@ void Renderer::ConfigureWindow() {
     device->ConfigureWindow();
 }
 
-bool Renderer::Init(Window& window) {
+bool Renderer::Init(WindowManager& window) {
     return device->Init(window);
 }
 

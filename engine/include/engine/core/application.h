@@ -2,7 +2,7 @@
 
 #include <filesystem>
 #include "engine/renderer/renderer.h"
-#include "engine/core/window.h"
+#include "engine/core/window_manager.h"
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
 
@@ -17,7 +17,7 @@ public:
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
 private:
-    Window window;
+    WindowManager window;
     AssetManager assetManager;
     EcsManager ecsManager;
     Renderer renderer;

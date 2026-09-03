@@ -5,7 +5,7 @@
 #include "engine/utils/uuid.h"
 #include "engine/renderer/graphics_device.h"
 
-class Window;
+class WindowManager;
 
 class Renderer {
 public:
@@ -13,7 +13,7 @@ public:
     ~Renderer();
 
     void ConfigureWindow();
-    bool Init(Window& window);
+    bool Init(WindowManager& window);
     void BeginFrame();
     void Submit(UUID mesh);
     void Render();

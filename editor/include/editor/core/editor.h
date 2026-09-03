@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor/core/editor_state.h"
-#include "editor/core/window.h"
+#include "editor/core/editor_window.h"
 #include "editor/windows/asset_browser.h"
 #include "editor/windows/inspector.h"
 
@@ -17,7 +17,7 @@ public:
     void Run();
 
 private:
-    Window window;
+    EditorWindow window;
     EditorState globalStateData;
     AssetBrowserWindow assetBrowserWindow;
     InspectorWindow inspectorWindow;

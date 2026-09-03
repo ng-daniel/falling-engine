@@ -1,9 +1,9 @@
-#include "engine/core/window.h"
+#include "engine/core/window_manager.h"
 
 const int WIDTH_INIT = 800;
 const int HEIGHT_INIT = 600;
 
-Window::~Window() {
+WindowManager::~WindowManager() {
     Close();
 }
 
@@ -15,7 +15,7 @@ Window::~Window() {
  * @return true 
  * @return false 
  */
-bool Window::Init(const std::function<void()>& configure) {
+bool WindowManager::Init(const std::function<void()>& configure) {
     if (!glfwInit()) {
         // Initialization failed
         handle = nullptr;
@@ -31,10 +31,11 @@ bool Window::Init(const std::function<void()>& configure) {
         return false;
     }
     glfwMakeContextCurrent(handle);
+    glfwSwapInterval(1);
     return true;
 }
 
-void Window::Close() {
+void WindowManager::Close() {
     if (handle) {
         glfwDestroyWindow(handle);
         glfwTerminate();
@@ -42,21 +43,21 @@ void Window::Close() {
     }
 }
 
-bool Window::ShouldClose() const {
+bool WindowManager::ShouldClose() const {
     return forceClose || (handle ? glfwWindowShouldClose(handle) : true);
 }
 
-void Window::ForceClose() {
+void WindowManager::ForceClose() {
     forceClose = true;
 }
 
-void Window::BeginFrame() {
+void WindowManager::BeginFrame() {
     if (handle) {
         glfwPollEvents();
     }
 }
 
-void Window::EndFrame() {
+void WindowManager::EndFrame() {
     if (handle) {
         glfwSwapBuffers(handle);
     }

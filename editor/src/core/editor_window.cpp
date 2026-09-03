@@ -1,4 +1,4 @@
-#include "editor/core/window.h"
+#include "editor/core/editor_window.h"
 #include "engine/debug/logger.h"
 
 #include <glad/glad.h>
@@ -16,7 +16,7 @@ namespace {
     const char * GLSL_VERSION = "#version 330";
 }
 
-Window::Window() {
+EditorWindow::EditorWindow() {
 
     /// Initialize GLFW
     /// ---------------------------------------------
@@ -102,7 +102,7 @@ Window::Window() {
     ImGui_ImplOpenGL3_Init(GLSL_VERSION);
 }
 
-Window::~Window() {
+EditorWindow::~EditorWindow() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -113,11 +113,11 @@ Window::~Window() {
     glfwTerminate();
 }
 
-bool Window::ShouldClose() const {
+bool EditorWindow::ShouldClose() const {
     return !handle || glfwWindowShouldClose(handle);
 }
 
-void Window::BeginFrame() {
+void EditorWindow::BeginFrame() {
     glfwPollEvents();
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -125,7 +125,7 @@ void Window::BeginFrame() {
     ImGui::NewFrame();
 }
 
-void Window::EndFrame() {
+void EditorWindow::EndFrame() {
     ImGui::Render();
 
     int width, height;

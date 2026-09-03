@@ -1,5 +1,7 @@
 #include "engine/renderer/opengl/opengl_device.h"
 
+#include "glm/glm.hpp"
+
 void OpenGLDevice::ConfigureWindow() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -9,7 +11,7 @@ void OpenGLDevice::ConfigureWindow() {
 /**
  * @brief Initializes OpenGL
  */
-bool OpenGLDevice::Init(Window& window) {
+bool OpenGLDevice::Init(WindowManager& window) {
     this->window = &window;
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         // failed to initialize GLAD
@@ -23,6 +25,8 @@ bool OpenGLDevice::Init(Window& window) {
 }
 
 void OpenGLDevice::BeginFrame() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 }
 
 void OpenGLDevice::Submit(UUID mesh) {

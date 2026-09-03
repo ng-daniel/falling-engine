@@ -1,7 +1,7 @@
 #include "editor/core/editor.h"
 #include "engine/debug/logger.h"
 
-#include "editor/core/window.h"
+#include "editor/core/editor_window.h"
 #include "editor/core/editor_state.h"
 
 namespace {

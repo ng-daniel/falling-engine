@@ -5,9 +5,10 @@
 #include <GLFW/glfw3.h>
 #include <functional>
 
-class Window {
+class WindowManager {
 public:
-    ~Window();
+    ~WindowManager();
+
     bool Init(const std::function<void()>& configure = {});
     bool ShouldClose() const;
     void ForceClose();
