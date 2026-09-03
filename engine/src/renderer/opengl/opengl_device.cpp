@@ -26,7 +26,7 @@ bool OpenGLDevice::Init(WindowManager& window) {
 
 void OpenGLDevice::BeginFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.5f, 1.0f);
 }
 
 void OpenGLDevice::Submit(UUID mesh) {

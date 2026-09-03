@@ -3,6 +3,12 @@
 const int WIDTH_INIT = 800;
 const int HEIGHT_INIT = 600;
 
+namespace {
+    void FrameBufferSizeCallback(GLFWwindow * window, int width, int height) {
+        glViewport(0, 0, width, height);
+    }
+}
+
 WindowManager::~WindowManager() {
     Close();
 }
@@ -32,6 +38,10 @@ bool WindowManager::Init(const std::function<void()>& configure) {
     }
     glfwMakeContextCurrent(handle);
     glfwSwapInterval(1);
+
+    // set callbacks
+    glfwSetFramebufferSizeCallback(handle, FrameBufferSizeCallback);
+    
     return true;
 }
 

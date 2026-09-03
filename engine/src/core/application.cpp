@@ -24,7 +24,9 @@ void Application::Run() {
     while (!window.ShouldClose()) {
         window.BeginFrame();
 
-        
+        renderer.BeginFrame();
+        // renderer.Render();
+        renderer.EndFrame();
 
         window.EndFrame();
     }
