@@ -40,8 +40,13 @@ void Application::Run() {
                 Logger::Warning("Application", "Transform component not found for entity with runtime ID: " + std::to_string(entityRuntimeId));
                 continue;
             }
-            renderer.SubmitMesh(meshRenderer.meshId, transform->matrix);
+            renderer.SubmitMesh(
+                meshRenderer.meshId,
+                entity->entityId,
+                transform->matrix
+            );
         }
+        renderer.Render();
         renderer.EndFrame();
 
         window.EndFrame();

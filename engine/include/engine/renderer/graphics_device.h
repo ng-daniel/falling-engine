@@ -13,6 +13,6 @@ public:
     virtual void Close() = 0;
 
     virtual void BeginFrame() = 0;
-    virtual void Render(RenderData renderData) = 0;
+    virtual void Render(RenderData& renderData) = 0;
     virtual void EndFrame() = 0;
 };

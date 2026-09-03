@@ -6,12 +6,18 @@
 
 struct OpenGLConfig {};
 
+struct OpenGLDeviceData : IGraphicsDeviceData{
+    uint VAO;
+    uint VBO;
+    uint EBO;
+};
+
 class OpenGLDevice : public GraphicsDevice {
 public:
     void ConfigureWindow() override;
     bool Init(WindowManager& window) override;
     void BeginFrame() override;
-    void Render(RenderData renderData) override;
+    void Render(RenderData& renderData) override;
     void EndFrame() override;
     void Close() override;
 private:

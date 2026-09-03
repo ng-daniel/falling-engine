@@ -20,12 +20,11 @@ public:
     void ConfigureWindow();
     bool Init(WindowManager& window);
     void BeginFrame();
-    void SubmitMesh(UUID meshId, const Matrix4& transform);
+    void SubmitMesh(UUID meshId, ECS_RID entityId, Matrix4 matrix);
     void Render();
     void EndFrame();
 private:
     std::unique_ptr<GraphicsDevice> device;
     RenderData renderData;
-
     AssetManager& assetManagerRef;
 };
