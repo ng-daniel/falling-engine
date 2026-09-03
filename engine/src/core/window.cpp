@@ -1,36 +1,40 @@
 #include "engine/core/window.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 const int WIDTH_INIT = 800;
 const int HEIGHT_INIT = 600;
 
-Window::Window() {
+Window::~Window() {
+    Close();
+}
+
+/**
+ * @brief Initialize window
+ * 
+ * @param configure Function ref supplied by renderer/graphics device 
+ * for API specific GLFW configuration to run before window creation
+ * @return true 
+ * @return false 
+ */
+bool Window::Init(const std::function<void()>& configure) {
     if (!glfwInit()) {
         // Initialization failed
         handle = nullptr;
-        return;
+        return false;
     }
-
+    if (configure) {
+        configure();
+    }
     handle = glfwCreateWindow(WIDTH_INIT, HEIGHT_INIT, "Falling Engine", nullptr, nullptr);
     if (!handle) {
         // Window or OpenGL context creation failed
         glfwTerminate();
-        return;
+        return false;
     }
-
     glfwMakeContextCurrent(handle);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        // Failed to initialize GLAD
-        glfwDestroyWindow(handle);
-        glfwTerminate();
-        handle = nullptr;
-        return;
-    }
+    return true;
 }
 
-Window::~Window() {
+void Window::Close() {
     if (handle) {
         glfwDestroyWindow(handle);
         glfwTerminate();
@@ -39,7 +43,11 @@ Window::~Window() {
 }
 
 bool Window::ShouldClose() const {
-    return handle ? glfwWindowShouldClose(handle) : true;
+    return forceClose || (handle ? glfwWindowShouldClose(handle) : true);
+}
+
+void Window::ForceClose() {
+    forceClose = true;
 }
 
 void Window::BeginFrame() {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include "engine/renderer/renderer.h"
 #include "engine/core/window.h"
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
@@ -19,4 +20,5 @@ private:
     Window window;
     AssetManager assetManager;
     EcsManager ecsManager;
+    Renderer renderer;
 };

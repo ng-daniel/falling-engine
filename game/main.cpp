@@ -125,7 +125,7 @@ int main() {
         Logger::Info("main", "World Transform: " + std::to_string(worldTransform.GetPosition().x) + ", " + std::to_string(worldTransform.GetPosition().y) + ", " + std::to_string(worldTransform.GetPosition().z));
         Logger::Info("main", "World Rotation: " + std::to_string(worldTransform.GetRotation().x) + ", " + std::to_string(worldTransform.GetRotation().y) + ", " + std::to_string(worldTransform.GetRotation().z) + ", " + std::to_string(worldTransform.GetRotation().w));
     }
-    // app.Run();
+    app.Run();
 
     return 0;
 }

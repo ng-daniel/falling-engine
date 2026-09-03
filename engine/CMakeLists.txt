@@ -22,6 +22,9 @@ add_library(engine
     src/ecs/ecs_warehouse.cpp
     src/ecs/ecs_manager.cpp
 
+    src/renderer/renderer.cpp
+    src/renderer/opengl/opengl_device.cpp
+
     src/serialization/asset_metadata_serializer.cpp
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp
