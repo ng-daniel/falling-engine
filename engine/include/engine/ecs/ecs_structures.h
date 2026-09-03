@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/ecs/ecs_runtime_id.h"
 #include "engine/serialization/jsonarchive.h"
 #include "engine/utils/uuid.h"
 #include <cstddef>
@@ -22,7 +23,7 @@ struct IComponent {
  */
 struct Entity {
     UUID entityId;
-    uint32_t entityRuntimeIdx; // used for runtime indexing into ECS component arrays
+    ECS_RID entityRuntimeIdx; // used for runtime indexing into ECS component arrays
     std::string name;
 
     void SetName(const std::string& newName) {
@@ -39,7 +40,7 @@ struct EntityComponentView {
     struct Iterator {
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = std::tuple<uint32_t&, T&>;
+        using value_type = std::tuple<ECS_RID&, T&>;
 
         const EntityComponentView* view;
         size_t index;
@@ -73,7 +74,7 @@ struct EntityComponentView {
     size_t size() const { return count; }
     bool empty() const { return count == 0; }
 
-    uint32_t* entityRuntimeIds = nullptr;
+    ECS_RID* entityRuntimeIds = nullptr;
     T* components = nullptr;
     size_t count = 0;
 };

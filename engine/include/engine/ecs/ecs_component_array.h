@@ -110,10 +110,10 @@ private:
 class IEcsComponentArray {
 public:
     virtual ~IEcsComponentArray() = default;
-    virtual IComponent * GetComponent(uint32_t entityIndex) = 0;
-    virtual const IComponent * GetComponentReadOnly(uint32_t entityIndex) const = 0;
-    virtual IComponent * CreateComponent(uint32_t entityIndex) = 0;
-    virtual void DeleteComponent(uint32_t entityIndex) = 0;
+    virtual IComponent * GetComponent(ECS_RID entityIndex) = 0;
+    virtual const IComponent * GetComponentReadOnly(ECS_RID entityIndex) const = 0;
+    virtual IComponent * CreateComponent(ECS_RID entityIndex) = 0;
+    virtual void DeleteComponent(ECS_RID entityIndex) = 0;
 };
 
 template <typename T>
@@ -128,7 +128,7 @@ public:
      * @param entityIndex 
      * @return T* 
      */
-    T * GetComponent(uint32_t entityRuntimeIdx) override {
+    T * GetComponent(ECS_RID entityRuntimeIdx) override {
         const uint32_t * denseIdx = entityToDenseMap.TryGet(entityRuntimeIdx);
         if (!denseIdx) {
             return nullptr;
@@ -140,7 +140,7 @@ public:
 
         return &denseArray[*denseIdx];
     }
-    const T * GetComponentReadOnly(uint32_t entityRuntimeIdx) const override {
+    const T * GetComponentReadOnly(ECS_RID entityRuntimeIdx) const override {
         const uint32_t * denseIdx = entityToDenseMap.TryGetReadOnly(entityRuntimeIdx);
         if (!denseIdx) {
             return nullptr;
@@ -159,7 +159,7 @@ public:
      * @param entityRuntimeIdx 
      * @return T* 
      */
-    T * CreateComponent(uint32_t entityRuntimeIdx) override {
+    T * CreateComponent(ECS_RID entityRuntimeIdx) override {
         if (entityToDenseMap[entityRuntimeIdx] != TOMBSTONE) {
             return nullptr; // component already exists for this entityRuntimeIdx
         }
@@ -180,7 +180,7 @@ public:
      * 
      * @param entityRuntimeIdx 
      */
-    void DeleteComponent(uint32_t entityRuntimeIdx) override {
+    void DeleteComponent(ECS_RID entityRuntimeIdx) override {
         uint32_t * targetIdx = entityToDenseMap.TryGet(entityRuntimeIdx);
         if (!targetIdx) {
             return;
@@ -194,7 +194,7 @@ public:
         if (*targetIdx != lastIdx) {
             denseArray[*targetIdx] = denseArray[lastIdx];
 
-            uint32_t swappedEntityRuntimeIdx = denseEntityArray[lastIdx];
+            ECS_RID swappedEntityRuntimeIdx = denseEntityArray[lastIdx];
             denseEntityArray[*targetIdx] = swappedEntityRuntimeIdx;
             entityToDenseMap[swappedEntityRuntimeIdx] = *targetIdx;
         }
@@ -220,7 +220,7 @@ private:
     static constexpr uint32_t PAGE_SIZE = 1024;
 
     // reserve highest value of uint32_t as a tombstone marker
-    static constexpr uint32_t MAX_ENTITIES = std::numeric_limits<uint32_t>::max() - 1;
+    static constexpr ECS_RID MAX_ENTITIES = std::numeric_limits<ECS_RID>::max() - 1;
 
     // reserve highest value of uint32_t as a tombstone marker
     static constexpr uint32_t TOMBSTONE = std::numeric_limits<uint32_t>::max();
@@ -229,6 +229,6 @@ private:
     std::vector<T> denseArray; // denseIdx -> component
 
     // parallel arrays to map denseArray to entity runtime indices
-    std::vector<uint32_t> denseEntityArray; // denseIdx -> runtimeIdx
+    std::vector<ECS_RID> denseEntityArray; // denseIdx -> runtimeIdx
                                             // need this for the deletion swapping step
 };

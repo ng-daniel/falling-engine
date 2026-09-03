@@ -104,7 +104,7 @@ const Entity * EcsWarehouse::FindEntityReadOnly(UUID entityId) const {
     return &found->second;
 }
 
-Entity * EcsWarehouse::FindEntityByRuntimeId(uint32_t runtimeId) {
+Entity * EcsWarehouse::FindEntityByRuntimeId(ECS_RID runtimeId) {
     auto found = runtimeIdToEntityMap.find(runtimeId);
     if (found == runtimeIdToEntityMap.end()) {
         return nullptr;

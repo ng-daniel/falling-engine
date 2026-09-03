@@ -18,7 +18,7 @@ public:
 	bool IsEntityAlive(Entity entity) const;
 
 	Entity * GetEntity(UUID entityId);
-	Entity * GetEntity(uint32_t entityRid);
+	Entity * GetEntity(ECS_RID entityRid);
 	const Entity * GetEntity(UUID entityId) const;
 
     /// COMPONENT OPS

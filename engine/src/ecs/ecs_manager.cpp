@@ -61,7 +61,7 @@ bool EcsManager::IsEntityAlive(Entity entity) const {
 Entity * EcsManager::GetEntity(UUID entityId) {
 	return warehouse.FindEntity(entityId);
 }
-Entity * EcsManager::GetEntity(uint32_t entityRid) {
+Entity * EcsManager::GetEntity(ECS_RID entityRid) {
 	return warehouse.FindEntityByRuntimeId(entityRid);
 }
 const Entity * EcsManager::GetEntity(UUID entityId) const {
