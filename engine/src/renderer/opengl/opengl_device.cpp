@@ -29,10 +29,7 @@ void OpenGLDevice::BeginFrame() {
     glClearColor(0.1f, 0.1f, 0.5f, 1.0f);
 }
 
-void OpenGLDevice::Submit(UUID mesh) {
-}
-
-void OpenGLDevice::Render() {
+void OpenGLDevice::Render(RenderData renderData) {
 }
 
 void OpenGLDevice::EndFrame() {

@@ -2,7 +2,10 @@
 
 #include "engine/serialization/jsonarchive.h"
 #include "engine/utils/uuid.h"
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <tuple>
 
 /**
  * @brief Just a marker for components
@@ -25,4 +28,52 @@ struct Entity {
     void SetName(const std::string& newName) {
         name = newName;
     }
+};
+
+/**
+ * @brief Return structure for iterating over entity-component view requests
+ * @tparam T
+ */
+template <typename T>
+struct EntityComponentView {
+    struct Iterator {
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = std::tuple<uint32_t&, T&>;
+
+        const EntityComponentView* view;
+        size_t index;
+
+        value_type operator*() const {
+            return {view->entityRuntimeIds[index], view->components[index]};
+        }
+
+        Iterator& operator++() {
+            ++index;
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator previous = *this;
+            ++(*this);
+            return previous;
+        }
+
+        bool operator==(const Iterator& other) const {
+            return view == other.view && index == other.index;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return !(*this == other);
+        }
+    };
+
+    Iterator begin() const { return {this, 0}; }
+    Iterator end() const { return {this, count}; }
+    size_t size() const { return count; }
+    bool empty() const { return count == 0; }
+
+    uint32_t* entityRuntimeIds = nullptr;
+    T* components = nullptr;
+    size_t count = 0;
 };

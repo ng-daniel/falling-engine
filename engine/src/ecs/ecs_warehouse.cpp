@@ -39,12 +39,13 @@ Entity * EcsWarehouse::CreateEntity(UUID uuid, std::string name) {
         entity.entityRuntimeIdx = nextRuntimeId++;
     }
 
-    entities[entity.entityId] = entity;
+    uuidToEntityMap[entity.entityId] = entity;
+    runtimeIdToEntityMap[entity.entityRuntimeIdx] = entity;
     
     // add transform by default
     AddComponent<Transform>(entity);
 
-    return &entities[entity.entityId];
+    return &uuidToEntityMap[entity.entityId];
 }
 
 /**
@@ -63,7 +64,8 @@ void EcsWarehouse::DeleteEntity(Entity entity) {
     // add runtime index back to free list
     freeRuntimeIds.push_back(entity.entityRuntimeIdx);
     // remove entity from entities map
-    entities.erase(entity.entityId);
+    uuidToEntityMap.erase(entity.entityId);
+    runtimeIdToEntityMap.erase(entity.entityRuntimeIdx);
 }
 
 /**
@@ -77,8 +79,8 @@ void EcsWarehouse::DeleteEntity(Entity entity) {
  * @return false 
  */
 bool EcsWarehouse::IsAlive(Entity entity) const {
-    auto found = entities.find(entity.entityId);
-    return found != entities.end();
+    auto found = uuidToEntityMap.find(entity.entityId);
+    return found != uuidToEntityMap.end();
 }
 
 /**
@@ -88,15 +90,23 @@ bool EcsWarehouse::IsAlive(Entity entity) const {
  * @return Entity* 
  */
 Entity * EcsWarehouse::FindEntity(UUID entityId) {
-    auto found = entities.find(entityId);
-    if (found == entities.end()) {
+    auto found = uuidToEntityMap.find(entityId);
+    if (found == uuidToEntityMap.end()) {
         return nullptr;
     }
     return &found->second;
 }
 const Entity * EcsWarehouse::FindEntityReadOnly(UUID entityId) const {
-    auto found = entities.find(entityId);
-    if (found == entities.end()) {
+    auto found = uuidToEntityMap.find(entityId);
+    if (found == uuidToEntityMap.end()) {
+        return nullptr;
+    }
+    return &found->second;
+}
+
+Entity * EcsWarehouse::FindEntityByRuntimeId(uint32_t runtimeId) {
+    auto found = runtimeIdToEntityMap.find(runtimeId);
+    if (found == runtimeIdToEntityMap.end()) {
         return nullptr;
     }
     return &found->second;

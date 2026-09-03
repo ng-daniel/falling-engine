@@ -82,7 +82,7 @@ private:
 
     // MAIN DATA STORE
     std::vector<std::unique_ptr<T[]>> pages;
-    
+
     size_t GetPageIndex(size_t index) const
     {
         return index / PAGE_SIZE;
@@ -170,7 +170,7 @@ public:
         
         // update mappings
         entityToDenseMap[entityRuntimeIdx] = newIdx;
-        denseToEntityMap.push_back(entityRuntimeIdx);
+        denseEntityArray.push_back(entityRuntimeIdx);
 
         return &denseArray[newIdx];
     }
@@ -194,13 +194,13 @@ public:
         if (*targetIdx != lastIdx) {
             denseArray[*targetIdx] = denseArray[lastIdx];
 
-            uint32_t swappedEntityRuntimeIdx = denseToEntityMap[lastIdx];
-            denseToEntityMap[*targetIdx] = swappedEntityRuntimeIdx;
+            uint32_t swappedEntityRuntimeIdx = denseEntityArray[lastIdx];
+            denseEntityArray[*targetIdx] = swappedEntityRuntimeIdx;
             entityToDenseMap[swappedEntityRuntimeIdx] = *targetIdx;
         }
 
         denseArray.pop_back(); // delete the last idx, which is now our target
-        denseToEntityMap.pop_back();
+        denseEntityArray.pop_back();
         *targetIdx = TOMBSTONE;
     }
 
@@ -208,17 +208,27 @@ public:
         return denseArray;
     }
 
+    EntityComponentView<T> GetEntityComponentView() {
+        return {
+            .entityRuntimeIds = denseEntityArray.data(),
+            .components = denseArray.data(),
+            .count = denseArray.size()
+        };
+    }
+
 private:
     static constexpr uint32_t PAGE_SIZE = 1024;
 
     // reserve highest value of uint32_t as a tombstone marker
     static constexpr uint32_t MAX_ENTITIES = std::numeric_limits<uint32_t>::max() - 1;
-    
+
     // reserve highest value of uint32_t as a tombstone marker
-    static constexpr uint32_t TOMBSTONE = std::numeric_limits<uint32_t>::max(); 
-    
+    static constexpr uint32_t TOMBSTONE = std::numeric_limits<uint32_t>::max();
+
     PagedArray<uint32_t, PAGE_SIZE> entityToDenseMap; // runtimeIdx -> denseIdx
     std::vector<T> denseArray; // denseIdx -> component
-    std::vector<uint32_t> denseToEntityMap; // denseIdx -> runtimeIdx
-    // need this for the deletion swapping step
+
+    // parallel arrays to map denseArray to entity runtime indices
+    std::vector<uint32_t> denseEntityArray; // denseIdx -> runtimeIdx
+                                            // need this for the deletion swapping step
 };

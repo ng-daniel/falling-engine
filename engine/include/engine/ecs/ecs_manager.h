@@ -6,7 +6,6 @@
 #include <string>
 
 #include "engine/ecs/components/transform.h"
-
 class EcsManager {
 public:
 
@@ -18,8 +17,9 @@ public:
 	void DestroyEntity(Entity entity);
 	bool IsEntityAlive(Entity entity) const;
 
-	Entity * LookupEntity(UUID entityId);
-	const Entity * LookupEntity(UUID entityId) const;
+	Entity * GetEntity(UUID entityId);
+	Entity * GetEntity(uint32_t entityRid);
+	const Entity * GetEntity(UUID entityId) const;
 
     /// COMPONENT OPS
     /// pretty self explanatory these ones
@@ -63,6 +63,11 @@ public:
 
 	void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const {
 		warehouse.GetAllComponents(entity, components);
+	}
+
+	template <typename T>
+	EntityComponentView<T> GetEntityComponentView() {
+		return warehouse.GetEntityComponentView<T>();
 	}
 
 	/// COMPONENT REGISTRATION

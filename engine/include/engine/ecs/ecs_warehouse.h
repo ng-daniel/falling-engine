@@ -21,6 +21,8 @@ public:
     Entity * FindEntity(UUID entityId);
     const Entity * FindEntityReadOnly(UUID entityId) const;
 
+    Entity * FindEntityByRuntimeId(uint32_t runtimeId);
+
     template <typename T>
     T * AddComponent(Entity entity) {
         if (!IsAlive(entity)) {
@@ -78,7 +80,7 @@ public:
      * @return const std::unordered_map<UUID, Entity>& 
      */
     const std::unordered_map<UUID, Entity>& GetEntityDump() const {
-        return entities;
+        return uuidToEntityMap;
     }
 
     /**
@@ -102,6 +104,15 @@ public:
         rootEntityId = entity.entityId;
     }
 
+    template <typename T>
+    EntityComponentView<T> GetEntityComponentView() {
+        EcsComponentArray<T>* array = GetArray<T>();
+        if (!array) {
+            return {};
+        }
+        return array->GetEntityComponentView();
+    }
+
 private:
     // entity runtime ID assignment
     uint32_t nextRuntimeId = 0;
@@ -109,7 +120,8 @@ private:
 
     // primary storage maps
     UUID rootEntityId;
-    std::unordered_map<UUID, Entity> entities;
+    std::unordered_map<UUID, Entity> uuidToEntityMap;
+    std::unordered_map<uint32_t, Entity> runtimeIdToEntityMap;
     std::vector<std::unique_ptr<IEcsComponentArray>> componentArrays;
     
     Entity * CreateEntity(UUID uuid, std::string name);

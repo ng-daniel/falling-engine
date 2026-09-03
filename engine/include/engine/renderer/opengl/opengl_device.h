@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/renderer/renderer_structures.h"
 #include "engine/core/window_manager.h"
 #include "engine/renderer/graphics_device.h"
 
@@ -10,8 +11,7 @@ public:
     void ConfigureWindow() override;
     bool Init(WindowManager& window) override;
     void BeginFrame() override;
-    void Submit(UUID mesh) override;
-    void Render() override;
+    void Render(RenderData renderData) override;
     void EndFrame() override;
     void Close() override;
 private:

@@ -59,13 +59,13 @@ int main() {
     /// ---------------------------------------------------------------
 
     EcsManager& ecsManager = app.GetECSManager();
-    Entity * rootEntity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
+    Entity * rootEntity = ecsManager.GetEntity(ecsManager.CreateEntity()->entityId);
     ecsManager.SetScene(*rootEntity);
     Logger::Info("main", "Created root entity with ID: " + std::to_string(rootEntity->entityId) + "and runtime idx: " + std::to_string(rootEntity->entityRuntimeIdx));
 
     Random::SetSeed(15);
     for (int i = 0; i < 50; i++) {
-        Entity * entity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
+        Entity * entity = ecsManager.GetEntity(ecsManager.CreateEntity()->entityId);
         ecsManager.Parent(*rootEntity, *entity); // Parent the newly created entity to the root entity
         Logger::Info("main", "Created entity with ID: " + std::to_string(entity->entityId) + "and runtime idx: " + std::to_string(entity->entityRuntimeIdx));
         assert(entity != nullptr);

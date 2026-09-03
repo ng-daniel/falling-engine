@@ -16,7 +16,7 @@ namespace {
     void BuildModelNode(const ModelNode& modelNode, UUID parentId, EcsManager& ecsManager) {    
         
         // create entity for node
-        Entity* entity = ecsManager.LookupEntity(ecsManager.CreateEntity()->entityId);
+        Entity* entity = ecsManager.GetEntity(ecsManager.CreateEntity()->entityId);
         entity->SetName(modelNode.name);
 
         // apply transform data
@@ -34,7 +34,7 @@ namespace {
         }
 
         // parent the entity to its parent in the hierarchy
-        Entity* parent = ecsManager.LookupEntity(parentId);
+        Entity* parent = ecsManager.GetEntity(parentId);
         ecsManager.Parent(*parent, *entity);
 
         // its recursing time
@@ -61,7 +61,7 @@ Entity * ECSExtras::BuildEntityFromModel(AssetManager& assetManager, EcsManager&
     
     // create model root
     const UUID rootId = ecsManager.CreateEntity()->entityId;
-    Entity * root = ecsManager.LookupEntity(rootId);
+    Entity * root = ecsManager.GetEntity(rootId);
     root->SetName(model->name);
 
     // build hierarchy
@@ -69,5 +69,5 @@ Entity * ECSExtras::BuildEntityFromModel(AssetManager& assetManager, EcsManager&
         BuildModelNode(tree, rootId, ecsManager);
     }
 
-    return ecsManager.LookupEntity(rootId);
+    return ecsManager.GetEntity(rootId);
 }
