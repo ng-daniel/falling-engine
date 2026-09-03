@@ -13,19 +13,22 @@ Goal
 
 Completed
 - asset manager + serialization (BASICALLY DONE!!!)
+- scenes, ECS, components (ALSO DONE!!!)
 
-Bare minimum left to do
-- scenes, ECS, components
-- unlit rendering + camera (start small n retro!)
-- input
+MVP Remaining Items
+- renderer, camera
+- input system
 - physics
 
-Stretch Features (doable but low priority)
-- post-processing effects
+QOL Features (in the order of how much I want to do them...)
+- visual post-processing
 - particle system
 - audio system
+-
+-
+- UI system
 
-Crazy Features (probably not anytime soon)
-- vulkan rework ... lowk thinking of skipping 10,000 steps and going straight to big vulk :/
+Really Cool Stuff (probably not anytime soon)
+- vulkan graphics backend
 - scriptable runtime
 - networking/multiplayer
