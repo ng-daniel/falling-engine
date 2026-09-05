@@ -16,6 +16,7 @@ public:
 
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
+    Renderer& GetRenderer() { return renderer; }
 private:
     WindowManager window;
     AssetManager assetManager;

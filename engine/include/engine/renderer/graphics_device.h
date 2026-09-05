@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/assets/asset_data.h"
 #include "engine/renderer/renderer_structures.h"
 
 class WindowManager;
@@ -15,4 +16,10 @@ public:
     virtual void BeginFrame() = 0;
     virtual void Render(RenderData& renderData) = 0;
     virtual void EndFrame() = 0;
+
+    virtual SPDEVICE_RID CreateShaderProgram(
+        const std::string& vertexSource,
+        const std::string& fragmentSource
+    ) = 0;
+    virtual void DestroyShaderProgram(SPDEVICE_RID programId) = 0;
 };

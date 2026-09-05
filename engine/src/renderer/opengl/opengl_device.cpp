@@ -1,11 +1,40 @@
 #include "engine/renderer/opengl/opengl_device.h"
 
 #include "engine/renderer/renderer_structures.h"
-#include "glm/glm.hpp"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "engine/debug/logger.h"
+#include <limits>
+#include <string>
+#include <vector>
+
 namespace {
+
+    unsigned int CompileShader(unsigned int shaderType, std::string_view source, const char* stageName) {
+        const unsigned int shaderId = glCreateShader(shaderType);
+        const char* sourceData = source.data();
+        const int sourceLength = static_cast<int>(source.size());
+        glShaderSource(shaderId, 1, &sourceData, &sourceLength);
+        glCompileShader(shaderId);
+
+        int compileSucceeded = GL_FALSE;
+        glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compileSucceeded);
+        if (compileSucceeded == GL_TRUE) {
+            return shaderId;
+        }
+
+        int logLength = 0;
+        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logLength);
+        std::vector<char> log(static_cast<std::size_t>(logLength > 1 ? logLength : 1));
+        glGetShaderInfoLog(shaderId, logLength, nullptr, log.data());
+        Logger::Error(
+            "OpenGLDevice",
+            std::string("Failed to compile ") + stageName + " shader: " + log.data()
+        );
+        glDeleteShader(shaderId);
+        return 0;
+    }
 
     /**
      * @brief Initializes openGL buffers by
@@ -35,7 +64,7 @@ namespace {
         glBufferData(
             GL_ARRAY_BUFFER,
             vertices.size() * sizeof(Vertex),
-            &vertices[0],
+            vertices.data(),
             GL_STATIC_DRAW
         );
         
@@ -44,7 +73,7 @@ namespace {
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
             indices.size() * sizeof(unsigned int), 
-            &indices[0],
+            indices.data(),
             GL_STATIC_DRAW
         );
         
@@ -60,6 +89,12 @@ namespace {
 
         // unbind VAO
         glBindVertexArray(0);
+
+        Logger::Info("OpenGLDevice", "Initialized buffers for mesh " + std::to_string(renderData.mesh->id) + ", primitive " + std::to_string(renderData.pIdx+1) + "/" + std::to_string(renderData.mesh->primitives.size()));
+        Logger::Info("OpenGLDevice", "BufferValues: VAO=" + std::to_string(deviceData->VAO) +
+            ", VBO=" + std::to_string(deviceData->VBO) +
+            ", EBO=" + std::to_string(deviceData->EBO)
+        );
 
         // move initialized device data into primitive render data
         renderData.graphicsDeviceData = std::move(deviceData);
@@ -114,5 +149,67 @@ void OpenGLDevice::Render(RenderData& renderData) {
 void OpenGLDevice::EndFrame() {
 }
 
+SPDEVICE_RID OpenGLDevice::CreateShaderProgram(
+        const std::string& vertexSource,
+        const std::string& fragmentSource
+    ) {
+    
+    const unsigned int vertexShader = CompileShader(GL_VERTEX_SHADER, vertexSource, "vertex");
+    if (vertexShader == 0) {
+        return {};
+    }
+    const unsigned int fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentSource, "fragment");
+    if (fragmentShader == 0) {
+        glDeleteShader(vertexShader);
+        return {};
+    }
+
+    uint programId = glCreateProgram();
+    glAttachShader(programId, vertexShader);
+    glAttachShader(programId, fragmentShader);
+    glLinkProgram(programId);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    int linkSucceeded = GL_FALSE;
+    glGetProgramiv(programId, GL_LINK_STATUS, &linkSucceeded);
+    if (linkSucceeded != GL_TRUE) {
+        int logLength = 0;
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+        std::vector<char> log(static_cast<std::size_t>(logLength > 1 ? logLength : 1));
+        glGetProgramInfoLog(programId, logLength, nullptr, log.data());
+        Logger::Error("OpenGLDevice", std::string("Failed to link shader program: ") + log.data());
+        glDeleteProgram(programId);
+        return {};
+    }
+
+    auto shaderProgram = std::make_unique<OpenGLShaderProgram>();
+    shaderProgram->programId = programId;
+    shaderProgram->modelUniform = glGetUniformLocation(programId, "model");
+    shaderProgram->viewUniform = glGetUniformLocation(programId, "view");
+    shaderProgram->projectionUniform = glGetUniformLocation(programId, "projection");
+    shaderPrograms.emplace(programId, std::move(shaderProgram));
+    Logger::Info("OpenGLDevice", "Created shader program " + std::to_string(programId));
+    return programId;
+}
+
+void OpenGLDevice::DestroyShaderProgram(uint programId) {
+    const auto shaderIt = shaderPrograms.find(programId);
+    if (shaderIt == shaderPrograms.end()) {
+        return;
+    }
+    glDeleteProgram(shaderIt->second->programId);
+    shaderPrograms.erase(shaderIt);
+}
+
+OpenGLShaderProgram * OpenGLDevice::FindShaderProgram(uint programId) {
+    const auto shaderIt = shaderPrograms.find(programId);
+    return shaderIt == shaderPrograms.end() ? nullptr : shaderIt->second.get();
+}
+
 void OpenGLDevice::Close() {
+    for (const auto& [handle, shaderProgram] : shaderPrograms) {
+        glDeleteProgram(shaderProgram->programId);
+    }
+    shaderPrograms.clear();
 }

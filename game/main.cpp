@@ -39,8 +39,11 @@ int main() {
 
     AssetManager& assetManager = app.GetAssetManager();
 
-    const ShaderAsset * shader = assetManager.RequestAssetReadOnly<ShaderAsset>(GameAssets::BASICFRAG_SHADER); // Example usage of RequestAsset
-    Logger::Info("main", "Finished loading shader asset with ID: " + std::to_string(GameAssets::BASICFRAG_SHADER.GetUUID()));
+    SHADER_RID basicShaderProgram = app.GetRenderer().RegisterShaderProgram(
+        GameAssets::BASICVERT_SHADER.GetUUID(),
+        GameAssets::BASICFRAG_SHADER.GetUUID()
+    );
+    app.GetRenderer().SetDefaultShaderProgram(basicShaderProgram);
 
     const ModelAsset * model = assetManager.RequestAssetReadOnly<ModelAsset>(GameAssets::RYUJIN7_MODEL.GetUUID()); // Example usage of RequestAsset
     Logger::Info("main", "Finished loading model asset with ID: " + std::to_string(model->id));
