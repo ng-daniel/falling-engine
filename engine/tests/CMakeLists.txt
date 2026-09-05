@@ -13,3 +13,11 @@ add_executable(transform_tests
 target_link_libraries(transform_tests PRIVATE engine)
 
 add_test(NAME transform_tests COMMAND transform_tests)
+
+add_executable(material_compiler_tests
+    material_compiler_tests.cpp
+)
+
+target_link_libraries(material_compiler_tests PRIVATE engine)
+
+add_test(NAME material_compiler_tests COMMAND material_compiler_tests)

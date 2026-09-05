@@ -23,6 +23,7 @@ add_library(engine
     src/ecs/ecs_manager.cpp
 
     src/renderer/renderer.cpp
+    src/renderer/material_compiler.cpp
     src/renderer/opengl/opengl_device.cpp
 
     src/serialization/asset_metadata_serializer.cpp

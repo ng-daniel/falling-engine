@@ -4,6 +4,8 @@
 
 #include "engine/debug/logger.h"
 
+#include <stdexcept>
+
 namespace {
     PrimitiveRenderData BuildPrimitiveRenderData(const MeshAsset * parentMesh, int pIdx) {
         PrimitiveRenderData primitiveRenderData;
@@ -19,20 +21,6 @@ namespace {
         meshRenderData.meshId = meshAsset->id;
         meshRenderData.meshId = meshAsset->id;
         return meshRenderData;
-    }
-
-    ShaderProgramData BuildShaderProgramData(
-        SHADER_RID shaderProgramId,
-        const ShaderAsset* vertexShader,
-        const ShaderAsset* fragmentShader)
-    {
-        ShaderProgramData shaderProgramData;
-        shaderProgramData.id = shaderProgramId;
-        shaderProgramData.vertexShaderId = vertexShader->id;
-        shaderProgramData.fragmentShaderId = fragmentShader->id;
-        shaderProgramData.vertexShader = vertexShader;
-        shaderProgramData.fragmentShader = fragmentShader;
-        return shaderProgramData;
     }
 }
 
@@ -87,65 +75,51 @@ void Renderer::EndFrame() {
     device->EndFrame();
 }
 
-/**
- * @brief 
- * 
- * @param definition 
- * @return SHADER_RID
- */
-SHADER_RID Renderer::RegisterShaderProgram(UUID vertexShaderId, UUID fragmentShaderId) {
-    if (vertexShaderId == 0 || fragmentShaderId == 0) {
-        throw std::runtime_error("A shader program requires both vertex and fragment shader assets.");
+SHADER_RID Renderer::RegisterShaderProgram(const ShaderProgramData& shaderProgram) {
+    if (shaderProgram.id == INVALID_SH_RID
+        || shaderProgram.vertexShaderId == 0
+        || shaderProgram.fragmentShaderId == 0) {
+        throw std::invalid_argument("A shader program requires an ID and both shader assets.");
     }
 
-    // return if already exists in map
-    for (const auto& [shaderProgramId, runtimeData] : shaderCache) {
-        if (runtimeData.vertexShaderId == vertexShaderId
-            && runtimeData.fragmentShaderId == fragmentShaderId) {
-            return shaderProgramId;
+    // check if the shader program is already cached
+    const auto cachedProgram = shaderCache.find(shaderProgram.id);
+    if (cachedProgram != shaderCache.end()) {
+        if (cachedProgram->second.vertexShaderId != shaderProgram.vertexShaderId
+            || cachedProgram->second.fragmentShaderId != shaderProgram.fragmentShaderId) {
+            throw std::invalid_argument("A different shader program already uses this UUID.");
         }
+        return cachedProgram->first;
     }
 
-    // retrieve info to build shader data
-    SHADER_RID shaderProgramId = nextShaderProgramId++;
+    // load the shader assets
     const ShaderAsset* vertexShader = assetManagerRef.RequestAssetReadOnly<ShaderAsset>(
-        vertexShaderId
+        shaderProgram.vertexShaderId
     );
     const ShaderAsset* fragmentShader = assetManagerRef.RequestAssetReadOnly<ShaderAsset>(
-        fragmentShaderId
+        shaderProgram.fragmentShaderId
     );
     if (!vertexShader || !fragmentShader) {
         throw std::runtime_error("Failed to load vertex or fragment shader asset.");
     }
-
-    // build shader data and shader program
-    ShaderProgramData runtimeData = BuildShaderProgramData(
-        shaderProgramId,
-        vertexShader,
-        fragmentShader
-    );
-    SPDEVICE_RID deviceProgramId = device->CreateShaderProgram(
-        runtimeData.vertexShader->shaderSource,
-        runtimeData.fragmentShader->shaderSource
-    );
-    runtimeData.deviceProgramId = deviceProgramId;
-    
-    // register in map
-    shaderCache[runtimeData.id] = runtimeData;
-    return runtimeData.id;
-}
-
-void Renderer::SetDefaultShaderProgram(SHADER_RID shaderProgramId) {
-    if (!HasShaderProgram(shaderProgramId)) {
-        Logger::Error("Renderer", "Cannot set an unregistered shader program as the default.");
-        return;
+    if (vertexShader->shaderType != ShaderAsset::ShaderType::Vertex
+        || fragmentShader->shaderType != ShaderAsset::ShaderType::Fragment) {
+        throw std::invalid_argument("Shader assets do not match their requested stages.");
     }
-    defaultShaderProgram = shaderProgramId;
-}
 
-bool Renderer::HasShaderProgram(SHADER_RID shaderProgramId) const {
-    return shaderProgramId != INVALID_SH_RID
-        && shaderCache.find(shaderProgramId) != shaderCache.end();
+    // create the shader program on the graphics device
+    ShaderProgramData runtimeProgram = shaderProgram;
+    runtimeProgram.deviceProgramId = device->CreateShaderProgram(
+        vertexShader->shaderSource,
+        fragmentShader->shaderSource
+    );
+    if (runtimeProgram.deviceProgramId == INVALID_SPDEVICE_RID) {
+        throw std::runtime_error("The graphics device failed to create the shader program.");
+    }
+
+    // put generated program into cache
+    shaderCache.emplace(runtimeProgram.id, runtimeProgram);
+    return runtimeProgram.id;
 }
 
 MeshRenderData* Renderer::GetOrCreateMeshRenderData(UUID meshId) {

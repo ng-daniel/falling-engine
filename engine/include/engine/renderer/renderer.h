@@ -28,8 +28,11 @@ public:
     /// SHADER STUFF
     /// --------------------
 
-    SHADER_RID RegisterShaderProgram(UUID vertexShaderId, UUID fragmentShaderId);
-    void SetDefaultShaderProgram(SHADER_RID shaderProgramId);
+    /**
+     * @brief Compiles a runtime shader program on the graphics device and caches it by UUID.
+     * @return The program UUID.
+     */
+    SHADER_RID RegisterShaderProgram(const ShaderProgramData& shaderProgram);
 
 private:
     AssetManager& assetManagerRef;
@@ -37,13 +40,7 @@ private:
 
     RenderData frameData;
     std::unordered_map<UUID, MeshRenderData> meshCache;
-    std::unordered_map<SHADER_RID, ShaderProgramData> shaderCache;
-    SHADER_RID defaultShaderProgram = INVALID_SH_RID;
-
-    /// SHADER STUFF
-    /// --------------------
+    std::unordered_map<UUID, ShaderProgramData> shaderCache;
 
     MeshRenderData* GetOrCreateMeshRenderData(UUID meshId);
-    bool HasShaderProgram(SHADER_RID shaderProgramId) const;
-    SHADER_RID nextShaderProgramId = 1; // next available shader program ID
 };

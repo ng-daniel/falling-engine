@@ -1,8 +1,10 @@
 #include <cmath>
+#include <stdexcept>
 
 #include "engine/ecs/components/transform.h"
 #include "include/generated/asset_ids.h"
 #include "engine/core/application.h"
+#include "engine/renderer/material_compiler.h"
 
 #include "engine/ecs/ecs_extras.h"
 
@@ -39,11 +41,24 @@ int main() {
 
     AssetManager& assetManager = app.GetAssetManager();
 
-    SHADER_RID basicShaderProgram = app.GetRenderer().RegisterShaderProgram(
-        GameAssets::BASICVERT_SHADER.GetUUID(),
-        GameAssets::BASICFRAG_SHADER.GetUUID()
+    MaterialAsset* modelMaterial = assetManager.RequestAsset<MaterialAsset>(
+        GameAssets::RYUJIN7_MATERIAL_MATERIAL
     );
-    app.GetRenderer().SetDefaultShaderProgram(basicShaderProgram);
+    const ShaderAsset* basicVertexShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
+        GameAssets::BASICVERT_SHADER
+    );
+    const ShaderAsset* basicFragmentShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
+        GameAssets::BASICFRAG_SHADER
+    );
+    if (!modelMaterial || !basicVertexShader || !basicFragmentShader) {
+        throw std::runtime_error("Failed to load material shader inputs.");
+    }
+    const ShaderProgramData basicShaderProgram = MaterialShaderService::CompileMaterial(
+        *modelMaterial,
+        *basicVertexShader,
+        *basicFragmentShader
+    );
+    app.GetRenderer().RegisterShaderProgram(basicShaderProgram);
 
     const ModelAsset * model = assetManager.RequestAssetReadOnly<ModelAsset>(GameAssets::RYUJIN7_MODEL.GetUUID()); // Example usage of RequestAsset
     Logger::Info("main", "Finished loading model asset with ID: " + std::to_string(model->id));

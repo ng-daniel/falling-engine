@@ -73,6 +73,10 @@ struct MaterialAsset : public Asset {
     UUID normalTexture;
     UUID occlusionTexture;
     UUID emissiveTexture;
+
+    // Runtime-only link to a ShaderProgramData. Asset serialization deliberately
+    // does not include this field.
+    UUID runtimeShader = 0;
 };
 
 struct Vertex {

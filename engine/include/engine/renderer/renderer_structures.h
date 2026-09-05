@@ -29,9 +29,8 @@ struct IGraphicsDeviceShader {
 
 /**
  * @brief ID type for generic shader programs in the renderer
- * 
  */
-using SHADER_RID = std::uint32_t;
+using SHADER_RID = UUID;
 constexpr SHADER_RID INVALID_SH_RID = 0;
 
 /**
@@ -42,14 +41,11 @@ using SPDEVICE_RID = std::uint32_t;
 constexpr SPDEVICE_RID INVALID_SPDEVICE_RID = 0;
 
 struct ShaderProgramData {
-    SHADER_RID id;
+    UUID id = 0;
     SPDEVICE_RID deviceProgramId = INVALID_SPDEVICE_RID;
     
     UUID vertexShaderId = 0;
     UUID fragmentShaderId = 0;
-    
-    const ShaderAsset * vertexShader;
-    const ShaderAsset * fragmentShader;
 };
 
 struct PrimitiveRenderData {
