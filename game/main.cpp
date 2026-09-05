@@ -59,6 +59,7 @@ int main() {
         *basicFragmentShader
     );
     app.GetRenderer().RegisterShaderProgram(basicShaderProgram);
+    Logger::Info("main", "Finished compiling shader program with ID: " + std::to_string(basicShaderProgram.id));
 
     const ModelAsset * model = assetManager.RequestAssetReadOnly<ModelAsset>(GameAssets::RYUJIN7_MODEL.GetUUID()); // Example usage of RequestAsset
     Logger::Info("main", "Finished loading model asset with ID: " + std::to_string(model->id));

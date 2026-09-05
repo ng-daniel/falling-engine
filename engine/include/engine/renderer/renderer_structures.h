@@ -28,12 +28,6 @@ struct IGraphicsDeviceShader {
 };
 
 /**
- * @brief ID type for generic shader programs in the renderer
- */
-using SHADER_RID = UUID;
-constexpr SHADER_RID INVALID_SH_RID = 0;
-
-/**
  * @brief ID type for graphics device specific shader programs
  * 
  */
@@ -41,17 +35,17 @@ using SPDEVICE_RID = std::uint32_t;
 constexpr SPDEVICE_RID INVALID_SPDEVICE_RID = 0;
 
 struct ShaderProgramData {
-    UUID id = 0;
+    UUID id = INVALID_UUID;
     SPDEVICE_RID deviceProgramId = INVALID_SPDEVICE_RID;
     
-    UUID vertexShaderId = 0;
-    UUID fragmentShaderId = 0;
+    UUID vertexShaderId = INVALID_UUID;
+    UUID fragmentShaderId = INVALID_UUID;
 };
 
 struct PrimitiveRenderData {
     UUID meshId;
     int pIdx; // primitive index in the mesh data array
-    UUID materialId = 0;
+    UUID materialId = INVALID_UUID;
     std::unique_ptr<IGraphicsDeviceData> graphicsDeviceData;
 };
 

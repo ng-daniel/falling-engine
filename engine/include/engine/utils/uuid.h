@@ -4,6 +4,7 @@
 #include <random>
 
 using UUID = std::uint64_t;
+constexpr UUID INVALID_UUID = 0;
 
 inline std::string UUIDToString(UUID uuid) {
     return std::to_string(uuid);

@@ -9,7 +9,7 @@ ShaderProgramData MaterialShaderService::CompileMaterial(
     const ShaderAsset& vertexShader,
     const ShaderAsset& fragmentShader
 ) {
-    if (vertexShader.id == 0 || fragmentShader.id == 0) {
+    if (vertexShader.id == INVALID_UUID || fragmentShader.id == INVALID_UUID) {
         throw std::invalid_argument("A shader program requires both shader assets to have UUIDs.");
     }
     if (vertexShader.shaderType != ShaderAsset::ShaderType::Vertex) {

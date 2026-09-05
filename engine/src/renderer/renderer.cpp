@@ -75,10 +75,10 @@ void Renderer::EndFrame() {
     device->EndFrame();
 }
 
-SHADER_RID Renderer::RegisterShaderProgram(const ShaderProgramData& shaderProgram) {
-    if (shaderProgram.id == INVALID_SH_RID
-        || shaderProgram.vertexShaderId == 0
-        || shaderProgram.fragmentShaderId == 0) {
+UUID Renderer::RegisterShaderProgram(const ShaderProgramData& shaderProgram) {
+    if (shaderProgram.id == INVALID_UUID
+        || shaderProgram.vertexShaderId == INVALID_UUID
+        || shaderProgram.fragmentShaderId == INVALID_UUID) {
         throw std::invalid_argument("A shader program requires an ID and both shader assets.");
     }
 

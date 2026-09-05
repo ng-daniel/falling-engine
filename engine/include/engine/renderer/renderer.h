@@ -32,7 +32,7 @@ public:
      * @brief Compiles a runtime shader program on the graphics device and caches it by UUID.
      * @return The program UUID.
      */
-    SHADER_RID RegisterShaderProgram(const ShaderProgramData& shaderProgram);
+    UUID RegisterShaderProgram(const ShaderProgramData& shaderProgram);
 
 private:
     AssetManager& assetManagerRef;

@@ -151,7 +151,7 @@ void OpenGLDevice::Render(RenderData& renderData) {
             //         GL_UNSIGNED_INT, 0);
             //     glBindVertexArray(0);
             // }
-            Logger::Info("OpenGLDevice", "Rendering mesh " + std::to_string(submission.mesh->meshId) + " primitive " + std::to_string(primitive.pIdx));
+            // Logger::Info("OpenGLDevice", "Rendering mesh " + std::to_string(submission.mesh->meshId) + " primitive " + std::to_string(primitive.pIdx));
         }
     }
 }
