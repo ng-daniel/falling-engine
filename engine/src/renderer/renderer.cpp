@@ -7,7 +7,7 @@
 namespace {
     PrimitiveRenderData BuildPrimitiveRenderData(const MeshAsset * parentMesh, int pIdx) {
         PrimitiveRenderData primitiveRenderData;
-        primitiveRenderData.mesh = parentMesh;
+        primitiveRenderData.meshId = parentMesh->id;
         primitiveRenderData.pIdx = pIdx;
         primitiveRenderData.materialId = parentMesh->primitives[pIdx].material;
         primitiveRenderData.graphicsDeviceData = nullptr;
@@ -17,7 +17,7 @@ namespace {
     MeshRenderData BuildMeshRenderData(const MeshAsset * meshAsset) {
         MeshRenderData meshRenderData;
         meshRenderData.meshId = meshAsset->id;
-        meshRenderData.mesh = meshAsset;
+        meshRenderData.meshId = meshAsset->id;
         return meshRenderData;
     }
 
@@ -72,7 +72,10 @@ void Renderer::SubmitMesh(UUID meshId, const Matrix4& worldTransform) {
     if (!meshRenderData) {
         return;
     }
-
+    if (!meshRenderData->initialized) {
+        device->InitializeGPUBuffersForMesh(*meshRenderData, assetManagerRef.RequestAssetReadOnly<MeshAsset>(meshId));
+        meshRenderData->initialized = true;
+    }
     frameData.submissions.push_back({ meshRenderData, worldTransform });
 }
 
@@ -88,7 +91,7 @@ void Renderer::EndFrame() {
  * @brief 
  * 
  * @param definition 
- * @return SH_RID 
+ * @return SHADER_RID
  */
 SHADER_RID Renderer::RegisterShaderProgram(UUID vertexShaderId, UUID fragmentShaderId) {
     if (vertexShaderId == 0 || fragmentShaderId == 0) {

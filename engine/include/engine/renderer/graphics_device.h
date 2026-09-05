@@ -17,6 +17,8 @@ public:
     virtual void Render(RenderData& renderData) = 0;
     virtual void EndFrame() = 0;
 
+    virtual void InitializeGPUBuffersForMesh(MeshRenderData& renderData, const MeshAsset * meshAsset) = 0;
+    
     virtual SPDEVICE_RID CreateShaderProgram(
         const std::string& vertexSource,
         const std::string& fragmentSource

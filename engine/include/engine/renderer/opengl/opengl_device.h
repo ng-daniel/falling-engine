@@ -31,6 +31,8 @@ public:
     void EndFrame() override;
     void Close() override;
 
+    void InitializeGPUBuffersForMesh(MeshRenderData& renderData, const MeshAsset * meshAsset) override;
+
     SPDEVICE_RID CreateShaderProgram(
         const std::string& vertexSource,
         const std::string& fragmentSource

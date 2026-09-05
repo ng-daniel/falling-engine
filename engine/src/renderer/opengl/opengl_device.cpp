@@ -5,7 +5,6 @@
 #include "GLFW/glfw3.h"
 
 #include "engine/debug/logger.h"
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -44,9 +43,9 @@ namespace {
      * 
      * @param renderData 
      */
-    void InitializeBuffersForPrimitive(PrimitiveRenderData& renderData) {
+    void InitializeBuffersForPrimitive(PrimitiveRenderData& renderData, const MeshAsset * meshAsset) {
         std::unique_ptr<OpenGLDeviceData> deviceData = std::make_unique<OpenGLDeviceData>();
-        const PrimitiveData * primitive = &renderData.mesh->primitives[renderData.pIdx];
+        const PrimitiveData * primitive = &meshAsset->primitives[renderData.pIdx];
 
         auto& vertices = primitive->vertices;
         auto& indices = primitive->indices;
@@ -90,7 +89,7 @@ namespace {
         // unbind VAO
         glBindVertexArray(0);
 
-        Logger::Info("OpenGLDevice", "Initialized buffers for mesh " + std::to_string(renderData.mesh->id) + ", primitive " + std::to_string(renderData.pIdx+1) + "/" + std::to_string(renderData.mesh->primitives.size()));
+        Logger::Info("OpenGLDevice", "Initialized buffers for mesh " + std::to_string(meshAsset->id) + ", primitive " + std::to_string(renderData.pIdx+1) + "/" + std::to_string(meshAsset->primitives.size()));
         Logger::Info("OpenGLDevice", "BufferValues: VAO=" + std::to_string(deviceData->VAO) +
             ", VBO=" + std::to_string(deviceData->VBO) +
             ", EBO=" + std::to_string(deviceData->EBO)
@@ -100,14 +99,7 @@ namespace {
         renderData.graphicsDeviceData = std::move(deviceData);
     }
 
-    /**
-     * @brief Initiailizes OpenGL GPU buffer objects for the mesh
-     */
-    void InitializeBuffersForMesh(MeshRenderData& meshRenderData) {
-        for (int i = 0; i < meshRenderData.primitives.size(); ++i) {
-            InitializeBuffersForPrimitive(meshRenderData.primitives[i]);
-        }
-    }
+
 }
 
 void OpenGLDevice::ConfigureWindow() {
@@ -144,8 +136,8 @@ void OpenGLDevice::Render(RenderData& renderData) {
         }
 
         if (!submission.mesh->initialized) {
-            InitializeBuffersForMesh(*submission.mesh);
-            submission.mesh->initialized = true;
+            Logger::Error("OpenGLDevice", "Mesh " + std::to_string(submission.mesh->meshId) + " is not initialized.");
+            continue;
         }
 
         for (PrimitiveRenderData& primitive : submission.mesh->primitives) {
@@ -165,6 +157,15 @@ void OpenGLDevice::Render(RenderData& renderData) {
 }
 
 void OpenGLDevice::EndFrame() {
+}
+
+/**
+ * @brief Initiailizes OpenGL GPU buffer objects for the mesh
+ */
+void OpenGLDevice::InitializeGPUBuffersForMesh(MeshRenderData& meshRenderData, const MeshAsset * meshAsset) {
+    for (int i = 0; i < meshRenderData.primitives.size(); ++i) {
+        InitializeBuffersForPrimitive(meshRenderData.primitives[i], meshAsset);
+    }
 }
 
 SPDEVICE_RID OpenGLDevice::CreateShaderProgram(

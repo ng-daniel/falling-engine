@@ -53,7 +53,7 @@ struct ShaderProgramData {
 };
 
 struct PrimitiveRenderData {
-    const MeshAsset * mesh;
+    UUID meshId;
     int pIdx; // primitive index in the mesh data array
     UUID materialId = 0;
     std::unique_ptr<IGraphicsDeviceData> graphicsDeviceData;
@@ -65,7 +65,6 @@ struct PrimitiveRenderData {
 struct MeshRenderData {
     UUID meshId;
     bool initialized = false;
-    const MeshAsset * mesh;
     std::vector<PrimitiveRenderData> primitives;
 };
 
