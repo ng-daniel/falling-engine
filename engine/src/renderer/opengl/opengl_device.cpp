@@ -138,10 +138,28 @@ void OpenGLDevice::BeginFrame() {
 }
 
 void OpenGLDevice::Render(RenderData& renderData) {
-    for (auto& [meshId, meshRenderData] : renderData.meshRenderData) {
-        if (!meshRenderData.initialized) {
-            InitializeBuffersForMesh(meshRenderData);
-            meshRenderData.initialized = true;
+    for (RenderSubmission& submission : renderData.submissions) {
+        if (!submission.mesh) {
+            continue;
+        }
+
+        if (!submission.mesh->initialized) {
+            InitializeBuffersForMesh(*submission.mesh);
+            submission.mesh->initialized = true;
+        }
+
+        for (PrimitiveRenderData& primitive : submission.mesh->primitives) {
+            // Bind VAO and draw elements for each primitive
+            // OpenGLDeviceData * deviceData = static_cast<OpenGLDeviceData*>(primitive.graphicsDeviceData.get());
+            // if (deviceData) {
+            //     glBindVertexArray(deviceData->VAO);
+            //     glDrawElements(
+            //         GL_TRIANGLES,
+            //         primitive,
+            //         GL_UNSIGNED_INT, 0);
+            //     glBindVertexArray(0);
+            // }
+            Logger::Info("OpenGLDevice", "Rendering mesh " + std::to_string(submission.mesh->meshId) + " primitive " + std::to_string(primitive.pIdx));
         }
     }
 }

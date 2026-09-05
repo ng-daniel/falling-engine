@@ -1,13 +1,12 @@
 #pragma once
 
-#include "engine/utils/uuid.h"
-#include "engine/ecs/ecs_runtime_id.h"
+#include <cstdint>
+#include <memory>
+#include <vector>
 
+#include "engine/utils/uuid.h"
 #include "engine/assets/asset_data.h"
 #include "engine/utils/matrix.h"
-#include <cstdint>
-#include <unordered_map>
-#include <vector>
 
 enum GraphicsAPI {
     OpenGL,
@@ -62,20 +61,11 @@ struct MeshRenderData {
     std::vector<PrimitiveRenderData> primitives;
 };
 
-struct MeshTransformData {
-    ECS_RID entityId; // entity ID associated with this mesh transform data
-    const MeshRenderData * meshRenderData; // the mesh render data to transform
+struct RenderSubmission {
+    MeshRenderData * mesh;
     Matrix4 worldTransform;
 };
 
-struct RenderSubmission {
-    MeshTransformData * meshTransformData;
-    ShaderProgramData * shaderProgram;
-};
-
 struct RenderData {
-    std::unordered_map<UUID, MeshRenderData> meshRenderData;
-    std::unordered_map<ECS_RID, MeshTransformData> meshTransformData;
-    std::unordered_map<SHADER_RID, ShaderProgramData> shaderPrograms;
     std::vector<RenderSubmission> submissions;
 };

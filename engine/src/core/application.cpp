@@ -42,7 +42,6 @@ void Application::Run() {
             }
             renderer.SubmitMesh(
                 meshRenderer.meshId,
-                entity->entityId,
                 transform->matrix
             );
         }

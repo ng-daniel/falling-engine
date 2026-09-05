@@ -21,13 +21,6 @@ namespace {
         return meshRenderData;
     }
 
-    MeshTransformData BuildMeshTransformData(MeshRenderData * meshRenderData, ECS_RID entityId) {
-        MeshTransformData meshTransformData;
-        meshTransformData.meshRenderData = meshRenderData;
-        meshTransformData.entityId = entityId;
-        return meshTransformData;
-    }
-
     ShaderProgramData BuildShaderProgramData(
         SHADER_RID shaderProgramId,
         const ShaderAsset* vertexShader,
@@ -45,14 +38,14 @@ namespace {
 
 
 Renderer::Renderer(AssetManager& assetManager)
-    : device(std::make_unique<OpenGLDevice>())
-    , assetManagerRef(assetManager) {
+    : assetManagerRef(assetManager)
+    , device(std::make_unique<OpenGLDevice>()) {
     // auto select OPENGL for now
 }
 
 Renderer::~Renderer() {
     if (device) {
-        for (auto& [shaderProgramId, shaderProgram] : renderData.shaderPrograms) {
+        for (auto& [shaderProgramId, shaderProgram] : shaderCache) {
             if (shaderProgram.deviceProgramId != INVALID_SPDEVICE_RID) {
                 device->DestroyShaderProgram(shaderProgram.deviceProgramId);
             }
@@ -70,31 +63,21 @@ bool Renderer::Init(WindowManager& window) {
 }
 
 void Renderer::BeginFrame() {
+    frameData.submissions.clear();
     device->BeginFrame();
 }
 
-void Renderer::SubmitMesh(UUID meshId, ECS_RID entityId, Matrix4 matrix) {
-    
-    // build mesh render data if it doesn't exist
-    if (renderData.meshRenderData.find(meshId) == renderData.meshRenderData.end()) {
-        const MeshAsset * meshAsset = assetManagerRef.RequestAssetReadOnly<MeshAsset>(meshId);
-        renderData.meshRenderData[meshId] = BuildMeshRenderData(meshAsset);
-        for (int i = 0; i < meshAsset->primitives.size(); ++i) {
-            renderData.meshRenderData[meshId].primitives.push_back(BuildPrimitiveRenderData(meshAsset, i));
-        }
+void Renderer::SubmitMesh(UUID meshId, const Matrix4& worldTransform) {
+    MeshRenderData* meshRenderData = GetOrCreateMeshRenderData(meshId);
+    if (!meshRenderData) {
+        return;
     }
 
-    // build mesh transform if it doesn't exist
-    if (renderData.meshTransformData.find(entityId) == renderData.meshTransformData.end()) {
-        MeshTransformData transformData = BuildMeshTransformData(&renderData.meshRenderData[meshId], entityId);
-        renderData.meshTransformData[entityId] = transformData;
-    }
-    // always update the transform matrix for the entity
-    renderData.meshTransformData[entityId].worldTransform = matrix;
+    frameData.submissions.push_back({ meshRenderData, worldTransform });
 }
 
 void Renderer::Render() {
-    device->Render(renderData);
+    device->Render(frameData);
 }
 
 void Renderer::EndFrame() {
@@ -113,7 +96,7 @@ SHADER_RID Renderer::RegisterShaderProgram(UUID vertexShaderId, UUID fragmentSha
     }
 
     // return if already exists in map
-    for (const auto& [shaderProgramId, runtimeData] : renderData.shaderPrograms) {
+    for (const auto& [shaderProgramId, runtimeData] : shaderCache) {
         if (runtimeData.vertexShaderId == vertexShaderId
             && runtimeData.fragmentShaderId == fragmentShaderId) {
             return shaderProgramId;
@@ -145,7 +128,7 @@ SHADER_RID Renderer::RegisterShaderProgram(UUID vertexShaderId, UUID fragmentSha
     runtimeData.deviceProgramId = deviceProgramId;
     
     // register in map
-    renderData.shaderPrograms[runtimeData.id] = runtimeData;
+    shaderCache[runtimeData.id] = runtimeData;
     return runtimeData.id;
 }
 
@@ -159,5 +142,29 @@ void Renderer::SetDefaultShaderProgram(SHADER_RID shaderProgramId) {
 
 bool Renderer::HasShaderProgram(SHADER_RID shaderProgramId) const {
     return shaderProgramId != INVALID_SH_RID
-        && renderData.shaderPrograms.find(shaderProgramId) != renderData.shaderPrograms.end();
+        && shaderCache.find(shaderProgramId) != shaderCache.end();
+}
+
+MeshRenderData* Renderer::GetOrCreateMeshRenderData(UUID meshId) {
+    const auto cachedMeshIt = meshCache.find(meshId);
+    if (cachedMeshIt != meshCache.end()) {
+        return &cachedMeshIt->second;
+    }
+
+    const MeshAsset* meshAsset = assetManagerRef.RequestAssetReadOnly<MeshAsset>(meshId);
+    if (!meshAsset) {
+        Logger::Error("Renderer", "Failed to load mesh asset " + std::to_string(meshId) + ".");
+        return nullptr;
+    }
+
+    MeshRenderData meshRenderData = BuildMeshRenderData(meshAsset);
+    meshRenderData.primitives.reserve(meshAsset->primitives.size());
+    for (std::size_t primitiveIndex = 0; primitiveIndex < meshAsset->primitives.size(); ++primitiveIndex) {
+        meshRenderData.primitives.push_back(
+            BuildPrimitiveRenderData(meshAsset, static_cast<int>(primitiveIndex))
+        );
+    }
+
+    const auto insertionResult = meshCache.emplace(meshId, std::move(meshRenderData));
+    return &insertionResult.first->second;
 }

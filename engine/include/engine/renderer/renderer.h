@@ -21,7 +21,7 @@ public:
     void ConfigureWindow();
     bool Init(WindowManager& window);
     void BeginFrame();
-    void SubmitMesh(UUID meshId, ECS_RID entityId, Matrix4 matrix);
+    void SubmitMesh(UUID meshId, const Matrix4& worldTransform);
     void Render();
     void EndFrame();
 
@@ -32,16 +32,18 @@ public:
     void SetDefaultShaderProgram(SHADER_RID shaderProgramId);
 
 private:
-    AssetManager& assetManagerRef;    
-    
+    AssetManager& assetManagerRef;
     std::unique_ptr<GraphicsDevice> device;
 
-    RenderData renderData;
+    RenderData frameData;
+    std::unordered_map<UUID, MeshRenderData> meshCache;
+    std::unordered_map<SHADER_RID, ShaderProgramData> shaderCache;
     SHADER_RID defaultShaderProgram = INVALID_SH_RID;
 
     /// SHADER STUFF
     /// --------------------
 
+    MeshRenderData* GetOrCreateMeshRenderData(UUID meshId);
     bool HasShaderProgram(SHADER_RID shaderProgramId) const;
     SHADER_RID nextShaderProgramId = 1; // next available shader program ID
 };
