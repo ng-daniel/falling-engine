@@ -27,10 +27,18 @@ struct IGraphicsDeviceShader {
     virtual ~IGraphicsDeviceShader() = default;
 };
 
-using SHADER_RID = std::uint32_t; // ID for generic renderer data entry
+/**
+ * @brief ID type for generic shader programs in the renderer
+ * 
+ */
+using SHADER_RID = std::uint32_t;
 constexpr SHADER_RID INVALID_SH_RID = 0;
 
-using SPDEVICE_RID = uint; // ID for graphics device shader program
+/**
+ * @brief ID type for graphics device specific shader programs
+ * 
+ */
+using SPDEVICE_RID = std::uint32_t;
 constexpr SPDEVICE_RID INVALID_SPDEVICE_RID = 0;
 
 struct ShaderProgramData {
@@ -61,11 +69,18 @@ struct MeshRenderData {
     std::vector<PrimitiveRenderData> primitives;
 };
 
+/**
+ * @brief A single render submission from the main loop to the renderer
+ */
 struct RenderSubmission {
     MeshRenderData * mesh;
     Matrix4 worldTransform;
 };
 
+/**
+ * @brief Stores all render submissions for a single frame
+ * Sends this data to the graphics device
+ */
 struct RenderData {
     std::vector<RenderSubmission> submissions;
 };
