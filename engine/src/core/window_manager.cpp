@@ -1,5 +1,9 @@
 #include "engine/core/window_manager.h"
 
+#define GLFW_INCLUDE_NONE
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 const int WIDTH_INIT = 800;
 const int HEIGHT_INIT = 600;
 
@@ -40,8 +44,6 @@ bool WindowManager::Init(const std::function<void()>& configure) {
     glfwSwapInterval(1);
 
     // set callbacks
-    glfwSetWindowUserPointer(handle, this);
-    glfwSetKeyCallback(handle, KeyCallback);
     glfwSetFramebufferSizeCallback(handle, FrameBufferSizeCallback);
     
     return true;
@@ -63,22 +65,10 @@ void WindowManager::ForceClose() {
     forceClose = true;
 }
 
-void WindowManager::BeginFrame() {
-    if (handle) {
-        glfwPollEvents();
-    }
-}
-
 void WindowManager::EndFrame() {
     if (handle) {
         glfwSwapBuffers(handle);
     }
-}
-
-bool WindowManager::IsKeyDown(int key) const {
-    return key >= 0
-        && key <= GLFW_KEY_LAST
-        && keyStates[static_cast<std::size_t>(key)];
 }
 
 void WindowManager::GetFramebufferSize(int& width, int& height) const {
@@ -88,12 +78,4 @@ void WindowManager::GetFramebufferSize(int& width, int& height) const {
         return;
     }
     glfwGetFramebufferSize(handle, &width, &height);
-}
-
-void WindowManager::KeyCallback(GLFWwindow* window, int key, int, int action, int) {
-    WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-    if (!windowManager || key < 0 || key > GLFW_KEY_LAST) {
-        return;
-    }
-    windowManager->keyStates[static_cast<std::size_t>(key)] = action != GLFW_RELEASE;
 }

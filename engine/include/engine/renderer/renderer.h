@@ -13,6 +13,7 @@
 #include "engine/assets/asset_manager.h"
 
 class WindowManager;
+class InputManager;
 
 class Renderer {
 public:
@@ -21,7 +22,7 @@ public:
 
     void ConfigureWindow();
     bool Init(WindowManager& window);
-    void BeginFrame();
+    void BeginFrame(const InputManager& inputManager);
     void SubmitMesh(UUID meshId, const Matrix4& worldTransform);
     void Render();
     void EndFrame();

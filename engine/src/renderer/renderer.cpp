@@ -3,6 +3,7 @@
 #include "engine/renderer/renderer_structures.h"
 
 #include "engine/debug/logger.h"
+#include "engine/input/input_manager.h"
 
 #include <array>
 #include <stdexcept>
@@ -91,11 +92,11 @@ bool Renderer::Init(WindowManager& window) {
     return true;
 }
 
-void Renderer::BeginFrame() {
+void Renderer::BeginFrame(const InputManager& inputManager) {
     frameSubmissions.clear();
     frameData.commands.clear();
     if (window) {
-        frameData.frame = debugCamera.Update(*window);
+        frameData.frame = debugCamera.Update(*window, inputManager);
     }
     device->BeginFrame();
 }

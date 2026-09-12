@@ -7,13 +7,14 @@
 #include "engine/renderer/renderer_structures.h"
 
 class WindowManager;
+class InputManager;
 
 /**
  * TEMP UNTIL I GET AN ACTUAL CAMERA COMPONENT
  */
 class DebugCamera {
 public:
-    FrameUniformData Update(const WindowManager& window);
+    FrameUniformData Update(const WindowManager& window, const InputManager& inputManager);
 
 private:
     // ground truth pos

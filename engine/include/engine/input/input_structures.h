@@ -64,5 +64,6 @@ enum KeyCode {
     KEY_MOUSE_RMB,
     KEY_MOUSE_SCROLL_UP,
     KEY_MOUSE_SCROLL_DOWN,
-    KEY_MOUSE_MOVE
+    KEY_MOUSE_MOVE,
+    KEY_COUNT // marks the total number of keys
 };

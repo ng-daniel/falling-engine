@@ -1,6 +1,8 @@
 #include "engine/core/application.h"
+#include "engine/core/window_manager.h"
 #include "engine/debug/logger.h"
 #include "engine/ecs/components/mesh_renderer.h"
+#include "engine/input/input_manager.h"
 #include "engine/utils/random.h"
 #include "engine/utils/time.h"
 
@@ -22,6 +24,12 @@ Application::Application(std::filesystem::path assetRoot)
     if (!renderer.Init(window)) {
         throw std::runtime_error("Failed to initialize the renderer");
     }
+
+    // 4. initialize input manager with glfw window
+    if (!inputManager.Init(window)) {
+        throw std::runtime_error("Failed to initialize the input manager");
+    }
+
     Logger::Info("Application", "Application initialized.");
 }
 
@@ -35,9 +43,9 @@ void Application::Run() {
 
     while (!window.ShouldClose()) {
         Time::Update();
-        window.BeginFrame();
+        inputManager.Update();
 
-        renderer.BeginFrame();
+        renderer.BeginFrame(inputManager);
         
         std::unordered_set<ECS_RID> rotatedEntities;
         float rotationSpeed = 0.5f;

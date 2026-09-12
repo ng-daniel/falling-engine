@@ -1,6 +1,7 @@
 #include "engine/renderer/debug_camera.h"
 
 #include "engine/core/window_manager.h"
+#include "engine/input/input_manager.h"
 
 #include <algorithm>
 #include <cmath>
@@ -29,7 +30,7 @@ namespace {
     }
 }
 
-FrameUniformData DebugCamera::Update(const WindowManager& window) {
+FrameUniformData DebugCamera::Update(const WindowManager& window, const InputManager& inputManager) {
     const auto now = std::chrono::steady_clock::now();
     const float deltaSeconds = std::min(
         std::chrono::duration<float>(now - lastUpdateTime).count(),
@@ -37,16 +38,16 @@ FrameUniformData DebugCamera::Update(const WindowManager& window) {
     );
     lastUpdateTime = now;
 
-    if (window.IsKeyDown(GLFW_KEY_LEFT)) {
+    if (inputManager.IsKeyDown(KEY_ARROW_LEFT)) {
         yawDegrees -= ROTATION_SPEED_DEGREES * deltaSeconds;
     }
-    if (window.IsKeyDown(GLFW_KEY_RIGHT)) {
+    if (inputManager.IsKeyDown(KEY_ARROW_RIGHT)) {
         yawDegrees += ROTATION_SPEED_DEGREES * deltaSeconds;
     }
-    if (window.IsKeyDown(GLFW_KEY_UP)) {
+    if (inputManager.IsKeyDown(KEY_ARROW_UP)) {
         pitchDegrees += ROTATION_SPEED_DEGREES * deltaSeconds;
     }
-    if (window.IsKeyDown(GLFW_KEY_DOWN)) {
+    if (inputManager.IsKeyDown(KEY_ARROW_DOWN)) {
         pitchDegrees -= ROTATION_SPEED_DEGREES * deltaSeconds;
     }
     pitchDegrees = std::clamp(pitchDegrees, -MAX_PITCH_DEGREES, MAX_PITCH_DEGREES);
@@ -56,22 +57,22 @@ FrameUniformData DebugCamera::Update(const WindowManager& window) {
     const glm::vec3 right = glm::normalize(glm::cross(horizontalForward, WORLD_UP));
     const float movement = MOVE_SPEED * deltaSeconds;
 
-    if (window.IsKeyDown(GLFW_KEY_W)) {
+    if (inputManager.IsKeyDown(KEY_W)) {
         position += horizontalForward * movement;
     }
-    if (window.IsKeyDown(GLFW_KEY_S)) {
+    if (inputManager.IsKeyDown(KEY_S)) {
         position -= horizontalForward * movement;
     }
-    if (window.IsKeyDown(GLFW_KEY_A)) {
+    if (inputManager.IsKeyDown(KEY_A)) {
         position -= right * movement;
     }
-    if (window.IsKeyDown(GLFW_KEY_D)) {
+    if (inputManager.IsKeyDown(KEY_D)) {
         position += right * movement;
     }
-    if (window.IsKeyDown(GLFW_KEY_Q)) {
+    if (inputManager.IsKeyDown(KEY_Q)) {
         position += WORLD_UP * movement;
     }
-    if (window.IsKeyDown(GLFW_KEY_E)) {
+    if (inputManager.IsKeyDown(KEY_E)) {
         position -= WORLD_UP * movement;
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include "engine/input/input_manager.h"
 #include "engine/renderer/renderer.h"
 #include "engine/core/window_manager.h"
 #include "engine/assets/asset_manager.h"
@@ -17,9 +18,11 @@ public:
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
     Renderer& GetRenderer() { return renderer; }
+    InputManager& GetInputManager() { return inputManager; }
 private:
     WindowManager window;
     AssetManager assetManager;
     EcsManager ecsManager;
     Renderer renderer;
+    InputManager inputManager;
 };
