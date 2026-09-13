@@ -16,18 +16,13 @@ Application::Application(std::filesystem::path assetRoot)
     // 1. assetManager and ECS are initialized first
 
     // 2. initialize the window and apply target graphics configuration
-    if (!window.Init([this]() { renderer.ConfigureWindow(); })) {
+    if (!window.Init(inputManager, [this]() { renderer.ConfigureWindow(); })) {
         throw std::runtime_error("Failed to initialize the application window");
     }
 
     // 3. initialize the renderer after its graphics context exists
     if (!renderer.Init(window)) {
         throw std::runtime_error("Failed to initialize the renderer");
-    }
-
-    // 4. initialize input manager with glfw window
-    if (!inputManager.Init(window)) {
-        throw std::runtime_error("Failed to initialize the input manager");
     }
 
     Logger::Info("Application", "Application initialized.");

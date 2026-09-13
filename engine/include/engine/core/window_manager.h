@@ -9,7 +9,7 @@ class WindowManager {
 public:
     ~WindowManager();
 
-    bool Init(const std::function<void()>& configure = {});
+    bool Init(InputManager& inputManager, const std::function<void()>& configure = {});
     bool ShouldClose() const;
     void ForceClose();
     void EndFrame();
@@ -17,8 +17,13 @@ public:
 
     void GetFramebufferSize(int& width, int& height) const;
 private:
-    friend class InputManager;
+    static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
+    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+    static void CursorPositionCallback(GLFWwindow* window, double xPosition, double yPosition);
 
-    GLFWwindow * handle = nullptr;
+    GLFWwindow* handle = nullptr;
+    InputManager* inputManager = nullptr;
     bool forceClose = false;
 };

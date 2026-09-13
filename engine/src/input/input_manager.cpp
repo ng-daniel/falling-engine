@@ -1,84 +1,83 @@
 #include "engine/input/input_manager.h"
 
-#include "engine/core/window_manager.h"
-
 #include <GLFW/glfw3.h>
 
-bool InputManager::Init(WindowManager& windowManager) {
-    window = windowManager.handle;
-    if (!window) {
-        return false;
-    }
-
-    glfwSetWindowUserPointer(window, this);
-    glfwSetKeyCallback(window, KeyCallback);
-    glfwSetMouseButtonCallback(window, MouseButtonCallback);
-    glfwSetScrollCallback(window, ScrollCallback);
-    glfwSetCursorPosCallback(window, CursorPositionCallback);
-    return true;
-}
-
 void InputManager::Update() {
+    // reset press and release frame events
     for (KeyState& state : keyStates) {
         state.pressed = false;
         state.released = false;
     }
 
+    // reset mouse scroll and move events
     keyStates[KEY_MOUSE_SCROLL_UP].down = false;
     keyStates[KEY_MOUSE_SCROLL_DOWN].down = false;
     keyStates[KEY_MOUSE_MOVE].down = false;
 
-    if (window) {
-        glfwPollEvents();
-    }
+    glfwPollEvents();
 }
 
+/**
+ * @brief Check if the specified key was pressed in the current frame
+ * 
+ * @param key 
+ * @return true 
+ * @return false 
+ */
 bool InputManager::IsKeyPressed(KeyCode key) const {
     return IsValidKey(key) && keyStates[static_cast<std::size_t>(key)].pressed;
 }
 
+/**
+ * @brief Check if the specified key is currently being held down,
+ * regardless of whether it was pressed in the current frame
+ * 
+ * @param key 
+ * @return true 
+ * @return false 
+ */
 bool InputManager::IsKeyDown(KeyCode key) const {
     return IsValidKey(key) && keyStates[static_cast<std::size_t>(key)].down;
 }
 
+/**
+ * @brief Check if the specified key was released in the current frame
+ * 
+ * @param key 
+ * @return true 
+ * @return false 
+ */
 bool InputManager::IsKeyReleased(KeyCode key) const {
     return IsValidKey(key) && keyStates[static_cast<std::size_t>(key)].released;
 }
 
-void InputManager::KeyCallback(GLFWwindow* window, int key, int, int action, int) {
-    InputManager* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
-    if (inputManager) {
-        inputManager->SetKeyState(GLFWToKeyCode(key), action);
-    }
+void InputManager::HandleKey(int key, int action) {
+    SetKeyState(GLFWToKeyCode(key), action);
 }
 
-void InputManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int) {
-    InputManager* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
-    if (inputManager) {
-        inputManager->SetKeyState(GLFWToMouseCode(button), action);
-    }
+void InputManager::HandleMouseButton(int button, int action) {
+    SetKeyState(GLFWToMouseCode(button), action);
 }
 
-void InputManager::ScrollCallback(GLFWwindow* window, double, double yOffset) {
-    InputManager* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
-    if (!inputManager) {
-        return;
-    }
-
+void InputManager::HandleScroll(double yOffset) {
     if (yOffset > 0.0) {
-        inputManager->SetKeyState(KEY_MOUSE_SCROLL_UP);
+        SetKeyState(KEY_MOUSE_SCROLL_UP);
     } else if (yOffset < 0.0) {
-        inputManager->SetKeyState(KEY_MOUSE_SCROLL_DOWN);
+        SetKeyState(KEY_MOUSE_SCROLL_DOWN);
     }
 }
 
-void InputManager::CursorPositionCallback(GLFWwindow* window, double, double) {
-    InputManager* inputManager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));
-    if (inputManager) {
-        inputManager->SetKeyState(KEY_MOUSE_MOVE);
-    }
+void InputManager::HandleCursorPosition() {
+    SetKeyState(KEY_MOUSE_MOVE);
 }
 
+
+/**
+ * @brief Translation bit to map GLFW key codes to public KeyCode enums
+ * 
+ * @param key 
+ * @return KeyCode 
+ */
 KeyCode InputManager::GLFWToKeyCode(int key) {
     if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z) {
         return static_cast<KeyCode>(KEY_A + key - GLFW_KEY_A);
@@ -114,6 +113,12 @@ KeyCode InputManager::GLFWToKeyCode(int key) {
     }
 }
 
+/**
+ * @brief Map GLFW mouse button codes to public KeyCode enums
+ * 
+ * @param button 
+ * @return KeyCode 
+ */
 KeyCode InputManager::GLFWToMouseCode(int button) {
     switch (button) {
         case GLFW_MOUSE_BUTTON_LEFT: return KEY_MOUSE_LMB;
@@ -126,6 +131,12 @@ bool InputManager::IsValidKey(KeyCode key) {
     return key > KEY_UNKNOWN && key < KEY_COUNT;
 }
 
+/**
+ * @brief Map GLFW key actions to internal keystates
+ * 
+ * @param key 
+ * @param action 
+ */
 void InputManager::SetKeyState(KeyCode key, int action) {
     if (!IsValidKey(key)) {
         return;
