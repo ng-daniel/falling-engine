@@ -1,7 +1,7 @@
 #include "engine/core/application.h"
 #include "engine/core/window_manager.h"
 #include "engine/debug/logger.h"
-#include "engine/ecs/components/mesh_renderer.h"
+#include "engine/renderer/components/mesh_renderer.h"
 #include "engine/input/input_manager.h"
 #include "engine/utils/random.h"
 #include "engine/utils/time.h"

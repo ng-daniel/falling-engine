@@ -16,7 +16,8 @@ WindowManager::~WindowManager() {
 /**
  * @brief Initialize window
  * 
- * @param configure Function ref supplied by renderer/graphics device 
+ * @param inputManager Input manager that receives window input events
+ * @param configure Function ref supplied by renderer/graphics device
  * for API specific GLFW configuration to run before window creation
  * @return true 
  * @return false 
@@ -56,8 +57,8 @@ void WindowManager::Close() {
         glfwDestroyWindow(handle);
         glfwTerminate();
         handle = nullptr;
-        inputManager = nullptr;
     }
+    inputManager = nullptr;
 }
 
 bool WindowManager::ShouldClose() const {

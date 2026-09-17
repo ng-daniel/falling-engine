@@ -1,4 +1,4 @@
-#include "engine/ecs/components/mesh_renderer.h"
+#include "engine/renderer/components/mesh_renderer.h"
 #include "engine/serialization/uuid_serializer.h"
 #include "engine/utils/uuid.h"
 

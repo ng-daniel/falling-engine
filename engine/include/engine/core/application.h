@@ -20,9 +20,9 @@ public:
     Renderer& GetRenderer() { return renderer; }
     InputManager& GetInputManager() { return inputManager; }
 private:
+    InputManager inputManager;
     WindowManager window;
     AssetManager assetManager;
     EcsManager ecsManager;
     Renderer renderer;
-    InputManager inputManager;
 };

@@ -1,6 +1,6 @@
-#include "engine/ecs/ecs_extras.h"
+#include "engine/tools/ecs_extras.h"
 
-#include "engine/ecs/components/mesh_renderer.h"
+#include "engine/renderer/components/mesh_renderer.h"
 #include "engine/ecs/components/transform.h"
 
 #include "engine/debug/logger.h"

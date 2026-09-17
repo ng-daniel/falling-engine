@@ -1,7 +1,6 @@
 #include "engine/ecs/ecs_manager.h"
 
 #include "engine/ecs/components/transform.h"
-#include "engine/ecs/components/mesh_renderer.h"
 #include "engine/debug/logger.h"
 
 #include <unordered_set>
@@ -73,11 +72,6 @@ void EcsManager::RegisterComponents() {
 		"Transform",
 		Transform::Serialize,
 		Transform::Deserialize
-	);
-	componentRegistry.RegisterComponent<MeshRenderer>(
-		"MeshRenderer",
-		MeshRenderer::Serialize,
-		MeshRenderer::Deserialize
 	);
 }
 

@@ -15,15 +15,14 @@ add_library(engine
     src/debug/logger.cpp
 
     src/ecs/components/transform.cpp
-    src/ecs/components/mesh_renderer.cpp
     src/ecs/ecs_component_registry.cpp
-    src/ecs/ecs_extras.cpp
     src/ecs/ecs_scene_service.cpp
     src/ecs/ecs_warehouse.cpp
     src/ecs/ecs_manager.cpp
 
     src/input/input_manager.cpp
 
+    src/renderer/components/mesh_renderer.cpp
     src/renderer/renderer.cpp
     src/renderer/debug_camera.cpp
     src/renderer/material_compiler.cpp
@@ -36,6 +35,8 @@ add_library(engine
     src/serialization/vector_serializer.cpp
     src/serialization/quaternion_serializer.cpp
     src/serialization/matrix_serializer.cpp
+
+    src/tools/ecs_extras.cpp
 
     src/utils/uuid.cpp
     src/utils/random.cpp

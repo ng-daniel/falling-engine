@@ -6,7 +6,7 @@
 #include "engine/core/application.h"
 #include "engine/renderer/material_compiler.h"
 
-#include "engine/ecs/ecs_extras.h"
+#include "engine/tools/ecs_extras.h"
 
 #include "engine/debug/logger.h"
 #include "engine/utils/random.h"

@@ -71,7 +71,6 @@ void InputManager::HandleCursorPosition() {
     SetKeyState(KEY_MOUSE_MOVE);
 }
 
-
 /**
  * @brief Translation bit to map GLFW key codes to public KeyCode enums
  * 
