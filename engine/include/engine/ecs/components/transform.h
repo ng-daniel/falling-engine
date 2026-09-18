@@ -7,8 +7,6 @@
 #include "engine/utils/transform_utils.h"
 #include "engine/ecs/components/component.h"
 
-#include "engine/serialization/jsonarchive.h"
-
 /**
  * @brief The transform component
  * Values here are local
@@ -26,9 +24,6 @@ struct Transform : public Component {
     UUID nextSiblingEntityId = 0;
     UUID prevSiblingEntityId = 0;
 
-    static void Serialize(JsonArchive& archive, const Transform& transform);
-    static void Deserialize(JsonArchive& archive, Transform& transform);
-
     static void SetPosition(Transform& transform, Vector3 newVal);
     static void ChangePosition(Transform& transform, Vector3 diff);
 
@@ -45,4 +40,10 @@ struct Transform : public Component {
 
     static Matrix4 FromTRS(const Vector3& position, const Quaternion& rotation, const Vector3& scale);
     static Matrix4 ComposeTransforms(const Matrix4 &parentTransform, const Matrix4 &childTransform);
+};
+
+class TransformSerializer : public ComponentSerializer {
+public:
+    static void Serialize(JsonArchive& archive, const Transform& transform);
+    static void Deserialize(JsonArchive& archive, Transform& transform);
 };

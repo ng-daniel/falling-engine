@@ -3,7 +3,7 @@
 #include "engine/serialization/matrix_serializer.h"
 #include "engine/serialization/uuid_serializer.h"
 
-void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
+void TransformSerializer::Serialize(JsonArchive& archive, const Transform& transform) {
     MatrixSerializer::Serialize(archive, transform.matrix);
     UUIDSerializer::Serialize(archive, transform.parentEntityId, "parentEntityId");
     UUIDSerializer::Serialize(archive, transform.firstChildEntityId, "firstChildEntityId");
@@ -11,7 +11,7 @@ void Transform::Serialize(JsonArchive& archive, const Transform& transform) {
     UUIDSerializer::Serialize(archive, transform.prevSiblingEntityId, "prevSiblingEntityId");
 }
 
-void Transform::Deserialize(JsonArchive& archive, Transform& transform) {
+void TransformSerializer::Deserialize(JsonArchive& archive, Transform& transform) {
     MatrixSerializer::Deserialize(archive, transform.matrix);
     UUIDSerializer::Deserialize(archive, transform.parentEntityId, "parentEntityId");
     UUIDSerializer::Deserialize(archive, transform.firstChildEntityId, "firstChildEntityId");

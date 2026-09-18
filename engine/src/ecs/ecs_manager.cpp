@@ -70,8 +70,8 @@ const Entity * EcsManager::GetEntity(UUID entityId) const {
 void EcsManager::RegisterComponents() {
 	componentRegistry.RegisterComponent<Transform>(
 		"Transform",
-		Transform::Serialize,
-		Transform::Deserialize
+		TransformSerializer::Serialize,
+		TransformSerializer::Deserialize
 	);
 }
 

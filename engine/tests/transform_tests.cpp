@@ -71,14 +71,14 @@ namespace {
         source.matrix(2, 3) = 7.0f;
 
         JsonArchive writer(JsonArchive::Mode::Writing);
-        Transform::Serialize(writer, source);
+        TransformSerializer::Serialize(writer, source);
         assert(writer.Dump().contains("matrix"));
         assert(!writer.Dump().contains("position"));
 
         JsonArchive reader(JsonArchive::Mode::Reading);
         reader.OpenFromMemory(writer.Dump());
         Transform restored;
-        Transform::Deserialize(reader, restored);
+        TransformSerializer::Deserialize(reader, restored);
         for (std::size_t i = 0; i < 16; ++i) {
             assert(Near(source.matrix.Data()[i], restored.matrix.Data()[i]));
         }
