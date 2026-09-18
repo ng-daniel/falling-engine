@@ -1,22 +1,12 @@
 #pragma once
 
 #include "engine/ecs/ecs_runtime_id.h"
-#include "engine/serialization/jsonarchive.h"
 #include "engine/utils/uuid.h"
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <string>
 #include <tuple>
-
-/**
- * @brief Just a marker for components
- * 
- */
-struct IComponent {
-    static void Serialize(JsonArchive& archive, const IComponent& component);
-    static IComponent Deserialize(JsonArchive& archive, IComponent& component);
-    virtual std::string GetType() const = 0;
-};
 
 /**
  * @brief Represents an entity in a scene

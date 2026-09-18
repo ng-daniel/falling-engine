@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "engine/ecs/components/component.h"
 #include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_component_array.h"
 
@@ -67,7 +68,7 @@ public:
         }
         return nullptr;
     }
-    void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const;
+    void GetAllComponents(Entity entity, std::vector<const Component*>& components) const;
 
     template <typename T>
     bool HasComponent(Entity entity) const {

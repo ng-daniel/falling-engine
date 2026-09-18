@@ -1,8 +1,9 @@
 #pragma once
 
-#include "engine/ecs/ecs_structures.h"
+#include "engine/ecs/components/component.h"
+#include "engine/utils/uuid.h"
 
-class MeshRenderer : public IComponent {
+class MeshRenderer : public Component {
 public:
     std::string GetType() const override { return "MeshRenderer"; }
     UUID meshId;

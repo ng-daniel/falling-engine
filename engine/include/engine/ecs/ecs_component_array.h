@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/ecs/components/component.h"
 #include "engine/ecs/ecs_structures.h"
 #include <cstdint>
 #include <limits>
@@ -110,9 +111,9 @@ private:
 class IEcsComponentArray {
 public:
     virtual ~IEcsComponentArray() = default;
-    virtual IComponent * GetComponent(ECS_RID entityIndex) = 0;
-    virtual const IComponent * GetComponentReadOnly(ECS_RID entityIndex) const = 0;
-    virtual IComponent * CreateComponent(ECS_RID entityIndex) = 0;
+    virtual Component * GetComponent(ECS_RID entityIndex) = 0;
+    virtual const Component * GetComponentReadOnly(ECS_RID entityIndex) const = 0;
+    virtual Component * CreateComponent(ECS_RID entityIndex) = 0;
     virtual void DeleteComponent(ECS_RID entityIndex) = 0;
 };
 

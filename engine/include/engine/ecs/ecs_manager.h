@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/ecs/components/component.h"
 #include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_warehouse.h"
 #include "engine/ecs/ecs_component_registry.h"
@@ -25,7 +26,7 @@ public:
     /// pretty self explanatory these ones
     /// ----------------------------------------------
 
-	IComponent * AddComponent(Entity entity, std::string type) {
+	Component * AddComponent(Entity entity, std::string type) {
 		if (type == "Transform") {
 			return AddComponent<Transform>(entity);
 		}
@@ -61,7 +62,7 @@ public:
 		return componentRegistry.GetComponentInfo(type);
 	}
 
-	void GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const {
+	void GetAllComponents(Entity entity, std::vector<const Component*>& components) const {
 		warehouse.GetAllComponents(entity, components);
 	}
 

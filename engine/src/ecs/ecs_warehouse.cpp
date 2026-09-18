@@ -135,12 +135,12 @@ void EcsWarehouse::RemoveAllComponents(Entity entity) {
  * @details Iterate over each component array, if entity has component there, add it to the components vector
  * component vector is readonly, getallcomponents should not be used for modifying stuff
  */
-void EcsWarehouse::GetAllComponents(Entity entity, std::vector<const IComponent*>& components) const {
+void EcsWarehouse::GetAllComponents(Entity entity, std::vector<const Component*>& components) const {
     int numComponentTypes = componentArrays.size();
     for (int i = 0; i < numComponentTypes; i++) {
         auto& array = componentArrays[i];
         if (array) {
-            const IComponent* component = array->GetComponent(entity.entityRuntimeIdx);
+            const Component* component = array->GetComponent(entity.entityRuntimeIdx);
             if (component) {
                 components.push_back(component);
             }

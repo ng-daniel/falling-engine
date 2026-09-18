@@ -5,7 +5,7 @@
 #include "engine/utils/quaternion.h"
 #include "engine/utils/matrix.h"
 #include "engine/utils/transform_utils.h"
-#include "engine/ecs/ecs_structures.h"
+#include "engine/ecs/components/component.h"
 
 #include "engine/serialization/jsonarchive.h"
 
@@ -15,7 +15,7 @@
  * To get the world value of something, 
  * you need to apply the parent's transform.
  */
-struct Transform : public IComponent {
+struct Transform : public Component {
     std::string GetType() const override { return "Transform"; }
     
     Matrix4 matrix;

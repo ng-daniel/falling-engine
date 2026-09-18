@@ -14,7 +14,7 @@ namespace {
             }
             JsonArchive tempArchive(JsonArchive::Mode::Reading);
             tempArchive.OpenFromMemory(componentData.data.dump());
-            IComponent * component = ecsManager.AddComponent(*entityRuntime, componentData.type);
+            Component * component = ecsManager.AddComponent(*entityRuntime, componentData.type);
             componentInfo->deserializeFunc(tempArchive, *component);
         }
     }
@@ -23,13 +23,13 @@ namespace {
         entityData.entityId = entity.entityId;
         entityData.name = entity.name;
 
-        std::vector<const IComponent*> components;
+        std::vector<const Component*> components;
         ecsManager.GetAllComponents(entity, components);
         entityData.components.reserve(components.size());
         
         // loop through all components, serialize them, and dump them into array
         int i = 0;
-        for (const IComponent* component : components) {
+        for (const Component* component : components) {
             const ComponentInfo* componentInfo = ecsManager.GetComponentInfo(component->GetType());
             if (!componentInfo) {
                 throw std::runtime_error("Component type not registered: " + component->GetType());
