@@ -1,3 +1,11 @@
+add_executable(ecs_component_array_tests
+    ecs_component_array_tests.cpp
+)
+
+target_link_libraries(ecs_component_array_tests PRIVATE engine)
+
+add_test(NAME ecs_component_array_tests COMMAND ecs_component_array_tests)
+
 add_executable(ecs_hierarchy_tests
     ecs_hierarchy_tests.cpp
 )

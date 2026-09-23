@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -127,9 +126,15 @@ private:
     
     Entity * CreateEntity(UUID uuid, std::string name);
 
+    static uint32_t NextComponentTypeId() {
+        static uint32_t nextTypeId = 0;
+        return nextTypeId++;
+    }
+
     template <typename T>
-    const uint32_t GetComponentTypeId() const {
-        static uint32_t typeId = componentArrays.size();
+    static uint32_t GetComponentTypeId() {
+        // Type IDs are shared by all warehouses, independent of allocated arrays.
+        static const uint32_t typeId = NextComponentTypeId();
         return typeId;
     }
 
@@ -154,9 +159,10 @@ private:
     void TryAddComponentArray() {
         uint32_t typeId = GetComponentTypeId<T>();
         if (typeId >= componentArrays.size()) {
-            // add new component array
-            componentArrays.push_back(std::make_unique<EcsComponentArray<T>>());
-            assert(componentArrays.size() == typeId + 1);
+            componentArrays.resize(typeId + 1);
+        }
+        if (!componentArrays[typeId]) {
+            componentArrays[typeId] = std::make_unique<EcsComponentArray<T>>();
         }
         // component array already exists
     }
