@@ -1,15 +1,14 @@
 #pragma once
 
 #include "engine/ecs/entity_handle.h"
-#include "engine/scripting/script.h"
-#include "engine/scripting/script_handle.h"
+
+#include <typeindex>
+#include <vector>
 
 /**
- * @brief Owns scripts and manages their creation, initialization, updates, and removal.
- * @details Each manager belongs to one ECS. Entities only store script handles;
- * the manager is responsible for the instances themselves.
- * This declares the API for the scripting module. Storage and lifecycle method
- * definitions will be added in the ownership and deferred operations steps.
+ * @brief Dispatches lifecycle callbacks for scripts stored as ECS components.
+ * @details Because ECS is designed for generic components, we need a special
+ * interface to manage script lifecycles such as awake, start, update, and destroy
  */
 class ScriptManager {
 public:
@@ -21,41 +20,115 @@ public:
     ScriptManager(ScriptManager&&) = delete;
     ScriptManager& operator=(ScriptManager&&) = delete;
 
-    /// SCRIPT LIFECYCLE
-    /// ----------------------------------------------
-
     /**
-     * @brief Creates a script and attaches it to its owning entity.
-     * @tparam T A class derived from Script.
-     * @param owner An entity in this manager's ECS.
-     * @return The script handle, or an empty handle if the owner is invalid.
-     * @details Adds ScriptComponent when needed. During callbacks, initialization
-     * waits until iteration finishes and the script first updates next frame.
+     * @brief Registers a concrete script component type once for frame updates and cleanup.
+     * 
      */
     template <typename T>
-    ScriptHandle AddScript(EntityHandle core);
+    void RegisterScript();
 
     /**
-     * @brief Removes a script created by this manager.
-     * Empty or already removed handles do nothing. During callbacks, destruction
-     * waits until iteration finishes.
+     * @brief Adds a script component of type T to the specified 
+     * entity and runs its OnAwake and OnStart callbacks after it is safe to do so.
+     * 
      */
-    void RemoveScript(ScriptHandle scriptHandle);
+    template <typename T>
+    void AddScript(EntityHandle owner);
 
     /**
-     * @brief Removes all scripts attached to the given entity.
+     * @brief Removes a script component of type T from the
+     * specified entity and calls its OnDestroy callback.
+     * 
      */
-    void RemoveAllScripts(EntityHandle core);
+    template <typename T>
+    void RemoveScript(EntityHandle owner);
 
     /**
-     * @brief Updates active scripts, then applies pending lifecycle operations.
-     * @param deltaTime Time since the previous frame, in seconds.
+     * @brief Removes all script components from the specified
+     * entity and calls their OnDestroy callbacks.
+     * 
+     */
+    void RemoveAllScripts(EntityHandle owner);
+
+    /**
+     * @brief Destroys all script components attached to the specified
+     * entity and calls their OnDestroy callbacks before the entity itself is destroyed.
+     * 
+     */
+    void DestroyEntity(EntityHandle owner);
+
+    /**
+     * @brief Updates all registered script types and
+     * then applies any deferred operations.
+     * 
      */
     void Update(float deltaTime);
 
     /**
-     * @brief Destroys all scripts and stops accepting new attachments.
-     * Calling this more than once is safe. The ECS must still exist during cleanup.
+     * @brief Shuts down the script manager by calling 
+     * OnDestroy for all remaining scripts and preventing further operations.
+     * 
      */
     void Shutdown();
+
+private:
+    
+    /**
+     * @brief since the add and remove operations have the same signature
+     * we can define a common type alias for them
+     * they are evil because they modify things unsafely if done within the update cycle
+     * 
+     */
+    using EvilScriptOp = void (*)(ScriptManager&, EntityHandle);
+
+    /**
+     * @brief Represents a script component type that has been registered with the script manager.
+     * 
+     */
+    struct RegisteredScriptType {
+        std::type_index type;
+        void (*update)(ScriptManager&, float);
+        EvilScriptOp remove;
+        void (*destroyAll)(ScriptManager&);
+    };
+
+    /**
+     * @brief Nice bundle containing all the information needed
+     * for deferred script operations
+     */
+    struct DeferredOp {
+        EvilScriptOp operation; // the operation that got deferred
+        EntityHandle owner;
+    };
+
+    ///
+    /// STATIC SCRIPT OPERATIONS
+    /// ----------------------------------------------------------------------
+
+    template <typename T>
+    static void UpdateScripts(ScriptManager& manager, float deltaTime);
+
+    template <typename T>
+    static void AddScriptNow(ScriptManager& manager, EntityHandle owner);
+
+    template <typename T>
+    static void RemoveScriptNow(ScriptManager& manager, EntityHandle owner);
+
+    template <typename T>
+    static void DestroyScripts(ScriptManager& manager);
+
+    static void RemoveAllScriptsNow(ScriptManager& manager, EntityHandle owner);
+    static void DestroyEntityNow(ScriptManager& manager, EntityHandle owner);
+    
+    /**
+     * @brief Executes and flushes all pending deferred script operations.
+     * 
+     */
+    void FlushPendingOperations();
+
+    EcsManager& ecs;
+    std::vector<RegisteredScriptType> registeredTypes;
+    std::vector<DeferredOp> pendingOperations;
+    bool dispatchingCallbacks = false;
+    bool shuttingDown = false;
 };
