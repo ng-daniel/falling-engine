@@ -1,19 +1,22 @@
 #pragma once
 
 #include "engine/ecs/entity_handle.h"
+#include "engine/ecs/components/component.h"
 
 class ScriptManager;
 
 /**
  * @brief Base class for game behavior attached to an entity.
- * @details ScriptManager owns the instance and assigns its entity before OnInit.
+ * @details The ECS owns the instance; ScriptManager assigns its entity before OnAwake.
  * Component access goes through EntityHandle, which also holds the ECS reference.
  * Components can move when arrays grow or swap-remove entries, so scripts should
  * keep handles and fetch components when needed instead of storing their pointers.
  */
-class Script {
+class Script : public Component {
 public:
     virtual ~Script() = default;
+
+    std::string GetType() const override { return "Script"; }
 
     EntityHandle GetCore() const { return core; }
 

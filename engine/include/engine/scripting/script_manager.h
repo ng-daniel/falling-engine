@@ -1,7 +1,11 @@
 #pragma once
 
 #include "engine/ecs/entity_handle.h"
+#include "engine/scripting/script.h"
 
+#include <cstddef>
+#include <stdexcept>
+#include <type_traits>
 #include <typeindex>
 #include <vector>
 
@@ -25,7 +29,14 @@ public:
      * 
      */
     template <typename T>
-    void RegisterScript();
+    void RegisterScript() {
+        static_assert(std::is_base_of_v<Script, T>, "Script types must derive from Script");
+        CheckCanMutate();
+        if (IsRegistered(typeid(T))) {
+            return;
+        }
+        registeredTypes.push_back({typeid(T), &UpdateScripts<T>, &RemoveScriptNow<T>, &DestroyScripts<T>});
+    }
 
     /**
      * @brief Adds a script component of type T to the specified 
@@ -33,7 +44,16 @@ public:
      * 
      */
     template <typename T>
-    void AddScript(EntityHandle owner);
+    void AddScript(EntityHandle owner) {
+        static_assert(std::is_base_of_v<Script, T>, "Script types must derive from Script");
+        CheckCanMutate();
+        if (!IsRegistered(typeid(T))) {
+            throw std::logic_error("Register the script type before adding it");
+        }
+        if (Owns(owner)) {
+            AddScriptNow<T>(*this, owner);
+        }
+    }
 
     /**
      * @brief Removes a script component of type T from the
@@ -41,7 +61,13 @@ public:
      * 
      */
     template <typename T>
-    void RemoveScript(EntityHandle owner);
+    void RemoveScript(EntityHandle owner) {
+        static_assert(std::is_base_of_v<Script, T>, "Script types must derive from Script");
+        CheckCanMutate();
+        if (Owns(owner)) {
+            RemoveScriptNow<T>(*this, owner);
+        }
+    }
 
     /**
      * @brief Removes all script components from the specified
@@ -58,8 +84,8 @@ public:
     void DestroyEntity(EntityHandle owner);
 
     /**
-     * @brief Updates all registered script types and
-     * then applies any deferred operations.
+     * @brief Updates all registered script types.
+     * Deferred operations will be added after the immediate workflow is reviewed.
      * 
      */
     void Update(float deltaTime);
@@ -101,30 +127,99 @@ private:
         EntityHandle owner;
     };
 
-    ///
-    /// STATIC SCRIPT OPERATIONS
-    /// ----------------------------------------------------------------------
+    /**
+     * @brief Marks script callbacks as active so CheckCanMutate rejects changes to ECS
+     * storage while callbacks run. The destructor clears the flag even if a
+     * callback throws.
+     * @note This is used internally by the script manager to ensure safe mutation of ECS storage.
+     * Use this when you do script ops that might modify ECS storage
+     * sets the "dispatchingCallbacks" flag and unsets it when the scope is destroyed
+     */
+    struct CallbackScope {
+        explicit CallbackScope(bool& flag) : flag(flag) { flag = true; }
+        ~CallbackScope() { flag = false; }
+        bool& flag;
+    };
 
+    /**
+     * @brief Updates every script of one registered type.
+     * Update owns the callback guard, so dense storage cannot change during iteration.
+     */
     template <typename T>
-    static void UpdateScripts(ScriptManager& manager, float deltaTime);
+    static void UpdateScripts(ScriptManager& manager, float deltaTime) {
+        auto view = manager.ecs.GetEntityComponentView<T>();
+        for (std::size_t index = 0; index < view.size(); ++index) {
+            view.components[index].OnUpdate(deltaTime);
+        }
+    }
 
+    /**
+     * @brief Adds a script and runs its initialization callbacks.
+     * Assigns the owner before OnAwake so GetCore is valid there.
+     */
     template <typename T>
-    static void AddScriptNow(ScriptManager& manager, EntityHandle owner);
+    static void AddScriptNow(ScriptManager& manager, EntityHandle owner) {
+        if (owner.HasComponent<T>()) {
+            return;
+        }
+        T* script = owner.AddComponent<T>();
+        if (!script) {
+            return;
+        }
+        script->core = owner;
+        CallbackScope callbacks(manager.dispatchingCallbacks);
+        script->OnAwake();
+        script->OnStart();
+    }
 
+    /**
+     * @brief Calls OnDestroy before removing the component.
+     * The callback scope ends before ECS storage changes.
+     */
     template <typename T>
-    static void RemoveScriptNow(ScriptManager& manager, EntityHandle owner);
+    static void RemoveScriptNow(ScriptManager& manager, EntityHandle owner) {
+        T* script = owner.GetComponent<T>();
+        if (!script) {
+            return;
+        }
+        {
+            CallbackScope callbacks(manager.dispatchingCallbacks);
+            script->OnDestroy();
+        }
+        owner.RemoveComponent<T>();
+    }
 
+    /**
+     * @brief Destroys all scripts of one registered type during shutdown.
+     * Calls OnDestroy before removal, then refreshes the view because dense
+     * storage swaps entries.
+     */
     template <typename T>
-    static void DestroyScripts(ScriptManager& manager);
+    static void DestroyScripts(ScriptManager& manager) {
+        auto view = manager.ecs.GetEntityComponentView<T>();
+        {
+            CallbackScope callbacks(manager.dispatchingCallbacks);
+            for (std::size_t index = 0; index < view.size(); ++index) {
+                view.components[index].OnDestroy();
+            }
+        }
+        auto remaining = manager.ecs.GetEntityComponentView<T>();
+        while (!remaining.empty()) {
+            Entity* entity = manager.ecs.GetEntity(remaining.entityRuntimeIds[0]);
+            manager.ecs.RemoveComponent<T>(*entity);
+            remaining = manager.ecs.GetEntityComponentView<T>();
+        }
+    }
 
-    static void RemoveAllScriptsNow(ScriptManager& manager, EntityHandle owner);
-    static void DestroyEntityNow(ScriptManager& manager, EntityHandle owner);
-    
     /**
      * @brief Executes and flushes all pending deferred script operations.
      * 
      */
     void FlushPendingOperations();
+
+    void CheckCanMutate() const;
+    bool Owns(EntityHandle owner) const;
+    bool IsRegistered(std::type_index type) const;
 
     EcsManager& ecs;
     std::vector<RegisteredScriptType> registeredTypes;
