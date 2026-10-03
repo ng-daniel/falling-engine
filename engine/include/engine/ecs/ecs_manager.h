@@ -4,7 +4,13 @@
 #include "engine/ecs/ecs_structures.h"
 #include "engine/ecs/ecs_warehouse.h"
 #include "engine/ecs/ecs_component_registry.h"
+#include <algorithm>
+#include <functional>
+#include <stdexcept>
 #include <string>
+#include <typeindex>
+#include <utility>
+#include <vector>
 
 #include "engine/ecs/components/transform.h"
 class EcsManager {
@@ -35,11 +41,53 @@ public:
 
 	template <typename T>
 	T * AddComponent(Entity entity) {
-		return warehouse.AddComponent<T>(entity);
+		T* component = warehouse.AddComponent<T>(entity);
+		if (component) {
+			if (ComponentLifecycle* lifecycle = FindComponentLifecycle<T>()) {
+				lifecycle->onCreate(entity);
+			}
+		}
+		return component;
+	}
+	template <typename T>
+	T * AddComponent(Entity entity, T initialValue) {
+		T* component = warehouse.AddComponent<T>(entity);
+		if (component) {
+			*component = std::move(initialValue);
+			if (ComponentLifecycle* lifecycle = FindComponentLifecycle<T>()) {
+				lifecycle->onCreate(entity);
+			}
+		}
+		return component;
 	}
 	template <typename T>
 	void RemoveComponent(Entity entity) {
+		if (warehouse.HasComponent<T>(entity)) {
+			if (ComponentLifecycle* lifecycle = FindComponentLifecycle<T>()) {
+				lifecycle->onDestroy(entity);
+			}
+		}
 		warehouse.RemoveComponent<T>(entity);
+	}
+
+	// Lifecycle hooks are registered per component type, never per instance.
+	template <typename T>
+	void RegisterComponentLifecycle(
+		std::function<void(Entity)> onCreate,
+		std::function<void(Entity)> onDestroy
+	) {
+		if (FindComponentLifecycle<T>()) {
+			throw std::runtime_error("Component lifecycle already registered");
+		}
+		componentLifecycles.push_back({std::type_index(typeid(T)), std::move(onCreate), std::move(onDestroy)});
+	}
+
+	template <typename T>
+	void UnregisterComponentLifecycle() {
+		const std::type_index type(typeid(T));
+		std::erase_if(componentLifecycles, [type](const ComponentLifecycle& lifecycle) {
+			return lifecycle.type == type;
+		});
 	}
 	template <typename T>
 	T * GetComponent(Entity entity) {
@@ -98,8 +146,23 @@ public:
 	void SetScene(Entity& entity);
 
 private:
+	struct ComponentLifecycle {
+		std::type_index type;
+		std::function<void(Entity)> onCreate;
+		std::function<void(Entity)> onDestroy;
+	};
+
+	template <typename T>
+	ComponentLifecycle* FindComponentLifecycle() {
+		const std::type_index type(typeid(T));
+		auto it = std::find_if(componentLifecycles.begin(), componentLifecycles.end(),
+			[type](const ComponentLifecycle& lifecycle) { return lifecycle.type == type; });
+		return it == componentLifecycles.end() ? nullptr : &*it;
+	}
+
 	EcsWarehouse warehouse;
 	ECSComponentRegistry componentRegistry;
+	std::vector<ComponentLifecycle> componentLifecycles;
 
 	void DetachEntity(Entity& entity);
 };

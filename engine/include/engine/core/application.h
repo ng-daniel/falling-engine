@@ -6,6 +6,7 @@
 #include "engine/core/window_manager.h"
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
+#include "engine/scripting/script_system.h"
 
 /// @brief Main application class that manages the game loop and overall application state.
 class Application {
@@ -17,6 +18,7 @@ public:
 
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
+    ScriptSystem& GetScriptSystem() { return scriptSystem; }
     Renderer& GetRenderer() { return renderer; }
     InputManager& GetInputManager() { return inputManager; }
 private:
@@ -24,5 +26,6 @@ private:
     WindowManager window;
     AssetManager assetManager;
     EcsManager ecsManager;
+    ScriptSystem scriptSystem;
     Renderer renderer;
 };

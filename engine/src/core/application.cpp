@@ -11,6 +11,7 @@
 
 Application::Application(std::filesystem::path assetRoot) 
     : assetManager(assetRoot)
+    , scriptSystem(ecsManager)
     , renderer(assetManager)
     {
     // 1. assetManager and ECS are initialized first
@@ -39,6 +40,7 @@ void Application::Run() {
     while (!window.ShouldClose()) {
         Time::Update();
         inputManager.Update();
+        scriptSystem.Update(Time::GetDeltaTime());
 
         renderer.BeginFrame(inputManager);
         

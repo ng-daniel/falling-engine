@@ -23,6 +23,13 @@ const Entity * EcsManager::CreateEntity(UUID entityId, std::string name) {
  * @param entity 
  */
 void EcsManager::DestroyEntity(Entity entity) {
+	if (!warehouse.IsAlive(entity)) {
+		return;
+	}
+	for (const ComponentLifecycle& lifecycle : componentLifecycles) {
+		lifecycle.onDestroy(entity);
+	}
+
 	// Keep surviving entities from retaining references to a deleted parent or
 	// sibling. Children become detached root-level entities.
 	Transform* transform = warehouse.GetComponent<Transform>(entity);
