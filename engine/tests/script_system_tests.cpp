@@ -1,4 +1,5 @@
-#include "engine/scripting/script_system.h"
+#include "engine/scripting/script_manager.h"
+#include "engine/ecs/ecs_scene_service.h"
 
 #include <cassert>
 #include <string>
@@ -51,7 +52,7 @@ void TestLifecycleAndDenseUpdates() {
     const Entity first = *ecs.CreateEntity();
     const Entity second = *ecs.CreateEntity();
     {
-        ScriptSystem scripts(ecs);
+        ScriptManager scripts(ecs);
         scripts.RegisterScript<CounterScript>();
         scripts.RegisterScript<OtherScript>();
 
@@ -89,7 +90,7 @@ void TestExistingComponentsAndShutdown() {
     initial.value = 17;
     ecs.AddComponent<CounterScript>(entity, initial);
     {
-        ScriptSystem scripts(ecs);
+        ScriptManager scripts(ecs);
         scripts.RegisterScript<CounterScript>();
         assert(CounterScript::creates == 1);
         assert(CounterScript::createdValue == 17);
@@ -100,9 +101,48 @@ void TestExistingComponentsAndShutdown() {
     ecs.RemoveComponent<CounterScript>(entity);
     assert(CounterScript::destroys == 1);
 }
+
+void SerializeCounter(JsonArchive&, const CounterScript&) {}
+void DeserializeCounter(JsonArchive&, CounterScript&) {}
+
+void TestRegistrationPreservesSerialization() {
+    ECSComponentRegistry registry;
+    registry.RegisterSerialization<CounterScript>(SerializeCounter, DeserializeCounter);
+    registry.RegisterLifecycle<CounterScript>([](Entity) {}, [](Entity) {});
+    const ComponentInfo* info = registry.GetComponentInfo("CounterScript");
+    assert(info && info->serializeFunc && info->deserializeFunc);
+    assert(info->onCreateFunc && info->onDestroyFunc);
+
+    registry.RegisterLifecycle<CounterScript>({}, {});
+    assert(info->serializeFunc && info->deserializeFunc);
+    assert(!info->onCreateFunc && !info->onDestroyFunc);
+
+    ECSComponentRegistry scriptFirst;
+    scriptFirst.RegisterLifecycle<CounterScript>([](Entity) {}, [](Entity) {});
+    scriptFirst.RegisterSerialization<CounterScript>(SerializeCounter, DeserializeCounter);
+    info = scriptFirst.GetComponentInfo("CounterScript");
+    assert(info && info->serializeFunc && info->deserializeFunc);
+    assert(info->onCreateFunc && info->onDestroyFunc);
+}
+
+void TestSceneSaveSkipsRuntimeScript() {
+    EcsManager ecs;
+    ecs.RegisterComponents();
+    const Entity entity = *ecs.CreateEntity();
+    ScriptManager scripts(ecs);
+    scripts.RegisterScript<CounterScript>();
+    ecs.AddComponent<CounterScript>(entity);
+
+    const SceneAsset scene = ECSSceneService::BuildSceneFromEntities(ecs, entity.entityId);
+    assert(scene.entities.size() == 1);
+    assert(scene.entities[0].components.size() == 1);
+    assert(scene.entities[0].components[0].type == "Transform");
+}
 }
 
 int main() {
     TestLifecycleAndDenseUpdates();
     TestExistingComponentsAndShutdown();
+    TestRegistrationPreservesSerialization();
+    TestSceneSaveSkipsRuntimeScript();
 }

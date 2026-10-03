@@ -6,9 +6,11 @@
 #include "engine/core/window_manager.h"
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
-#include "engine/scripting/script_system.h"
+#include "engine/scripting/script_manager.h"
 
-/// @brief Main application class that manages the game loop and overall application state.
+/**
+ * @brief Main application class that manages the game loop and overall application state.
+ */
 class Application {
 public:
     Application(std::filesystem::path assetRoot);
@@ -18,7 +20,7 @@ public:
 
     AssetManager& GetAssetManager() { return assetManager; }
     EcsManager& GetECSManager() { return ecsManager; }
-    ScriptSystem& GetScriptSystem() { return scriptSystem; }
+    ScriptManager& GetScriptSystem() { return scriptSystem; }
     Renderer& GetRenderer() { return renderer; }
     InputManager& GetInputManager() { return inputManager; }
 private:
@@ -26,6 +28,6 @@ private:
     WindowManager window;
     AssetManager assetManager;
     EcsManager ecsManager;
-    ScriptSystem scriptSystem;
+    ScriptManager scriptSystem;
     Renderer renderer;
 };

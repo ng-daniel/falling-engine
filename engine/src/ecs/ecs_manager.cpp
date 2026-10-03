@@ -26,9 +26,7 @@ void EcsManager::DestroyEntity(Entity entity) {
 	if (!warehouse.IsAlive(entity)) {
 		return;
 	}
-	for (const ComponentLifecycle& lifecycle : componentLifecycles) {
-		lifecycle.onDestroy(entity);
-	}
+	componentRegistry.OnDestroyEntity(entity);
 
 	// Keep surviving entities from retaining references to a deleted parent or
 	// sibling. Children become detached root-level entities.
@@ -75,8 +73,7 @@ const Entity * EcsManager::GetEntity(UUID entityId) const {
 }
 
 void EcsManager::RegisterComponents() {
-	componentRegistry.RegisterComponent<Transform>(
-		"Transform",
+	componentRegistry.RegisterSerialization<Transform>(
 		TransformSerializer::Serialize,
 		TransformSerializer::Deserialize
 	);

@@ -12,21 +12,23 @@ struct ScriptContext {
     EcsManager& ecs;
 };
 
-// The ECS owns script components; this system only dispatches their behavior.
-// Script callbacks must not add/remove components or destroy entities while
-// Update is iterating a component view.
-class ScriptSystem {
+/**
+ * @brief Manages the registration and lifecycle of
+ * script components within the ECS.
+ * 
+ */
+class ScriptManager {
 public:
-    explicit ScriptSystem(EcsManager& ecs) : context{ecs} {}
-    ~ScriptSystem() {
+    explicit ScriptManager(EcsManager& ecs) : context{ecs} {}
+    ~ScriptManager() {
         for (const Registration& registration : registrations) {
-            registration.destroyAll(context);
-            registration.unregister(context.ecs);
+            registration.DestroyAll(context);
+            registration.ClearLifecycle(context.ecs);
         }
     }
 
-    ScriptSystem(const ScriptSystem&) = delete;
-    ScriptSystem& operator=(const ScriptSystem&) = delete;
+    ScriptManager(const ScriptManager&) = delete;
+    ScriptManager& operator=(const ScriptManager&) = delete;
 
     template <typename T>
     void RegisterScript() {
@@ -38,7 +40,7 @@ public:
             throw std::runtime_error("Script type already registered");
         }
 
-        context.ecs.RegisterComponentLifecycle<T>(
+        context.ecs.GetComponentRegistry().RegisterLifecycle<T>(
             [this](Entity entity) {
                 if (T* script = context.ecs.GetComponent<T>(entity)) {
                     T::OnCreate(context, entity, *script);
@@ -67,7 +69,7 @@ public:
                     }
                 }
             },
-            [](EcsManager& ecs) { ecs.UnregisterComponentLifecycle<T>(); }
+            [](EcsManager& ecs) { ecs.GetComponentRegistry().RegisterLifecycle<T>({}, {}); }
         });
 
         // Components added before registration receive their creation callback.
@@ -80,16 +82,16 @@ public:
 
     void Update(float dt) {
         for (const Registration& registration : registrations) {
-            registration.update(context, dt);
+            registration.Update(context, dt);
         }
     }
 
 private:
     struct Registration {
         std::type_index type;
-        void (*update)(ScriptContext&, float);
-        void (*destroyAll)(ScriptContext&);
-        void (*unregister)(EcsManager&);
+        void (*Update)(ScriptContext&, float);
+        void (*DestroyAll)(ScriptContext&);
+        void (*ClearLifecycle)(EcsManager&);
     };
 
     ScriptContext context;

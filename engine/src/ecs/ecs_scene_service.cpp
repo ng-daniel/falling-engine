@@ -34,6 +34,9 @@ namespace {
             if (!componentInfo) {
                 throw std::runtime_error("Component type not registered: " + component->GetType());
             }
+            if (!componentInfo->serializeFunc) {
+                continue;
+            }
             JsonArchive archive(JsonArchive::Mode::Writing);
             componentInfo->serializeFunc(archive, *component);
             entityData.components.push_back({
