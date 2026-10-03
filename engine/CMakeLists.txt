@@ -28,8 +28,6 @@ add_library(engine
     src/renderer/material_compiler.cpp
     src/renderer/opengl/opengl_device.cpp
 
-    src/scripting/script_manager.cpp
-
     src/serialization/asset_metadata_serializer.cpp
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp

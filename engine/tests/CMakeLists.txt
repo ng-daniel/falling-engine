@@ -37,11 +37,3 @@ add_executable(material_compiler_tests
 target_link_libraries(material_compiler_tests PRIVATE engine)
 
 add_test(NAME material_compiler_tests COMMAND material_compiler_tests)
-
-add_executable(script_manager_tests
-    script_manager_tests.cpp
-)
-
-target_link_libraries(script_manager_tests PRIVATE engine)
-
-add_test(NAME script_manager_tests COMMAND script_manager_tests)
