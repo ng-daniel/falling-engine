@@ -6,7 +6,10 @@
 #include <string>
 
 namespace {
+class CounterRuntime;
+
 struct CounterScript : ScriptData {
+    using Runtime = CounterRuntime;
     int value = 0;
     static inline int creates = 0;
     static inline int updates = 0;
@@ -108,6 +111,30 @@ void TestLifecycleAndDenseUpdates() {
     assert(CounterScript::destroys == 2);
 }
 
+void TestScriptManagerProxies() {
+    ResetCounters();
+    EcsManager ecs;
+    const Entity entity = *ecs.CreateEntity();
+    ScriptManager scripts(ecs);
+
+    CounterScript initial;
+    initial.value = 4;
+    assert(scripts.AddScript<CounterScript>(entity, initial));
+    assert(CounterRuntime::constructions == 1);
+    assert(CounterScript::creates == 1);
+    assert(CounterScript::createdValue == 4);
+    assert(scripts.GetScript<CounterScript>(entity)->value == 4);
+
+    scripts.UpdateAllScripts();
+    assert(CounterScript::updates == 1);
+    assert(scripts.GetScript<CounterScript>(entity)->value == 5);
+
+    scripts.RemoveScript<CounterScript>(entity);
+    assert(CounterScript::destroys == 1);
+    assert(CounterScript::destroyedValue == 5);
+    assert(!scripts.GetScript<CounterScript>(entity));
+}
+
 void TestRegistrationAfterExistingComponent() {
     ResetCounters();
     EcsManager ecs;
@@ -170,6 +197,7 @@ void TestSceneSaveSkipsRuntimeScript() {
 
 int main() {
     TestLifecycleAndDenseUpdates();
+    TestScriptManagerProxies();
     TestRegistrationAfterExistingComponent();
     TestRegistrationPreservesSerialization();
     TestSceneSaveSkipsRuntimeScript();
