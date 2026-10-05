@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
-#include <stdexcept>
 #include <typeindex>
 #include <type_traits>
 #include <utility>
@@ -24,16 +23,15 @@ struct ScriptContext {
  * @brief Stores the runtime and update callback for a specific script type.
  * 
  */
-struct Registration {
+struct ScriptRegistryInfo {
     std::type_index type;
     std::unique_ptr<ScriptRuntime> runtime;
     std::function<void(ScriptContext&, ScriptRuntime&)> updateCallback;
 };
 
 /**
- * @brief Manages the registration and lifecycle of
- * script components within the ECS.
- * 
+ * @brief Responsible for a couple things:
+ * 1. When a new script is created, register it in the list
  */
 class ScriptManager {
 public:
@@ -50,12 +48,12 @@ public:
      * @tparam TRuntime 
      */
     template <typename T, typename TRuntime>
-    void RegisterScript() {
+    bool RegisterScript() {
         static_assert(std::is_base_of_v<ScriptData, T>, "Script data must derive from ScriptData");
         static_assert(std::is_base_of_v<ScriptRuntime, TRuntime>, "Script runtime must derive from ScriptRuntime");
 
         if (IsTypeAlreadyRegistered(typeid(T))) {
-            throw std::runtime_error("Script type already registered");
+            return false;
         }
 
         // allocate space for the new registration
@@ -64,21 +62,16 @@ public:
         auto runtime = std::make_unique<TRuntime>();
         ScriptRuntime * runtimePtr = runtime.get();
         
-        // onCreate: 
         context.ecs.GetComponentRegistry().RegisterLifecycle<T>(
-            [this, runtimePtr](Entity entity) {
-                if (T* data = context.ecs.GetComponent<T>(entity)) {
-                    runtimePtr->OnCreate(context, entity, *data);
-                }
+            [this, runtimePtr](Entity entity, T* data) {
+                runtimePtr->OnCreate(context, entity, *data);
             },
-            [this, runtimePtr](Entity entity) {
-                if (T* data = context.ecs.GetComponent<T>(entity)) {
-                    runtimePtr->OnDestroy(context, entity, *data);
-                }
+            [this, runtimePtr](Entity entity, T* data) {
+                runtimePtr->OnDestroy(context, entity, *data);
             }
         );
 
-        Registration reg = {
+        ScriptRegistryInfo reg = {
             typeid(T), std::move(runtime),
             [](ScriptContext& context, ScriptRuntime& runtime) {
                 for (auto [runtimeId, data] : context.ecs.GetEntityComponentView<T>()) {
@@ -89,18 +82,14 @@ public:
             }
         };
         registrations.push_back(std::move(reg));
-
-        // never gonna happen!
-        // // Components added before registration receive their creation callback.
-        // for (auto [runtimeId, data] : context.ecs.GetEntityComponentView<T>()) {
-        //     if (Entity* entity = context.ecs.GetEntity(runtimeId)) {
-        //         runtimePtr->OnCreate(context, *entity, data);
-        //     }
-        // }
+        return true;
     }
 
+    /**
+     * @brief Calls the update callback for every registered script type
+     */
     void UpdateAllScripts() {
-        for (const Registration& registration : registrations) {
+        for (const ScriptRegistryInfo& registration : registrations) {
             registration.updateCallback(context, *registration.runtime);
         }
     }
@@ -110,11 +99,11 @@ private:
         bool typeExists = std::any_of(
             registrations.begin(),
             registrations.end(),
-            [type](const Registration& registration) { return registration.type == type; }
+            [type](const ScriptRegistryInfo& registration) { return registration.type == type; }
         );
         return typeExists;
     }
 
     ScriptContext context;
-    std::vector<Registration> registrations;
+    std::vector<ScriptRegistryInfo> registrations;
 };
