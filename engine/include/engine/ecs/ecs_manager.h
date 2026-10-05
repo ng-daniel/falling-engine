@@ -28,6 +28,14 @@ public:
     /// pretty self explanatory these ones
     /// ----------------------------------------------
 
+	/**
+	 * @brief This is only used by scene serializer/builder
+	 * DNI for now idk what im gonna do with scene serialization
+	 * 
+	 * @param entity 
+	 * @param type 
+	 * @return Component* 
+	 */
 	Component * AddComponent(Entity entity, std::string type) {
 		if (type == "Transform") {
 			return AddComponent<Transform>(entity);
@@ -43,6 +51,7 @@ public:
 		}
 		return component;
 	}
+	
 	template <typename T>
 	T * AddComponent(Entity entity, T initialValue) {
 		T* component = warehouse.AddComponent<T>(entity);
@@ -52,6 +61,7 @@ public:
 		}
 		return component;
 	}
+	
 	template <typename T>
 	void RemoveComponent(Entity entity) {
 		if (T* component = warehouse.GetComponent<T>(entity)) {
@@ -64,10 +74,12 @@ public:
 	T * GetComponent(Entity entity) {
 		return warehouse.GetComponent<T>(entity);
 	}
+	
 	template <typename T>
 	const T * GetComponentReadOnly(Entity entity) const {
 		return warehouse.GetComponentReadOnly<T>(entity);
 	}
+	
 	template <typename T>
 	bool HasComponent(Entity entity) const {
 		return warehouse.HasComponent<T>(entity);

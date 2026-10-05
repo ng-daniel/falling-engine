@@ -41,6 +41,38 @@ public:
     ScriptManager& operator=(const ScriptManager&) = delete;
 
     /**
+     * @brief Adds script data and registers its runtime on first use.
+     * @tparam T Script data type with a nested Runtime type.
+     * @param entity Entity that owns the script data.
+     * @param initialValue Initial script data.
+     * @return The added script data, or nullptr if it could not be added.
+     */
+    template <typename T>
+    T* AddScript(Entity entity, T initialValue = T{}) {
+        if (!IsTypeAlreadyRegistered(typeid(T))) {
+            RegisterScript<T, typename T::Runtime>();
+        }
+        return context.ecs.AddComponent<T>(entity, std::move(initialValue));
+    }
+
+    /**
+     * @brief Returns script data through the ECS manager.
+     */
+    template <typename T>
+    T* GetScript(Entity entity) {
+        return context.ecs.GetComponent<T>(entity);
+    }
+
+    /**
+     * @brief Removes script data through the ECS manager.
+     * 
+     */
+    template <typename T>
+    void RemoveScript(Entity entity) {
+        context.ecs.RemoveComponent<T>(entity);
+    }
+
+    /**
      * @brief Called to register a script type and its associated runtime.
      * Only call once per script type.
      * 
