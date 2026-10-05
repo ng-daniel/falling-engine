@@ -16,8 +16,8 @@ struct ComponentInfo {
     std::string type;
     std::function<void(JsonArchive&, const Component&)> serializeFunc;
     std::function<void(JsonArchive&, Component&)> deserializeFunc;
-    std::function<void(Entity)> onCreateFunc;
-    std::function<void(Entity)> onDestroyFunc;
+    std::function<void(Entity, Component*)> onCreateFunc;
+    std::function<void(Entity, Component*)> onDestroyFunc;
 };
 
 class ECSComponentRegistry {
@@ -41,34 +41,38 @@ public:
 
     template <typename T>
     void RegisterLifecycle(
-        std::function<void(Entity)> onCreate,
-        std::function<void(Entity)> onDestroy
+        std::function<void(Entity, T*)> onCreate,
+        std::function<void(Entity, T*)> onDestroy
     ) {
         ComponentInfo& info = EnsureComponentInfo<T>();
         if ((onCreate || onDestroy) && (info.onCreateFunc || info.onDestroyFunc)) {
             throw std::runtime_error("Lifecycle already registered: " + info.type);
         }
-        info.onCreateFunc = std::move(onCreate);
-        info.onDestroyFunc = std::move(onDestroy);
+        if (onCreate) {
+            info.onCreateFunc = [onCreate = std::move(onCreate)](Entity entity, Component* component) {
+                onCreate(entity, static_cast<T*>(component));
+            };
+        } else {
+            info.onCreateFunc = {};
+        }
+        if (onDestroy) {
+            info.onDestroyFunc = [onDestroy = std::move(onDestroy)](Entity entity, Component* component) {
+                onDestroy(entity, static_cast<T*>(component));
+            };
+        } else {
+            info.onDestroyFunc = {};
+        }
     }
 
     void OnCreate(Entity entity, Component& component) const {
         if (const ComponentInfo* info = GetComponentInfo(component.GetType()); info && info->onCreateFunc) {
-            info->onCreateFunc(entity);
+            info->onCreateFunc(entity, &component);
         }
     }
 
     void OnDestroy(Entity entity, Component& component) const {
         if (const ComponentInfo* info = GetComponentInfo(component.GetType()); info && info->onDestroyFunc) {
-            info->onDestroyFunc(entity);
-        }
-    }
-
-    void OnDestroyEntity(Entity entity) const {
-        for (const auto& [type, info] : componentRegistry) {
-            if (info.onDestroyFunc) {
-                info.onDestroyFunc(entity);
-            }
+            info->onDestroyFunc(entity, &component);
         }
     }
     

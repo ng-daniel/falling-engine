@@ -26,7 +26,11 @@ void EcsManager::DestroyEntity(Entity entity) {
 	if (!warehouse.IsAlive(entity)) {
 		return;
 	}
-	componentRegistry.OnDestroyEntity(entity);
+	std::vector<Component*> components;
+	warehouse.GetAllComponents(entity, components);
+	for (Component* component : components) {
+		componentRegistry.OnDestroy(entity, *component);
+	}
 
 	// Keep surviving entities from retaining references to a deleted parent or
 	// sibling. Children become detached root-level entities.

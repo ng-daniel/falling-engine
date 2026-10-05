@@ -68,6 +68,12 @@ public:
         return nullptr;
     }
     void GetAllComponents(Entity entity, std::vector<const Component*>& components) const;
+    /**
+     * @brief Collects mutable components currently owned by an entity.
+     * @param entity Entity whose components are collected.
+     * @param components Receives pointers to the entity's components.
+     */
+    void GetAllComponents(Entity entity, std::vector<Component*>& components);
 
     template <typename T>
     bool HasComponent(Entity entity) const {

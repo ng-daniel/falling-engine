@@ -147,3 +147,13 @@ void EcsWarehouse::GetAllComponents(Entity entity, std::vector<const Component*>
         }
     }
 }
+
+void EcsWarehouse::GetAllComponents(Entity entity, std::vector<Component*>& components) {
+    for (auto& array : componentArrays) {
+        if (array) {
+            if (Component* component = array->GetComponent(entity.entityRuntimeIdx)) {
+                components.push_back(component);
+            }
+        }
+    }
+}
