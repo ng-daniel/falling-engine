@@ -40,7 +40,7 @@ void Application::Run() {
     while (!window.ShouldClose()) {
         Time::Update();
         inputManager.Update();
-        scriptSystem.Update(Time::GetDeltaTime());
+        scriptSystem.UpdateAllScripts();
 
         renderer.BeginFrame(inputManager);
         
@@ -54,22 +54,22 @@ void Application::Run() {
                 Logger::Warning("Application", "Entity not found for runtime ID: " + std::to_string(entityRuntimeId));
                 continue;
             }
-            Transform * transform = ecsManager.GetComponent<Transform>(*entity);
-            if (!transform) {
-                Logger::Warning("Application", "Transform component not found for entity with runtime ID: " + std::to_string(entityRuntimeId));
-                continue;
-            }
+            // Transform * transform = ecsManager.GetComponent<Transform>(*entity);
+            // if (!transform) {
+            //     Logger::Warning("Application", "Transform component not found for entity with runtime ID: " + std::to_string(entityRuntimeId));
+            //     continue;
+            // }
             // rotate the mesh parent around the Y-axis over time
             
-            Entity* parentEntity = ecsManager.GetParent(*entity);
-            if (parentEntity && rotatedEntities.find(parentEntity->entityRuntimeIdx) == rotatedEntities.end()) {
-                Transform* parentTransform = ecsManager.GetComponent<Transform>(*parentEntity);
-                if (parentTransform) {
-                    rotationSpeed = Random::RandFloat(2.0f, 2.5f);
-                    parentTransform->ChangeRotation(*parentTransform, Quaternion::EulerToQuaternion(0.0f, rotationSpeed, 0.0f));
-                    rotatedEntities.insert(parentEntity->entityRuntimeIdx);
-                }
-            }
+            // Entity* parentEntity = ecsManager.GetParent(*entity);
+            // if (parentEntity && rotatedEntities.find(parentEntity->entityRuntimeIdx) == rotatedEntities.end()) {
+            //     Transform* parentTransform = ecsManager.GetComponent<Transform>(*parentEntity);
+            //     if (parentTransform) {
+            //         rotationSpeed = Random::RandFloat(2.0f, 2.5f);
+            //         parentTransform->ChangeRotation(*parentTransform, Quaternion::EulerToQuaternion(0.0f, rotationSpeed, 0.0f));
+            //         rotatedEntities.insert(parentEntity->entityRuntimeIdx);
+            //     }
+            // }
             
             renderer.SubmitMesh(
                 meshRenderer.meshId,

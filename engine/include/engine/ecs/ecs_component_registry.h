@@ -71,6 +71,7 @@ public:
             }
         }
     }
+    
     const ComponentInfo * GetComponentInfo(const std::string& type) const {
         auto it = componentRegistry.find(type);
         if (it != componentRegistry.end()) {
