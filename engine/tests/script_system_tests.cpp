@@ -45,6 +45,29 @@ struct NoOpScript : ScriptData {
     std::string GetType() const override { return "NoOpScript"; }
 };
 
+struct ValueComponent : Component {
+    int value = 0;
+    std::string GetType() const override { return "ValueComponent"; }
+};
+
+struct ReferenceScript : ScriptData {
+    UUID targetEntityId = INVALID_UUID;
+    int ownValue = -1;
+    int targetValue = -1;
+    std::string GetType() const override { return "ReferenceScript"; }
+
+    static void OnUpdate(ScriptContext& context, Entity entity, ReferenceScript& data) {
+        if (ValueComponent* own = context.GetComponent<ValueComponent>(entity)) {
+            data.ownValue = own->value;
+        }
+        if (ValueComponent* target = context.GetComponent<ValueComponent>(data.targetEntityId)) {
+            data.targetValue = target->value;
+        } else {
+            data.targetValue = -1;
+        }
+    }
+};
+
 void ResetCounters() {
     CounterScript::creates = 0;
     CounterScript::updates = 0;
@@ -140,6 +163,31 @@ void TestInheritedNoOpCallbacks() {
     assert(!scripts.GetScript<NoOpScript>(entity));
 }
 
+void TestComponentAccessFromScript() {
+    EcsManager ecs;
+    const Entity owner = *ecs.CreateEntity();
+    const Entity target = *ecs.CreateEntity();
+    ecs.AddComponent<ValueComponent>(owner)->value = 7;
+    ecs.AddComponent<ValueComponent>(target)->value = 12;
+
+    ScriptManager scripts(ecs);
+    ReferenceScript initial;
+    initial.targetEntityId = target.entityId;
+    ReferenceScript* script = scripts.AddScript<ReferenceScript>(owner, initial);
+    assert(script);
+
+    scripts.UpdateAllScripts();
+    assert(scripts.GetScript<ReferenceScript>(owner)->ownValue == 7);
+    assert(scripts.GetScript<ReferenceScript>(owner)->targetValue == 12);
+
+    ecs.DestroyEntity(target);
+    const Entity replacement = *ecs.CreateEntity();
+    assert(replacement.entityRuntimeIdx == target.entityRuntimeIdx);
+    ecs.AddComponent<ValueComponent>(replacement)->value = 99;
+    scripts.UpdateAllScripts();
+    assert(scripts.GetScript<ReferenceScript>(owner)->targetValue == -1);
+}
+
 void TestRegistrationAfterExistingComponent() {
     ResetCounters();
     EcsManager ecs;
@@ -204,6 +252,7 @@ int main() {
     TestLifecycleAndDenseUpdates();
     TestScriptManagerProxies();
     TestInheritedNoOpCallbacks();
+    TestComponentAccessFromScript();
     TestRegistrationAfterExistingComponent();
     TestRegistrationPreservesSerialization();
     TestSceneSaveSkipsRuntimeScript();

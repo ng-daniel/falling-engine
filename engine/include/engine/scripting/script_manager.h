@@ -15,6 +15,25 @@
  */
 struct ScriptContext {
     EcsManager& ecs;
+
+    /**
+     * @brief Gets a component from an entity supplied to a script callback.
+     * @return The component, or nullptr if the entity does not have it.
+     */
+    template <typename T>
+    T* GetComponent(Entity entity) {
+        return ecs.GetComponent<T>(entity);
+    }
+
+    /**
+     * @brief Resolves an entity UUID and gets its current component.
+     * @return The component, or nullptr if the entity or component is missing.
+     */
+    template <typename T>
+    T* GetComponent(UUID entityId) {
+        Entity* entity = ecs.GetEntity(entityId);
+        return entity ? ecs.GetComponent<T>(*entity) : nullptr;
+    }
 };
 
 /**
