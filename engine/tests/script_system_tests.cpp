@@ -6,10 +6,7 @@
 #include <string>
 
 namespace {
-class CounterRuntime;
-
 struct CounterScript : ScriptData {
-    using Runtime = CounterRuntime;
     int value = 0;
     static inline int creates = 0;
     static inline int updates = 0;
@@ -19,25 +16,19 @@ struct CounterScript : ScriptData {
     static inline float lastDt = 0.0f;
 
     std::string GetType() const override { return "CounterScript"; }
-};
 
-class CounterRuntime : public ScriptRuntime {
-public:
-    static inline int constructions = 0;
-    CounterRuntime() { ++constructions; }
-
-    void OnCreate(ScriptContext&, Entity, ScriptData& data) override {
+    static void OnCreate(ScriptContext&, Entity, CounterScript& data) {
         ++CounterScript::creates;
-        CounterScript::createdValue = static_cast<CounterScript&>(data).value;
+        CounterScript::createdValue = data.value;
     }
-    void OnUpdate(ScriptContext&, Entity, ScriptData& data) override {
+    static void OnUpdate(ScriptContext&, Entity, CounterScript& data) {
         ++CounterScript::updates;
-        ++static_cast<CounterScript&>(data).value;
+        ++data.value;
         CounterScript::lastDt = Time::GetDeltaTime();
     }
-    void OnDestroy(ScriptContext&, Entity, ScriptData& data) override {
+    static void OnDestroy(ScriptContext&, Entity, CounterScript& data) {
         ++CounterScript::destroys;
-        CounterScript::destroyedValue = static_cast<CounterScript&>(data).value;
+        CounterScript::destroyedValue = data.value;
     }
 };
 
@@ -45,16 +36,16 @@ struct OtherScript : ScriptData {
     static inline int updates = 0;
     static inline int destroys = 0;
     std::string GetType() const override { return "OtherScript"; }
+
+    static void OnUpdate(ScriptContext&, Entity, OtherScript&) { ++OtherScript::updates; }
+    static void OnDestroy(ScriptContext&, Entity, OtherScript&) { ++OtherScript::destroys; }
 };
 
-class OtherRuntime : public ScriptRuntime {
-public:
-    void OnUpdate(ScriptContext&, Entity, ScriptData&) override { ++OtherScript::updates; }
-    void OnDestroy(ScriptContext&, Entity, ScriptData&) override { ++OtherScript::destroys; }
+struct NoOpScript : ScriptData {
+    std::string GetType() const override { return "NoOpScript"; }
 };
 
 void ResetCounters() {
-    CounterRuntime::constructions = 0;
     CounterScript::creates = 0;
     CounterScript::updates = 0;
     CounterScript::destroys = 0;
@@ -72,9 +63,11 @@ void TestLifecycleAndDenseUpdates() {
     const Entity second = *ecs.CreateEntity();
     {
         ScriptManager scripts(ecs);
-        scripts.RegisterScript<CounterScript, CounterRuntime>();
-        scripts.RegisterScript<OtherScript, OtherRuntime>();
-        assert(CounterRuntime::constructions == 1);
+        const bool counterRegistered = scripts.RegisterScript<CounterScript>();
+        const bool otherRegistered = scripts.RegisterScript<OtherScript>();
+        assert(counterRegistered);
+        assert(otherRegistered);
+        assert(!scripts.RegisterScript<CounterScript>());
 
         CounterScript initial;
         initial.value = 9;
@@ -84,7 +77,6 @@ void TestLifecycleAndDenseUpdates() {
         assert(ecs.AddComponent<OtherScript>(first));
         assert(CounterScript::creates == 2);
         assert(CounterScript::createdValue == 0);
-        assert(CounterRuntime::constructions == 1);
 
         Time::Reset();
         Time::Update();
@@ -119,8 +111,9 @@ void TestScriptManagerProxies() {
 
     CounterScript initial;
     initial.value = 4;
-    assert(scripts.AddScript<CounterScript>(entity, initial));
-    assert(CounterRuntime::constructions == 1);
+    CounterScript* added = scripts.AddScript<CounterScript>(entity, initial);
+    assert(added);
+    assert(!scripts.RegisterScript<CounterScript>());
     assert(CounterScript::creates == 1);
     assert(CounterScript::createdValue == 4);
     assert(scripts.GetScript<CounterScript>(entity)->value == 4);
@@ -135,6 +128,18 @@ void TestScriptManagerProxies() {
     assert(!scripts.GetScript<CounterScript>(entity));
 }
 
+void TestInheritedNoOpCallbacks() {
+    EcsManager ecs;
+    const Entity entity = *ecs.CreateEntity();
+    ScriptManager scripts(ecs);
+
+    NoOpScript* data = scripts.AddScript<NoOpScript>(entity);
+    assert(data);
+    scripts.UpdateAllScripts();
+    scripts.RemoveScript<NoOpScript>(entity);
+    assert(!scripts.GetScript<NoOpScript>(entity));
+}
+
 void TestRegistrationAfterExistingComponent() {
     ResetCounters();
     EcsManager ecs;
@@ -144,7 +149,7 @@ void TestRegistrationAfterExistingComponent() {
     ecs.AddComponent<CounterScript>(entity, initial);
     {
         ScriptManager scripts(ecs);
-        scripts.RegisterScript<CounterScript, CounterRuntime>();
+        scripts.RegisterScript<CounterScript>();
         assert(CounterScript::creates == 0);
         scripts.UpdateAllScripts();
         assert(CounterScript::updates == 1);
@@ -185,7 +190,7 @@ void TestSceneSaveSkipsRuntimeScript() {
     ecs.RegisterComponents();
     const Entity entity = *ecs.CreateEntity();
     ScriptManager scripts(ecs);
-    scripts.RegisterScript<CounterScript, CounterRuntime>();
+    scripts.RegisterScript<CounterScript>();
     ecs.AddComponent<CounterScript>(entity);
 
     const SceneAsset scene = ECSSceneService::BuildSceneFromEntities(ecs, entity.entityId);
@@ -198,6 +203,7 @@ void TestSceneSaveSkipsRuntimeScript() {
 int main() {
     TestLifecycleAndDenseUpdates();
     TestScriptManagerProxies();
+    TestInheritedNoOpCallbacks();
     TestRegistrationAfterExistingComponent();
     TestRegistrationPreservesSerialization();
     TestSceneSaveSkipsRuntimeScript();

@@ -1,10 +1,18 @@
 #pragma once
 
 #include "engine/ecs/components/component.h"
+#include "engine/ecs/ecs_structures.h"
+
+struct ScriptContext;
 
 /**
- * @brief Base class for script data components.
+ * @brief Base class for ECS-owned script data components.
  * 
- * Each script instance's state is stored in a component derived from this class.
+ * Derived types store per-entity state and may hide these no-op callbacks
+ * with static functions taking (ScriptContext&, Entity, Derived&).
  */
-struct ScriptData : Component {};
+struct ScriptData : Component {
+    static void OnCreate(ScriptContext&, Entity, ScriptData&) {}
+    static void OnUpdate(ScriptContext&, Entity, ScriptData&) {}
+    static void OnDestroy(ScriptContext&, Entity, ScriptData&) {}
+};

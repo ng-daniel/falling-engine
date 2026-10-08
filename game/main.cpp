@@ -110,10 +110,10 @@ int main() {
                     *modelRootTransform,
                     Vector3(static_cast<float>(x * distance), static_cast<float>(y * distance), static_cast<float>(z * distance))
                 );
-                Transform::SetRotation(
-                    *modelRootTransform,
-                    Quaternion::EulerToQuaternion(45.0, 180.0, 30.0)
-                );
+                // Transform::SetRotation(
+                //     *modelRootTransform,
+                //     Quaternion::EulerToQuaternion(45.0, 180.0, 30.0)
+                // );
             }
         }
     }
