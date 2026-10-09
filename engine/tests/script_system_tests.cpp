@@ -68,6 +68,31 @@ struct ReferenceScript : ScriptData {
     }
 };
 
+struct RemoveDuringUpdateScript : ScriptData {
+    static inline UUID targetEntityId = INVALID_UUID;
+    static inline UUID cleanupEntityId = INVALID_UUID;
+    static inline int updates = 0;
+    static inline int destroys = 0;
+    std::string GetType() const override { return "RemoveDuringUpdateScript"; }
+
+    static void OnUpdate(ScriptContext& context, Entity entity, RemoveDuringUpdateScript&) {
+        ++updates;
+        context.ecs.RemoveComponent<RemoveDuringUpdateScript>(entity);
+        if (entity.entityId != targetEntityId) {
+            if (Entity* target = context.ecs.GetEntity(targetEntityId)) {
+                context.ecs.DestroyEntity(*target);
+            }
+        }
+    }
+
+    static void OnDestroy(ScriptContext& context, Entity, RemoveDuringUpdateScript&) {
+        ++destroys;
+        if (Entity* cleanup = context.ecs.GetEntity(cleanupEntityId)) {
+            context.ecs.DestroyEntity(*cleanup);
+        }
+    }
+};
+
 void ResetCounters() {
     CounterScript::creates = 0;
     CounterScript::updates = 0;
@@ -112,15 +137,21 @@ void TestLifecycleAndDenseUpdates() {
         assert(ecs.GetComponent<CounterScript>(second)->value == 1);
 
         ecs.RemoveComponent<CounterScript>(first);
+        assert(CounterScript::destroys == 0);
+        assert(ecs.GetEntityComponentView<CounterScript>().size() == 2);
+        ecs.FlushRemovals();
         assert(CounterScript::destroys == 1);
         assert(CounterScript::destroyedValue == 10);
         assert(ecs.GetEntityComponentView<CounterScript>().size() == 1);
         ecs.DestroyEntity(second);
+        assert(ecs.IsEntityAlive(second));
+        ecs.FlushRemovals();
         assert(CounterScript::destroys == 2);
         assert(CounterScript::destroyedValue == 1);
         assert(OtherScript::destroys == 0);
         assert(ecs.GetEntityComponentView<CounterScript>().empty());
         ecs.DestroyEntity(first);
+        ecs.FlushRemovals();
         assert(OtherScript::destroys == 1);
     }
     assert(CounterScript::destroys == 2);
@@ -146,6 +177,8 @@ void TestScriptManagerProxies() {
     assert(scripts.GetScript<CounterScript>(entity)->value == 5);
 
     scripts.RemoveScript<CounterScript>(entity);
+    assert(CounterScript::destroys == 0);
+    ecs.FlushRemovals();
     assert(CounterScript::destroys == 1);
     assert(CounterScript::destroyedValue == 5);
     assert(!scripts.GetScript<CounterScript>(entity));
@@ -160,6 +193,7 @@ void TestInheritedNoOpCallbacks() {
     assert(data);
     scripts.UpdateAllScripts();
     scripts.RemoveScript<NoOpScript>(entity);
+    ecs.FlushRemovals();
     assert(!scripts.GetScript<NoOpScript>(entity));
 }
 
@@ -181,6 +215,7 @@ void TestComponentAccessFromScript() {
     assert(scripts.GetScript<ReferenceScript>(owner)->targetValue == 12);
 
     ecs.DestroyEntity(target);
+    ecs.FlushRemovals();
     const Entity replacement = *ecs.CreateEntity();
     assert(replacement.entityRuntimeIdx == target.entityRuntimeIdx);
     ecs.AddComponent<ValueComponent>(replacement)->value = 99;
@@ -203,11 +238,48 @@ void TestRegistrationAfterExistingComponent() {
         assert(CounterScript::updates == 1);
         assert(ecs.GetComponent<CounterScript>(entity)->value == 18);
         ecs.RemoveComponent<CounterScript>(entity);
+        ecs.FlushRemovals();
         assert(CounterScript::destroys == 1);
         assert(CounterScript::destroyedValue == 18);
     }
     assert(CounterScript::destroys == 1);
     assert(!ecs.GetComponent<CounterScript>(entity));
+}
+
+void TestDeferredRemovalDuringUpdate() {
+    RemoveDuringUpdateScript::updates = 0;
+    RemoveDuringUpdateScript::destroys = 0;
+    EcsManager ecs;
+    ScriptManager scripts(ecs);
+    const Entity first = *ecs.CreateEntity();
+    const Entity second = *ecs.CreateEntity();
+    const Entity cleanup = *ecs.CreateEntity();
+    RemoveDuringUpdateScript::targetEntityId = second.entityId;
+    RemoveDuringUpdateScript::cleanupEntityId = cleanup.entityId;
+    RemoveDuringUpdateScript* firstData = scripts.AddScript<RemoveDuringUpdateScript>(first);
+    RemoveDuringUpdateScript* secondData = scripts.AddScript<RemoveDuringUpdateScript>(second);
+    assert(firstData && secondData);
+
+    scripts.UpdateAllScripts();
+    assert(RemoveDuringUpdateScript::updates == 2);
+    assert(RemoveDuringUpdateScript::destroys == 0);
+    assert(firstData == scripts.GetScript<RemoveDuringUpdateScript>(first));
+    assert(secondData == scripts.GetScript<RemoveDuringUpdateScript>(second));
+    assert(ecs.IsEntityAlive(second));
+    ecs.DestroyEntity(second); // duplicate request must not invoke OnDestroy twice
+    const Entity added = *ecs.CreateEntity();
+    ValueComponent* addedValue = ecs.AddComponent<ValueComponent>(added);
+    assert(addedValue);
+    addedValue->value = 42;
+
+    ecs.FlushRemovals();
+    assert(RemoveDuringUpdateScript::destroys == 2);
+    assert(!scripts.GetScript<RemoveDuringUpdateScript>(first));
+    assert(!ecs.IsEntityAlive(second));
+    assert(!ecs.IsEntityAlive(cleanup));
+    assert(ecs.GetEntityComponentView<RemoveDuringUpdateScript>().empty());
+    assert(ecs.GetComponent<ValueComponent>(added) == addedValue);
+    assert(addedValue->value == 42);
 }
 
 void SerializeCounter(JsonArchive&, const CounterScript&) {}
@@ -254,6 +326,7 @@ int main() {
     TestInheritedNoOpCallbacks();
     TestComponentAccessFromScript();
     TestRegistrationAfterExistingComponent();
+    TestDeferredRemovalDuringUpdate();
     TestRegistrationPreservesSerialization();
     TestSceneSaveSkipsRuntimeScript();
 }

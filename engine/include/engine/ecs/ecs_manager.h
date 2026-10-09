@@ -22,7 +22,14 @@ public:
 	 */
 	const Entity * CreateEntity(UUID entityId, std::string name);
 	
+	/** @brief Queues an entity for destruction at the next FlushRemovals call. */
 	void DestroyEntity(Entity entity);
+	/**
+	 * @brief Applies queued component and entity removals at a safe point.
+	 * Queued entities and components remain accessible until this call.
+	 * Component references may be invalidated by the removals.
+	 */
+	void FlushRemovals();
 	bool IsEntityAlive(Entity entity) const;
 
 	Entity * GetEntity(UUID entityId);
@@ -67,12 +74,12 @@ public:
 		return component;
 	}
 	
+	/** @brief Queues a component for removal at the next FlushRemovals call. */
 	template <typename T>
 	void RemoveComponent(Entity entity) {
-		if (T* component = warehouse.GetComponent<T>(entity)) {
-			componentRegistry.OnDestroy(entity, *component);
+		if (warehouse.GetComponent<T>(entity)) {
+			pendingRemovals.push_back({entity.entityId, entity.entityRuntimeIdx, &RemoveComponentNow<T>});
 		}
-		warehouse.RemoveComponent<T>(entity);
 	}
 
 	template <typename T>
@@ -137,8 +144,25 @@ public:
 	void SetScene(Entity& entity);
 
 private:
+	struct PendingRemoval {
+		UUID entityId;
+		ECS_RID entityRuntimeIdx;
+		void (*removeComponent)(EcsManager&, Entity); // nullptr means destroy the entity
+	};
+
 	EcsWarehouse warehouse;
 	ECSComponentRegistry componentRegistry;
+	std::vector<PendingRemoval> pendingRemovals;
+	bool flushingRemovals = false;
 
+	template <typename T>
+	static void RemoveComponentNow(EcsManager& ecs, Entity entity) {
+		if (T* component = ecs.warehouse.GetComponent<T>(entity)) {
+			ecs.componentRegistry.OnDestroy(entity, *component);
+			ecs.warehouse.RemoveComponent<T>(entity);
+		}
+	}
+
+	void DestroyEntityNow(Entity entity);
 	void DetachEntity(Entity& entity);
 };

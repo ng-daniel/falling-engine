@@ -36,9 +36,13 @@ void TestValidityAndComponents() {
     assert(handle.GetComponent<ValueComponent>()->value == 7);
     assert(handle.GetComponentReadOnly<ValueComponent>()->value == 7);
     handle.RemoveComponent<ValueComponent>();
+    assert(handle.HasComponent<ValueComponent>());
+    ecs.FlushRemovals();
     assert(!handle.HasComponent<ValueComponent>());
     handle.RemoveComponent<ValueComponent>();
     handle.Destroy();
+    assert(handle.IsValid());
+    ecs.FlushRemovals();
     CheckInvalid(handle);
 }
 
@@ -51,6 +55,7 @@ void TestStorageMovement() {
 
     // Removing the first entry moves the second entry into its dense slot.
     first.RemoveComponent<ValueComponent>();
+    ecs.FlushRemovals();
     assert(second.GetComponent<ValueComponent>()->value == 22);
     for (int i = 0; i < 256; ++i) {
         const EntityHandle added(ecs, ecs.CreateEntity()->entityId);
@@ -70,6 +75,7 @@ void TestIdentityAndReuse() {
     assert(handle != EntityHandle{});
 
     handle.Destroy();
+    ecs.FlushRemovals();
     const Entity replacement = *ecs.CreateEntity(UUID{456}, "replacement");
     assert(replacement.entityRuntimeIdx == original.entityRuntimeIdx);
     CheckInvalid(handle);
@@ -79,6 +85,7 @@ void TestIdentityAndReuse() {
     assert(handle.IsValid());
     assert(handle.HasComponent<Transform>());
     handle.Destroy();
+    ecs.FlushRemovals();
     CheckInvalid(handle);
 }
 }

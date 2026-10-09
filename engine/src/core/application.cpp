@@ -79,6 +79,7 @@ void Application::Run() {
         renderer.Render();
         renderer.EndFrame();
 
+        ecsManager.FlushRemovals();
         window.EndFrame();
     }
 }
