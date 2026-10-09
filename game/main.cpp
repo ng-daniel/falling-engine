@@ -13,6 +13,8 @@
 
 #include "engine/utils/quaternion.h"
 
+#include "scripts/rotator.h"
+
 void PrintModelNodeTree(ModelNode node, int depth = 0) {
     std::string indent(depth * 2, ' ');
     Logger::Info("main", indent + "Node name: " + node.name + ", Mesh ID: " + std::to_string(node.meshId));
@@ -95,6 +97,8 @@ int main() {
     /// MODEL BUILDER TEST
     /// ---------------------------------------------------------------
     
+    ScriptManager& scriptManager = app.GetScriptSystem();
+
     float distance = 1.67f;
     int gridSize = 16;
     for (int x = 0; x < gridSize; ++x) {
@@ -110,10 +114,8 @@ int main() {
                     *modelRootTransform,
                     Vector3(static_cast<float>(x * distance), static_cast<float>(y * distance), static_cast<float>(z * distance))
                 );
-                // Transform::SetRotation(
-                //     *modelRootTransform,
-                //     Quaternion::EulerToQuaternion(45.0, 180.0, 30.0)
-                // );
+                Rotator * rotator = scriptManager.AddScript<Rotator>(*modelRootEntity);
+                Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 50.0f));
             }
         }
     }
