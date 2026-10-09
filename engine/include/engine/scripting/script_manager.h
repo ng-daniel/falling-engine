@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <typeindex>
 #include <type_traits>
 #include <utility>
@@ -116,11 +117,14 @@ public:
     }
 
     /**
-     * @brief Calls the update callback for every registered script type
+     * @brief Updates types registered at the start of this pass.
+     * Types registered by a callback begin updating on the next pass.
      */
     void UpdateAllScripts() {
-        for (const ScriptRegistryInfo& registration : registrations) {
-            registration.updateCallback(context);
+        const size_t registrationCount = registrations.size();
+        for (size_t i = 0; i < registrationCount; ++i) {
+            const auto updateCallback = registrations[i].updateCallback;
+            updateCallback(context);
         }
     }
 

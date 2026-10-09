@@ -93,6 +93,36 @@ struct RemoveDuringUpdateScript : ScriptData {
     }
 };
 
+struct LateRegisteredScript : ScriptData {
+    static inline int creates = 0;
+    static inline int updates = 0;
+    std::string GetType() const override { return "LateRegisteredScript"; }
+    static void OnCreate(ScriptContext&, Entity, LateRegisteredScript&) { ++creates; }
+    static void OnUpdate(ScriptContext&, Entity, LateRegisteredScript&) { ++updates; }
+};
+
+struct AddsScriptOnUpdate : ScriptData {
+    static inline ScriptManager* scripts = nullptr;
+    static inline int updates = 0;
+    bool added = false;
+    std::string GetType() const override { return "AddsScriptOnUpdate"; }
+
+    static void OnUpdate(ScriptContext&, Entity entity, AddsScriptOnUpdate& data) {
+        ++updates;
+        if (!data.added) {
+            data.added = true;
+            LateRegisteredScript* added = scripts->AddScript<LateRegisteredScript>(entity);
+            assert(added);
+        }
+    }
+};
+
+struct TrailingScript : ScriptData {
+    static inline int updates = 0;
+    std::string GetType() const override { return "TrailingScript"; }
+    static void OnUpdate(ScriptContext&, Entity, TrailingScript&) { ++updates; }
+};
+
 void ResetCounters() {
     CounterScript::creates = 0;
     CounterScript::updates = 0;
@@ -282,6 +312,34 @@ void TestDeferredRemovalDuringUpdate() {
     assert(addedValue->value == 42);
 }
 
+void TestRegistrationDuringUpdate() {
+    AddsScriptOnUpdate::updates = 0;
+    TrailingScript::updates = 0;
+    LateRegisteredScript::creates = 0;
+    LateRegisteredScript::updates = 0;
+
+    EcsManager ecs;
+    ScriptManager scripts(ecs);
+    AddsScriptOnUpdate::scripts = &scripts;
+    const Entity entity = *ecs.CreateEntity();
+    AddsScriptOnUpdate* source = scripts.AddScript<AddsScriptOnUpdate>(entity);
+    TrailingScript* trailing = scripts.AddScript<TrailingScript>(entity);
+    assert(source && trailing);
+
+    scripts.UpdateAllScripts();
+    assert(AddsScriptOnUpdate::updates == 1);
+    assert(TrailingScript::updates == 1);
+    assert(LateRegisteredScript::creates == 1);
+    assert(LateRegisteredScript::updates == 0);
+    assert(scripts.GetScript<LateRegisteredScript>(entity));
+
+    scripts.UpdateAllScripts();
+    assert(AddsScriptOnUpdate::updates == 2);
+    assert(TrailingScript::updates == 2);
+    assert(LateRegisteredScript::updates == 1);
+    AddsScriptOnUpdate::scripts = nullptr;
+}
+
 void SerializeCounter(JsonArchive&, const CounterScript&) {}
 void DeserializeCounter(JsonArchive&, CounterScript&) {}
 
@@ -327,6 +385,7 @@ int main() {
     TestComponentAccessFromScript();
     TestRegistrationAfterExistingComponent();
     TestDeferredRemovalDuringUpdate();
+    TestRegistrationDuringUpdate();
     TestRegistrationPreservesSerialization();
     TestSceneSaveSkipsRuntimeScript();
 }
