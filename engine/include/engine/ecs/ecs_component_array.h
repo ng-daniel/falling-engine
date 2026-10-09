@@ -2,11 +2,13 @@
 
 #include "engine/ecs/components/component.h"
 #include "engine/ecs/ecs_structures.h"
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <algorithm>
 #include <vector>
 #include <memory>
+#include <utility>
 
 /**
  * @brief A paged array implementation.
@@ -108,6 +110,54 @@ private:
     }
 };
 
+/**
+ * @brief Packed paged storage with stable addresses across additions.
+ * Each page is a vector reserved to a fixed capacity, so appending cannot
+ * move elements in existing pages.
+ */
+template <typename T, size_t PAGE_SIZE>
+class PagedDenseArray {
+public:
+    static_assert(PAGE_SIZE > 0);
+
+    template <typename... Args>
+    T& EmplaceBack(Args&&... args) {
+        const size_t pageIndex = count / PAGE_SIZE;
+        if (pageIndex == pages.size()) {
+            std::vector<T> page;
+            page.reserve(PAGE_SIZE);
+            pages.push_back(std::move(page));
+        }
+        std::vector<T>& page = pages[pageIndex];
+        page.emplace_back(std::forward<Args>(args)...);
+        ++count;
+        return page.back();
+    }
+
+    void PopBack() {
+        const size_t pageIndex = (count - 1) / PAGE_SIZE;
+        pages[pageIndex].pop_back();
+        --count;
+        if (pages[pageIndex].empty()) {
+            pages.pop_back();
+        }
+    }
+
+    T& operator[](size_t index) {
+        return pages[index / PAGE_SIZE][index % PAGE_SIZE];
+    }
+
+    const T& operator[](size_t index) const {
+        return pages[index / PAGE_SIZE][index % PAGE_SIZE];
+    }
+
+    size_t Size() const { return count; }
+
+private:
+    size_t count = 0;
+    std::vector<std::vector<T>> pages;
+};
+
 class IEcsComponentArray {
 public:
     virtual ~IEcsComponentArray() = default;
@@ -165,15 +215,16 @@ public:
             return nullptr; // component already exists for this entityRuntimeIdx
         }
 
-        // add component
-        denseArray.push_back(T());
-        uint32_t newIdx = denseArray.size() - 1;
-        
-        // update mappings
+        const uint32_t newIdx = static_cast<uint32_t>(denseArray.Size());
+        T& component = denseArray.EmplaceBack();
+        try {
+            denseEntityArray.EmplaceBack(entityRuntimeIdx);
+        } catch (...) {
+            denseArray.PopBack();
+            throw;
+        }
         entityToDenseMap[entityRuntimeIdx] = newIdx;
-        denseEntityArray.push_back(entityRuntimeIdx);
-
-        return &denseArray[newIdx];
+        return &component;
     }
 
     /**
@@ -191,7 +242,7 @@ public:
         }
 
         // swap the target idx with the last idx
-        uint32_t lastIdx = denseArray.size() - 1;
+        uint32_t lastIdx = denseArray.Size() - 1;
         if (*targetIdx != lastIdx) {
             denseArray[*targetIdx] = denseArray[lastIdx];
 
@@ -200,25 +251,29 @@ public:
             entityToDenseMap[swappedEntityRuntimeIdx] = *targetIdx;
         }
 
-        denseArray.pop_back(); // delete the last idx, which is now our target
-        denseEntityArray.pop_back();
+        denseArray.PopBack(); // delete the last idx, which is now our target
+        denseEntityArray.PopBack();
         *targetIdx = TOMBSTONE;
     }
 
-    std::vector<T> & GetDenseArray() {
-        return denseArray;
+    T& GetComponentAt(size_t index) {
+        return denseArray[index];
+    }
+
+    ECS_RID GetEntityRuntimeIdAt(size_t index) const {
+        return denseEntityArray[index];
     }
 
     EntityComponentView<T> GetEntityComponentView() {
         return {
-            .entityRuntimeIds = denseEntityArray.data(),
-            .components = denseArray.data(),
-            .count = denseArray.size()
+            .array = this,
+            .count = denseArray.Size()
         };
     }
 
 private:
     static constexpr uint32_t PAGE_SIZE = 1024;
+    static constexpr size_t DENSE_PAGE_SIZE = 256;
 
     // reserve highest value of uint32_t as a tombstone marker
     static constexpr ECS_RID MAX_ENTITIES = std::numeric_limits<ECS_RID>::max() - 1;
@@ -227,9 +282,9 @@ private:
     static constexpr uint32_t TOMBSTONE = std::numeric_limits<uint32_t>::max();
 
     PagedArray<uint32_t, PAGE_SIZE> entityToDenseMap; // runtimeIdx -> denseIdx
-    std::vector<T> denseArray; // denseIdx -> component
+    PagedDenseArray<T, DENSE_PAGE_SIZE> denseArray; // denseIdx -> component
 
     // parallel arrays to map denseArray to entity runtime indices
-    std::vector<ECS_RID> denseEntityArray; // denseIdx -> runtimeIdx
+    PagedDenseArray<ECS_RID, DENSE_PAGE_SIZE> denseEntityArray; // denseIdx -> runtimeIdx
                                             // need this for the deletion swapping step
 };

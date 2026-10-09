@@ -16,7 +16,12 @@ public:
     /// ----------------------------------------------
 
 	const Entity * CreateEntity();
+
+	/**
+	 * IMPORTANT: only used by the scene serializer/builder, do NOT use anywhere else
+	 */
 	const Entity * CreateEntity(UUID entityId, std::string name);
+	
 	void DestroyEntity(Entity entity);
 	bool IsEntityAlive(Entity entity) const;
 
