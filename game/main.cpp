@@ -104,7 +104,7 @@ int main() {
     for (int x = 0; x < gridSize; ++x) {
         for (int z = 0; z < gridSize; ++z) {
             for (int y = 0; y < gridSize; ++y) {
-                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_MODEL.GetUUID());
+                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::HAMMERHEAD_SHARK_MODEL.GetUUID());
                 if (modelRootEntity) {
                     // Logger::Info("main", "Created model root entity with ID: " + std::to_string(modelRootEntity->entityId) + " and runtime idx: " + std::to_string(modelRootEntity->entityRuntimeIdx));
                 }
@@ -138,7 +138,7 @@ int main() {
     /// ---------------------------------------------------------------
 
     MaterialAsset* modelMaterial = assetManager.RequestAsset<MaterialAsset>(
-        GameAssets::RYUJIN7_MATERIAL_MATERIAL
+        GameAssets::HAMMERHEAD_SHARK_MATERIAL_MATERIAL
     );
     const ShaderAsset* basicVertexShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
         GameAssets::BASICVERT_SHADER
