@@ -99,7 +99,7 @@ int main() {
     
     ScriptManager& scriptManager = app.GetScriptSystem();
 
-    float distance = 1.67f;
+    float distance = 2.5f;
     int gridSize = 16;
     for (int x = 0; x < gridSize; ++x) {
         for (int z = 0; z < gridSize; ++z) {
@@ -115,7 +115,11 @@ int main() {
                     Vector3(static_cast<float>(x * distance), static_cast<float>(y * distance), static_cast<float>(z * distance))
                 );
                 Rotator * rotator = scriptManager.AddScript<Rotator>(*modelRootEntity);
-                Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 50.0f));
+                Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
+                Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
+                Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
+                Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
+                Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
             }
         }
     }

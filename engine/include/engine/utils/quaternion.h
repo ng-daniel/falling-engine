@@ -2,6 +2,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "engine/utils/vector.h"
 
 struct Quaternion {
 	float x = 0.0f;
@@ -35,4 +36,5 @@ struct Quaternion {
 		);
 	}
 	static Quaternion EulerToQuaternion(float pitch, float yaw, float roll);
+	static Quaternion AngleAxis(float angle, const Vector3& axis);
 };
