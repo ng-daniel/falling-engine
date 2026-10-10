@@ -82,7 +82,7 @@ namespace {
     }; 
 
 
-    std::string BuildSubAssetNameFromGLTFName(const std::string& sourceName, const std::string& glTFName, Asset::AssetType assetType) {
+    std::string BuildSubAssetNameFromGLTFName(ModelImportContext& context, const std::string& glTFName, Asset::AssetType assetType) {
         // replace invalid characters with underscores
 
         std::string normalizedGLTFName = glTFName;
@@ -93,7 +93,29 @@ namespace {
                 pos += 1;
             }
         }
-        return sourceName + "_" + normalizedGLTFName;
+        const std::string baseName = context.sourceAssetMetadata.path.stem().string() + "_" + normalizedGLTFName;
+        if (context.usedSubAssetIdentifiers.insert(baseName).second) {
+            return baseName;
+        }
+
+        const char* typeSuffix;
+        switch (assetType) {
+            case Asset::AssetType::Image: typeSuffix = "_image"; break;
+            case Asset::AssetType::Texture: typeSuffix = "_texture"; break;
+            case Asset::AssetType::Material: typeSuffix = "_material"; break;
+            case Asset::AssetType::Mesh: typeSuffix = "_mesh"; break;
+            default: throw std::runtime_error("Unsupported model sub-asset type.");
+        }
+
+        const std::string suffixedName = baseName + typeSuffix;
+        for (size_t index = 1;; ++index) {
+            const std::string candidate = index == 1
+                ? suffixedName
+                : suffixedName + "_" + std::to_string(index);
+            if (context.usedSubAssetIdentifiers.insert(candidate).second) {
+                return candidate;
+            }
+        }
     }
 }
 
@@ -213,7 +235,7 @@ ModelImporter::LoadAsset(SourceAssetMetadata& metadata, AssetWarehouseService& a
 const ImageAsset* ModelImporter::ProcessImage(
     const cgltf_image& image,
     const std::string& imageName,
-    const ModelImportContext& modelImportContext
+    ModelImportContext& modelImportContext
 ) {
     /*
     3 valid cases + 1 invalid case:
@@ -224,13 +246,14 @@ const ImageAsset* ModelImporter::ProcessImage(
     else: ERROR
     */
 
-    std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
-        modelImportContext.sourceAssetMetadata.path.stem().string(),
-        imageName,
-        Asset::AssetType::Image
-    );
-    RuntimeAssetMetadata* imageRuntimeMetadata =
-        modelImportContext.sourceAssetMetadata.TryGetSubAssetMetadata(subAssetIdentifier);
+    std::string subAssetIdentifier;
+    RuntimeAssetMetadata* imageRuntimeMetadata = nullptr;
+    if (image.buffer_view != nullptr || (image.uri != nullptr && strncmp(image.uri, "data:", 5) == 0)) {
+        subAssetIdentifier = BuildSubAssetNameFromGLTFName(
+            modelImportContext, imageName, Asset::AssetType::Image
+        );
+        imageRuntimeMetadata = modelImportContext.sourceAssetMetadata.TryGetSubAssetMetadata(subAssetIdentifier);
+    }
 
     if (image.buffer_view != nullptr) {
         /*
@@ -316,7 +339,7 @@ const ImageAsset* ModelImporter::ProcessImage(
  * @param modelImportContext The context containing mappings and metadata for the import process.
  * @return const TextureAsset* A pointer to the imported TextureAsset.
  */
-const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, const ModelImportContext& modelImportContext) {
+const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, ModelImportContext& modelImportContext) {
     if (texture.image == nullptr) {
         throw std::runtime_error("Texture is missing an image reference.");
     }
@@ -340,9 +363,7 @@ const TextureAsset* ModelImporter::ProcessTexture(const cgltf_texture& texture, 
             ? texture.image->name
             : "texture");
     const std::string subAssetIdentifier = BuildSubAssetNameFromGLTFName(
-        modelImportContext.sourceAssetMetadata.path.stem().string(),
-        textureName,
-        Asset::AssetType::Texture
+        modelImportContext, textureName, Asset::AssetType::Texture
     );
 
     const TextureAsset* textureAsset = TextureImporter::LoadAssetFromImage(
@@ -383,9 +404,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
 ) {
     auto materialAsset = std::make_unique<MaterialAsset>();
     materialAsset->name = BuildSubAssetNameFromGLTFName(
-        modelImportContext.sourceAssetMetadata.path.stem().string(),
-        materialName,
-        Asset::AssetType::Material
+        modelImportContext, materialName, Asset::AssetType::Material
     );
     materialAsset->type = Asset::AssetType::Material;
 
@@ -440,7 +459,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
  * @param modelImportContext 
  * @return const MeshAsset* 
  */
-const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelImportContext& modelImportContext) {
+const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportContext& modelImportContext) {
     if (modelImportContext.parsedData == nullptr) {
         throw std::runtime_error("Model import context is missing parsed glTF data.");
     }
@@ -454,9 +473,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, const ModelI
         ? mesh.name
         : "mesh_" + std::to_string(cgltf_mesh_index(modelImportContext.parsedData, &mesh));
     meshAsset->name = BuildSubAssetNameFromGLTFName(
-        modelImportContext.sourceAssetMetadata.path.stem().string(),
-        meshName,
-        Asset::AssetType::Mesh
+        modelImportContext, meshName, Asset::AssetType::Mesh
     );
     meshAsset->type = Asset::AssetType::Mesh;
 

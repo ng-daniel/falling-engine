@@ -13,6 +13,8 @@
 
 #include "engine/utils/quaternion.h"
 
+#include "scripts/rotator.h"
+
 void PrintModelNodeTree(ModelNode node, int depth = 0) {
     std::string indent(depth * 2, ' ');
     Logger::Info("main", indent + "Node name: " + node.name + ", Mesh ID: " + std::to_string(node.meshId));
@@ -95,12 +97,14 @@ int main() {
     /// MODEL BUILDER TEST
     /// ---------------------------------------------------------------
     
-    float distance = 1.67f;
+    ScriptManager& scriptManager = app.GetScriptSystem();
+
+    float distance = 2.5f;
     int gridSize = 16;
     for (int x = 0; x < gridSize; ++x) {
         for (int z = 0; z < gridSize; ++z) {
             for (int y = 0; y < gridSize; ++y) {
-                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_MODEL.GetUUID());
+                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::HAMMERHEAD_SHARK_MODEL.GetUUID());
                 if (modelRootEntity) {
                     // Logger::Info("main", "Created model root entity with ID: " + std::to_string(modelRootEntity->entityId) + " and runtime idx: " + std::to_string(modelRootEntity->entityRuntimeIdx));
                 }
@@ -110,10 +114,12 @@ int main() {
                     *modelRootTransform,
                     Vector3(static_cast<float>(x * distance), static_cast<float>(y * distance), static_cast<float>(z * distance))
                 );
-                Transform::SetRotation(
-                    *modelRootTransform,
-                    Quaternion::EulerToQuaternion(45.0, 180.0, 30.0)
-                );
+                Rotator * rotator = scriptManager.AddScript<Rotator>(*modelRootEntity);
+                Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
+                Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
+                Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
+                Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
+                Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
             }
         }
     }
@@ -136,7 +142,7 @@ int main() {
     /// ---------------------------------------------------------------
 
     MaterialAsset* modelMaterial = assetManager.RequestAsset<MaterialAsset>(
-        GameAssets::RYUJIN7_MATERIAL_MATERIAL
+        GameAssets::HAMMERHEAD_SHARK_MATERIAL_MATERIAL
     );
     const ShaderAsset* basicVertexShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
         GameAssets::BASICVERT_SHADER

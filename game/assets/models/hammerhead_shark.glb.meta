@@ -1,0 +1,42 @@
+{
+    "UUID": "10979246144208262100",
+    "assetType": "Model",
+    "path": "./game/assets/models/hammerhead_shark.glb",
+    "runtimeAssets": [
+        {
+            "UUID": "9021501529953154851",
+            "assetType": "Image",
+            "exportName": "hammerhead_shark_Hammerhead_Shark",
+            "sourceUUID": "10979246144208262100",
+            "subAssetIdentifier": "hammerhead_shark_Hammerhead_Shark"
+        },
+        {
+            "UUID": "16797733926020898749",
+            "assetType": "Material",
+            "exportName": "hammerhead_shark_Material",
+            "sourceUUID": "10979246144208262100",
+            "subAssetIdentifier": "hammerhead_shark_Material"
+        },
+        {
+            "UUID": "16417607137136563587",
+            "assetType": "Mesh",
+            "exportName": "hammerhead_shark_sm_1_0_0_mesh0000_001",
+            "sourceUUID": "10979246144208262100",
+            "subAssetIdentifier": "hammerhead_shark_sm_1_0_0_mesh0000_001"
+        },
+        {
+            "UUID": "7498737691062202078",
+            "assetType": "Model",
+            "exportName": "hammerhead_shark",
+            "sourceUUID": "10979246144208262100",
+            "subAssetIdentifier": "hammerhead_shark"
+        },
+        {
+            "UUID": "3945802249470509820",
+            "assetType": "Texture",
+            "exportName": "hammerhead_shark_Hammerhead_Shark_texture",
+            "sourceUUID": "10979246144208262100",
+            "subAssetIdentifier": "hammerhead_shark_Hammerhead_Shark_texture"
+        }
+    ]
+}

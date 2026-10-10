@@ -1,15 +1,14 @@
 #pragma once
 
 #include <algorithm>
-#include <functional>
-#include <memory>
+#include <cstddef>
 #include <typeindex>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "engine/ecs/ecs_manager.h"
-#include "engine/scripting/script_runtime.h"
+#include "engine/scripting/components/script_data.h"
 
 /**
  * @brief Holds the context for script operations, including access to the ECS manager.
@@ -17,16 +16,34 @@
  */
 struct ScriptContext {
     EcsManager& ecs;
+
+    /**
+     * @brief Gets a component from an entity supplied to a script callback.
+     * @return The component, or nullptr if the entity does not have it.
+     */
+    template <typename T>
+    T* GetComponent(Entity entity) {
+        return ecs.GetComponent<T>(entity);
+    }
+
+    /**
+     * @brief Resolves an entity UUID and gets its current component.
+     * @return The component, or nullptr if the entity or component is missing.
+     */
+    template <typename T>
+    T* GetComponent(UUID entityId) {
+        Entity* entity = ecs.GetEntity(entityId);
+        return entity ? ecs.GetComponent<T>(*entity) : nullptr;
+    }
 };
 
 /**
- * @brief Stores the runtime and update callback for a specific script type.
+ * @brief Stores the update callback for a specific script type.
  * 
  */
 struct ScriptRegistryInfo {
     std::type_index type;
-    std::unique_ptr<ScriptRuntime> runtime;
-    std::function<void(ScriptContext&, ScriptRuntime&)> updateCallback;
+    void (*updateCallback)(ScriptContext&);
 };
 
 /**
@@ -41,8 +58,8 @@ public:
     ScriptManager& operator=(const ScriptManager&) = delete;
 
     /**
-     * @brief Adds script data and registers its runtime on first use.
-     * @tparam T Script data type with a nested Runtime type.
+     * @brief Adds script data and registers its behavior on first use.
+     * @tparam T Script data type with static lifecycle callbacks.
      * @param entity Entity that owns the script data.
      * @param initialValue Initial script data.
      * @return The added script data, or nullptr if it could not be added.
@@ -50,7 +67,7 @@ public:
     template <typename T>
     T* AddScript(Entity entity, T initialValue = T{}) {
         if (!IsTypeAlreadyRegistered(typeid(T))) {
-            RegisterScript<T, typename T::Runtime>();
+            RegisterScript<T>();
         }
         return context.ecs.AddComponent<T>(entity, std::move(initialValue));
     }
@@ -73,60 +90,54 @@ public:
     }
 
     /**
-     * @brief Called to register a script type and its associated runtime.
+     * @brief Registers a script component's static lifecycle callbacks.
      * Only call once per script type.
      * 
-     * @tparam T 
-     * @tparam TRuntime 
+     * @tparam T Script data component type.
      */
-    template <typename T, typename TRuntime>
+    template <typename T>
     bool RegisterScript() {
         static_assert(std::is_base_of_v<ScriptData, T>, "Script data must derive from ScriptData");
-        static_assert(std::is_base_of_v<ScriptRuntime, TRuntime>, "Script runtime must derive from ScriptRuntime");
 
         if (IsTypeAlreadyRegistered(typeid(T))) {
             return false;
         }
 
-        // allocate space for the new registration
-        // and the script runtime class
-        registrations.reserve(registrations.size() + 1);
-        auto runtime = std::make_unique<TRuntime>();
-        ScriptRuntime * runtimePtr = runtime.get();
-        
         context.ecs.GetComponentRegistry().RegisterLifecycle<T>(
-            [this, runtimePtr](Entity entity, T* data) {
-                runtimePtr->OnCreate(context, entity, *data);
+            [this](Entity entity, T* data) {
+                T::OnCreate(context, entity, *data);
             },
-            [this, runtimePtr](Entity entity, T* data) {
-                runtimePtr->OnDestroy(context, entity, *data);
+            [this](Entity entity, T* data) {
+                T::OnDestroy(context, entity, *data);
             }
         );
 
-        ScriptRegistryInfo reg = {
-            typeid(T), std::move(runtime),
-            [](ScriptContext& context, ScriptRuntime& runtime) {
-                for (auto [runtimeId, data] : context.ecs.GetEntityComponentView<T>()) {
-                    if (Entity* entity = context.ecs.GetEntity(runtimeId)) {
-                        runtime.OnUpdate(context, *entity, data);
-                    }
-                }
-            }
-        };
-        registrations.push_back(std::move(reg));
+        registrations.push_back({typeid(T), &UpdateScriptType<T>});
         return true;
     }
 
     /**
-     * @brief Calls the update callback for every registered script type
+     * @brief Updates types registered at the start of this pass.
+     * Types registered by a callback begin updating on the next pass.
      */
     void UpdateAllScripts() {
-        for (const ScriptRegistryInfo& registration : registrations) {
-            registration.updateCallback(context, *registration.runtime);
+        const size_t registrationCount = registrations.size();
+        for (size_t i = 0; i < registrationCount; ++i) {
+            const auto updateCallback = registrations[i].updateCallback;
+            updateCallback(context);
         }
     }
 
 private:
+    template <typename T>
+    static void UpdateScriptType(ScriptContext& context) {
+        for (auto [runtimeId, data] : context.ecs.GetEntityComponentView<T>()) {
+            if (Entity* entity = context.ecs.GetEntity(runtimeId)) {
+                T::OnUpdate(context, *entity, data);
+            }
+        }
+    }
+
     bool IsTypeAlreadyRegistered(const std::type_index& type) {
         bool typeExists = std::any_of(
             registrations.begin(),

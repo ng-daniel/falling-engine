@@ -1,4 +1,5 @@
 #include "engine/ecs/ecs_warehouse.h"
+#include "engine/ecs/components/transform.h"
 
 #include <cassert>
 
@@ -54,9 +55,63 @@ void TestSeparateWarehouses() {
     second.DeleteEntity(secondEntity);
     assert(first.GetComponent<FirstComponent>(firstEntity)->value == 1);
 }
+
+void TestPagedDenseGrowthAndMappings() {
+    EcsWarehouse warehouse;
+    const Entity first = *warehouse.CreateEntityNew();
+    const Entity second = *warehouse.CreateEntityNew();
+    FirstComponent* firstComponent = warehouse.AddComponent<FirstComponent>(first);
+    FirstComponent* secondComponent = warehouse.AddComponent<FirstComponent>(second);
+    firstComponent->value = 1;
+    secondComponent->value = 2;
+    Transform* firstTransform = warehouse.GetComponent<Transform>(first);
+    assert(firstTransform);
+
+    Entity lastAdded = second;
+    size_t visited = 0;
+    auto initialView = warehouse.GetEntityComponentView<FirstComponent>();
+    for (auto [runtimeId, component] : initialView) {
+        if (runtimeId == first.entityRuntimeIdx) {
+            for (int i = 0; i < 600; ++i) {
+                lastAdded = *warehouse.CreateEntityNew();
+                warehouse.AddComponent<FirstComponent>(lastAdded)->value = 1000 + i;
+            }
+            component.value = 41;
+        }
+        ++visited;
+    }
+
+    assert(visited == 2);
+    assert(initialView.size() == 2);
+    assert(firstComponent == warehouse.GetComponent<FirstComponent>(first));
+    assert(secondComponent == warehouse.GetComponent<FirstComponent>(second));
+    assert(firstTransform == warehouse.GetComponent<Transform>(first));
+    assert(firstComponent->value == 41);
+    assert(secondComponent->value == 2);
+
+    auto fullView = warehouse.GetEntityComponentView<FirstComponent>();
+    assert(fullView.size() == 602);
+    for (auto [runtimeId, component] : fullView) {
+        Entity* entity = warehouse.FindEntityByRuntimeId(runtimeId);
+        assert(entity);
+        assert(warehouse.GetComponent<FirstComponent>(*entity) == &component);
+    }
+
+    warehouse.RemoveComponent<FirstComponent>(second);
+    assert(!warehouse.GetComponent<FirstComponent>(second));
+    assert(warehouse.GetComponent<FirstComponent>(lastAdded)->value == 1599);
+    auto afterRemoval = warehouse.GetEntityComponentView<FirstComponent>();
+    assert(afterRemoval.size() == 601);
+    for (auto [runtimeId, component] : afterRemoval) {
+        Entity* entity = warehouse.FindEntityByRuntimeId(runtimeId);
+        assert(entity);
+        assert(warehouse.GetComponent<FirstComponent>(*entity) == &component);
+    }
+}
 }
 
 int main() {
     TestQueriesBeforeCreation();
     TestSeparateWarehouses();
+    TestPagedDenseGrowthAndMappings();
 }

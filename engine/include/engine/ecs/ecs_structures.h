@@ -21,8 +21,12 @@ struct Entity {
     }
 };
 
+template <typename T>
+class EcsComponentArray;
+
 /**
- * @brief Return structure for iterating over entity-component view requests
+ * @brief Iterates a snapshot of the current dense component count.
+ * Additions keep the view valid but appear only in a new view.
  * @tparam T
  */
 template <typename T>
@@ -30,13 +34,13 @@ struct EntityComponentView {
     struct Iterator {
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = std::tuple<ECS_RID&, T&>;
+        using value_type = std::tuple<ECS_RID, T&>;
 
         const EntityComponentView* view;
         size_t index;
 
         value_type operator*() const {
-            return {view->entityRuntimeIds[index], view->components[index]};
+            return {view->array->GetEntityRuntimeIdAt(index), view->array->GetComponentAt(index)};
         }
 
         Iterator& operator++() {
@@ -64,7 +68,6 @@ struct EntityComponentView {
     size_t size() const { return count; }
     bool empty() const { return count == 0; }
 
-    ECS_RID* entityRuntimeIds = nullptr;
-    T* components = nullptr;
+    EcsComponentArray<T>* array = nullptr;
     size_t count = 0;
 };

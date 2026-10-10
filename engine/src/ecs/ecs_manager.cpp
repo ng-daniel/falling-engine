@@ -18,7 +18,7 @@ const Entity * EcsManager::CreateEntity(UUID entityId, std::string name) {
 }
 
 /**
- * @brief Deletes an entity and all of its components
+ * @brief Queues an entity and its components for removal.
  * 
  * @param entity 
  */
@@ -26,6 +26,32 @@ void EcsManager::DestroyEntity(Entity entity) {
 	if (!warehouse.IsAlive(entity)) {
 		return;
 	}
+	pendingRemovals.push_back({entity.entityId, entity.entityRuntimeIdx, nullptr});
+}
+
+void EcsManager::FlushRemovals() {
+	if (flushingRemovals) {
+		return;
+	}
+	flushingRemovals = true;
+	for (size_t i = 0; i < pendingRemovals.size(); ++i) {
+		const PendingRemoval removal = pendingRemovals[i];
+		Entity* current = warehouse.FindEntity(removal.entityId);
+		if (!current || current->entityRuntimeIdx != removal.entityRuntimeIdx) {
+			continue;
+		}
+		const Entity entity = *current;
+		if (removal.removeComponent) {
+			removal.removeComponent(*this, entity);
+		} else {
+			DestroyEntityNow(entity);
+		}
+	}
+	pendingRemovals.clear();
+	flushingRemovals = false;
+}
+
+void EcsManager::DestroyEntityNow(Entity entity) {
 	std::vector<Component*> components;
 	warehouse.GetAllComponents(entity, components);
 	for (Component* component : components) {

@@ -6,6 +6,8 @@
 #include "external/cgltf.h"
 #include "engine/assets/asset_warehouse_service.h"
 
+#include <unordered_set>
+
 /**
 * @brief Represents a task for importing a model asset.
 * Stores temporary mapping buffers
@@ -31,6 +33,9 @@ public:
     std::unordered_map<cgltf_texture*, UUID> importedTextures;
     std::unordered_map<cgltf_material*, UUID> importedMaterials;
     std::unordered_map<cgltf_mesh*, UUID> importedMeshes;
+
+    // Names assigned to this model's sub-assets; external images belong to their own source.
+    std::unordered_set<std::string> usedSubAssetIdentifiers;
 };
 
 /**
@@ -52,7 +57,7 @@ private:
 
     static const MeshAsset* ProcessMesh(
         const cgltf_mesh& mesh,
-        const ModelImportContext& importData
+        ModelImportContext& importData
     );
 
     static const MaterialAsset* ProcessMaterial(
@@ -63,13 +68,13 @@ private:
 
     static const TextureAsset* ProcessTexture(
         const cgltf_texture& texture,
-        const ModelImportContext& importData
+        ModelImportContext& importData
     );
     
     static const ImageAsset* ProcessImage(
         const cgltf_image& image,
         const std::string& imageName,
-        const ModelImportContext& importData
+        ModelImportContext& importData
     );
 
     static const std::unique_ptr<ModelAsset> CompileModelAsset(
