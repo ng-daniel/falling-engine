@@ -41,13 +41,13 @@ namespace {
     DrawCommand BuildDrawCommand(
         PrimitiveRenderData* primitive,
         SPDEVICE_RID shaderProgramId,
-        const Matrix4& modelTransform,
+        std::span<const Matrix4> modelTransforms,
         const GraphicsDeviceMaterialData& material
     ) {
         DrawCommand command;
         command.primitive = primitive;
         command.shaderProgram = shaderProgramId;
-        command.model = modelTransform;
+        command.models = modelTransforms;
         command.material = material;
         return command;
     }
@@ -93,8 +93,10 @@ bool Renderer::Init(WindowManager& window) {
 }
 
 void Renderer::BeginFrame(const InputManager& inputManager) {
-    frameSubmissions.clear();
     frameData.commands.clear();
+    for (BatchedRenderSubmission& batch : meshBatches) {
+        batch.worldTransforms.clear();
+    }
     if (window) {
         frameData.frame = debugCamera.Update(*window, inputManager);
     }
@@ -110,7 +112,11 @@ void Renderer::SubmitMesh(UUID meshId, const Matrix4& worldTransform) {
         device->InitializeGPUBuffersForMesh(*meshRenderData, assetManagerRef.RequestAssetReadOnly<MeshAsset>(meshId));
         meshRenderData->initialized = true;
     }
-    frameSubmissions.push_back({ meshRenderData, worldTransform });
+    const auto [batchIt, inserted] = batchIndexByMeshId.try_emplace(meshId, meshBatches.size());
+    if (inserted) {
+        meshBatches.push_back({ meshRenderData, {} });
+    }
+    meshBatches[batchIt->second].worldTransforms.push_back(worldTransform);
 }
 
 void Renderer::Render() {
@@ -177,30 +183,33 @@ void Renderer::BuildDrawCommands() {
 
     // reserve space for draw commands to avoid reallocations
     std::size_t commandCount = 0;
-    for (const RenderSubmission& submission : frameSubmissions) {
-        if (submission.mesh) {
-            commandCount += submission.mesh->primitives.size();
+    for (const BatchedRenderSubmission& batch : meshBatches) {
+        if (batch.mesh && !batch.worldTransforms.empty()) {
+            commandCount += batch.mesh->primitives.size();
         }
     }
     frameData.commands.reserve(commandCount);
     
-    // iterate through all mesh submissions and their primitives
-    for (const RenderSubmission& submission : frameSubmissions) {
-        if (!submission.mesh) {
+    // build one command per primitive in each active mesh batch
+    for (const BatchedRenderSubmission& batch : meshBatches) {
+        if (batch.worldTransforms.empty()) {
+            continue;
+        }
+        if (!batch.mesh) {
             Logger::Warning(
                 "Renderer",
                 "Skipping submission with null mesh pointer."
             );
             continue;
         }
-        if (!submission.mesh->initialized) {
+        if (!batch.mesh->initialized) {
             Logger::Warning(
                 "Renderer",
-                "Skipping uninitialized mesh " + std::to_string(submission.mesh->meshId) + "."
+                "Skipping uninitialized mesh " + std::to_string(batch.mesh->meshId) + "."
             );
             continue;
         }
-        for (PrimitiveRenderData& primitive : submission.mesh->primitives) {
+        for (PrimitiveRenderData& primitive : batch.mesh->primitives) {
             if (failedMaterials.contains(primitive.materialId)) {
                 Logger::Warning(
                     "Renderer",
@@ -228,14 +237,14 @@ void Renderer::BuildDrawCommands() {
             // build draw command for this primitive using
             // 1. primitive data
             // 2. shader program
-            // 3. world transform
+            // 3. world transforms
             // 4. material data
             const auto resolvedBinding = resolvedMaterials.find(primitive.materialId);
             frameData.commands.push_back(
                 BuildDrawCommand(
                     &primitive,
                     std::get<SHADER_SLOT>(resolvedBinding->second),
-                    submission.worldTransform,
+                    batch.worldTransforms,
                     std::get<MATERIAL_SLOT>(resolvedBinding->second)
                 )
             );

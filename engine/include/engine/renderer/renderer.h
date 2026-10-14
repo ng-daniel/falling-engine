@@ -44,7 +44,8 @@ private:
 
     // graphics device and caches
     std::unique_ptr<GraphicsDevice> device;
-    std::vector<RenderSubmission> frameSubmissions;
+    std::vector<BatchedRenderSubmission> meshBatches;
+    std::unordered_map<UUID, std::size_t> batchIndexByMeshId;
 
     RenderData frameData;
     

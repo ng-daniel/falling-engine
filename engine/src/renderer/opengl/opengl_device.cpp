@@ -205,7 +205,6 @@ void OpenGLDevice::Render(const RenderData& renderData) {
         }
 
         // set orientation/3d space matrix values
-        glUniformMatrix4fv(shaderProgram->modelUniform, 1, GL_FALSE, command.model.Data());
         glUniformMatrix4fv(shaderProgram->viewUniform, 1, GL_FALSE, renderData.frame.view.Data());
         glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, renderData.frame.projection.Data());
         // glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, Matrix4(0.0f).Data());
@@ -213,7 +212,10 @@ void OpenGLDevice::Render(const RenderData& renderData) {
         // retrieve and bind vertex buffers
         const OpenGLDeviceData* deviceData = static_cast<const OpenGLDeviceData*>(command.primitive->graphicsDeviceData.get());
         glBindVertexArray(deviceData->VAO);
-        glDrawElements(GL_TRIANGLES, deviceData->indexCount, GL_UNSIGNED_INT, 0);
+        for (const Matrix4& model : command.models) {
+            glUniformMatrix4fv(shaderProgram->modelUniform, 1, GL_FALSE, model.Data());
+            glDrawElements(GL_TRIANGLES, deviceData->indexCount, GL_UNSIGNED_INT, 0);
+        }
     }
 }
 

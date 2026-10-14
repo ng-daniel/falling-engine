@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "engine/utils/uuid.h"
@@ -94,6 +95,15 @@ struct RenderSubmission {
 };
 
 /**
+ * @brief Used by Renderer to group multiple render submissions of the same mesh into a single batch.
+ *
+ */
+struct BatchedRenderSubmission {
+    MeshRenderData * mesh = nullptr;
+    std::vector<Matrix4> worldTransforms;
+};
+
+/**
  * @brief View and projection matrices for a single frame
  */
 struct FrameUniformData {
@@ -125,7 +135,8 @@ struct GraphicsDeviceMaterialData {
 struct DrawCommand {
     PrimitiveRenderData* primitive = nullptr;
     SPDEVICE_RID shaderProgram = INVALID_SPDEVICE_RID;
-    Matrix4 model;
+    // Refers to a mesh batch until the next BeginFrame.
+    std::span<const Matrix4> models;
     GraphicsDeviceMaterialData material;
 };
 
