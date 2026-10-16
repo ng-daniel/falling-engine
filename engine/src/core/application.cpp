@@ -3,11 +3,9 @@
 #include "engine/debug/logger.h"
 #include "engine/renderer/components/mesh_renderer.h"
 #include "engine/input/input_manager.h"
-#include "engine/utils/random.h"
 #include "engine/utils/time.h"
 
 #include <stdexcept>
-#include <unordered_set>
 
 Application::Application(std::filesystem::path assetRoot) 
     : assetManager(assetRoot)
@@ -36,50 +34,55 @@ void Application::Run() {
     Time::ToggleFPSTracking(true);
     Time::ToggleFPSLogging(true);
     Time::Reset();
+    unsigned int framesSinceLog = 0;
 
     while (!window.ShouldClose()) {
         Time::Update();
-        inputManager.Update();
-        scriptSystem.UpdateAllScripts();
+        profiler.BeginFrame();
+
+        {
+            ProfileScope scope(profiler, "Input Update");
+            inputManager.Update();
+        }
+        
+        {
+            ProfileScope scope(profiler, "Script Update");
+            scriptSystem.UpdateAllScripts();
+        }
 
         renderer.BeginFrame(inputManager);
-        
-        std::unordered_set<ECS_RID> rotatedEntities;
-        float rotationSpeed = 0.5f;
-        
-        EntityComponentView<MeshRenderer> meshRenderers = ecsManager.GetEntityComponentView<MeshRenderer>();
-        for (auto [entityRuntimeId, meshRenderer] : meshRenderers) {
-            Entity * entity = ecsManager.GetEntity(entityRuntimeId);
-            if (!entity) {
-                Logger::Warning("Application", "Entity not found for runtime ID: " + std::to_string(entityRuntimeId));
-                continue;
+        {
+            ProfileScope scope(profiler, "Mesh Submission");            
+
+            EntityComponentView<MeshRenderer> meshRenderers = ecsManager.GetEntityComponentView<MeshRenderer>();
+            for (auto [entityRuntimeId, meshRenderer] : meshRenderers) {
+                Entity * entity = ecsManager.GetEntity(entityRuntimeId);
+                if (!entity) {
+                    Logger::Warning("Application", "Entity not found for runtime ID: " + std::to_string(entityRuntimeId));
+                    continue;
+                }
+                renderer.SubmitMesh(
+                    meshRenderer.meshId,
+                    ecsManager.ComputeWorldTransform(*entity).matrix
+                );
             }
-            // Transform * transform = ecsManager.GetComponent<Transform>(*entity);
-            // if (!transform) {
-            //     Logger::Warning("Application", "Transform component not found for entity with runtime ID: " + std::to_string(entityRuntimeId));
-            //     continue;
-            // }
-            // rotate the mesh parent around the Y-axis over time
-            
-            // Entity* parentEntity = ecsManager.GetParent(*entity);
-            // if (parentEntity && rotatedEntities.find(parentEntity->entityRuntimeIdx) == rotatedEntities.end()) {
-            //     Transform* parentTransform = ecsManager.GetComponent<Transform>(*parentEntity);
-            //     if (parentTransform) {
-            //         rotationSpeed = Random::RandFloat(2.0f, 2.5f);
-            //         parentTransform->ChangeRotation(*parentTransform, Quaternion::EulerToQuaternion(0.0f, rotationSpeed, 0.0f));
-            //         rotatedEntities.insert(parentEntity->entityRuntimeIdx);
-            //     }
-            // }
-            
-            renderer.SubmitMesh(
-                meshRenderer.meshId,
-                ecsManager.ComputeWorldTransform(*entity).matrix
-            );
         }
-        renderer.Render();
+        
+        {
+            ProfileScope scope(profiler, "Render");
+            renderer.Render();
+        }
         renderer.EndFrame();
 
         ecsManager.FlushRemovals();
+
         window.EndFrame();
+
+        profiler.EndFrame();
+        if (framesSinceLog == 60) {
+            profiler.LogLastFrame();
+            framesSinceLog = 0;
+        }
+        framesSinceLog++;
     }
 }

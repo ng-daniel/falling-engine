@@ -7,6 +7,7 @@
 #include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
 #include "engine/scripting/script_manager.h"
+#include "engine/debug/profiler.h"
 
 /**
  * @brief Main application class that manages the game loop and overall application state.
@@ -23,6 +24,7 @@ public:
     ScriptManager& GetScriptSystem() { return scriptSystem; }
     Renderer& GetRenderer() { return renderer; }
     InputManager& GetInputManager() { return inputManager; }
+    Profiler& GetProfiler() { return profiler; }
 private:
     InputManager inputManager;
     WindowManager window;
@@ -30,4 +32,5 @@ private:
     EcsManager ecsManager;
     ScriptManager scriptSystem;
     Renderer renderer;
+    Profiler profiler;
 };
