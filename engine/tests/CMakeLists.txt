@@ -45,3 +45,11 @@ add_executable(script_system_tests
 target_link_libraries(script_system_tests PRIVATE engine)
 
 add_test(NAME script_system_tests COMMAND script_system_tests)
+
+add_executable(profiler_tests
+    profiler_tests.cpp
+)
+
+target_link_libraries(profiler_tests PRIVATE engine)
+
+add_test(NAME profiler_tests COMMAND profiler_tests)

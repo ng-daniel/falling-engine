@@ -13,6 +13,7 @@ add_library(engine
     src/core/window_manager.cpp
 
     src/debug/logger.cpp
+    src/debug/profiler.cpp
 
     src/ecs/components/transform.cpp
     src/ecs/ecs_component_registry.cpp
