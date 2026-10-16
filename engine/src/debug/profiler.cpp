@@ -37,7 +37,13 @@ std::size_t Profiler::BeginScope(std::string name) {
         startTime - frameStart
     ).count();
 
-    currentFrame.samples.push_back({std::move(name), parentIndex, startOffsetMs, 0.0});
+    currentFrame.samples.push_back(
+        {std::move(name),
+             parentIndex,
+             startOffsetMs,
+             0.0
+        }
+    );
     liveScopeStack.push_back(sampleIndex);
     return sampleIndex;
 }
