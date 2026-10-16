@@ -1,4 +1,5 @@
 #include "engine/debug/profiler.h"
+#include "engine/debug/logger.h"
 
 #include <cassert>
 #include <utility>
@@ -57,6 +58,20 @@ void Profiler::EndScope(std::size_t sampleIndex, Clock::time_point startTime) {
         Clock::now() - startTime
     ).count();
     liveScopeStack.pop_back();
+}
+
+const void Profiler::LogLastFrame() const {
+    Logger::Info("Profiler", "Last Frame:");
+    Logger::Info("Profiler", "Duration: " + std::to_string(lastFrame.durationMs) + " ms");
+    for (const auto& sample : lastFrame.samples) {
+        std::string indent;
+        std::size_t parentIndex = sample.parentIndex;
+        while (parentIndex != ProfileSample::NO_PARENT) {
+            indent += "  ";
+            parentIndex = lastFrame.samples[parentIndex].parentIndex;
+        }
+        Logger::Info("Profiler", indent + sample.name + ": " + std::to_string(sample.durationMs) + " ms");
+    }
 }
 
 ProfileScope::ProfileScope(Profiler& profiler, std::string name)

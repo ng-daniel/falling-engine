@@ -79,5 +79,7 @@ void Application::Run() {
         profiler.EndFrame();
 
         window.EndFrame();
+
+        profiler.LogLastFrame();
     }
 }
