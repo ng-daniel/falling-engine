@@ -52,6 +52,8 @@ public:
      * @return const ProfileFrame& 
      */
     const ProfileFrame& GetLastFrame() const { return lastFrame; }
+    // Instantaneous FPS implied by the last completed frame; zero before one exists.
+    double GetLastFrameFPS() const noexcept;
     const void LogLastFrame() const;
 
 private:

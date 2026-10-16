@@ -1,6 +1,7 @@
 #include "engine/debug/profiler.h"
 
 #include <cassert>
+#include <cmath>
 #include <string>
 
 namespace {
@@ -53,9 +54,25 @@ namespace {
         assert(profiler.GetLastFrame().samples.empty());
         assert(profiler.GetLastFrame().durationMs >= 0.0);
     }
+
+    void TestLastFrameFPS() {
+        Profiler profiler;
+        assert(profiler.GetLastFrameFPS() == 0.0);
+
+        profiler.BeginFrame();
+        profiler.EndFrame();
+
+        const double durationMs = profiler.GetLastFrame().durationMs;
+        if (durationMs > 0.0) {
+            assert(std::abs(profiler.GetLastFrameFPS() * durationMs - 1000.0) < 0.000001);
+        } else {
+            assert(profiler.GetLastFrameFPS() == 0.0);
+        }
+    }
 }
 
 int main() {
     TestNestedScopesAndCompletedFrame();
     TestNextFrameReplacesCompletedFrame();
+    TestLastFrameFPS();
 }

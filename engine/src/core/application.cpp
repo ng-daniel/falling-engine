@@ -34,10 +34,10 @@ void Application::Run() {
     Time::ToggleFPSTracking(true);
     Time::ToggleFPSLogging(true);
     Time::Reset();
+    unsigned int framesSinceLog = 0;
 
     while (!window.ShouldClose()) {
         Time::Update();
-        
         profiler.BeginFrame();
 
         {
@@ -76,10 +76,13 @@ void Application::Run() {
 
         ecsManager.FlushRemovals();
 
-        profiler.EndFrame();
-
         window.EndFrame();
 
-        profiler.LogLastFrame();
+        profiler.EndFrame();
+        if (framesSinceLog == 60) {
+            profiler.LogLastFrame();
+            framesSinceLog = 0;
+        }
+        framesSinceLog++;
     }
 }

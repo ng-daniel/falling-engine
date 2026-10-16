@@ -25,6 +25,10 @@ void Profiler::EndFrame() {
     recording = false;
 }
 
+double Profiler::GetLastFrameFPS() const noexcept {
+    return lastFrame.durationMs > 0.0 ? 1000.0 / lastFrame.durationMs : 0.0;
+}
+
 std::size_t Profiler::BeginScope(std::string name) {
     assert(recording);
 
@@ -61,8 +65,10 @@ void Profiler::EndScope(std::size_t sampleIndex, Clock::time_point startTime) {
 }
 
 const void Profiler::LogLastFrame() const {
-    Logger::Info("Profiler", "Last Frame:");
+    Logger::Info("Profiler", "FRAME PERFORMANCE DATA:");
+    Logger::Info("Profiler", "----------------------------------------");
     Logger::Info("Profiler", "Duration: " + std::to_string(lastFrame.durationMs) + " ms");
+    Logger::Info("Profiler", "Inst. FPS: " + std::to_string(GetLastFrameFPS()));
     for (const auto& sample : lastFrame.samples) {
         std::string indent;
         std::size_t parentIndex = sample.parentIndex;
@@ -72,6 +78,7 @@ const void Profiler::LogLastFrame() const {
         }
         Logger::Info("Profiler", indent + sample.name + ": " + std::to_string(sample.durationMs) + " ms");
     }
+    Logger::Info("Profiler", "----------------------------------------");
 }
 
 ProfileScope::ProfileScope(Profiler& profiler, std::string name)
