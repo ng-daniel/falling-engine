@@ -52,6 +52,7 @@ public:
      * @return const ProfileFrame& 
      */
     const ProfileFrame& GetLastFrame() const { return lastFrame; }
+    const void LogLastFrame() const;
 
 private:
     
