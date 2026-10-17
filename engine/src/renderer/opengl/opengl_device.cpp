@@ -139,6 +139,26 @@ namespace {
         glEnableVertexAttribArray(2);	
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
 
+        // configure instanced mesh attribute pointers
+        glGenBuffers(1, &deviceData->instancedMeshVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, deviceData->instancedMeshVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+        
+        // note: each attribute array is one COLUMN of the 4x4 model matrix
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+        
+        glVertexAttribDivisor(3, 1); // setting divisor to 1 makes it so that the target model matrix
+        glVertexAttribDivisor(4, 1); // increments per instance, instead of per vertex,
+        glVertexAttribDivisor(5, 1); // default divisor is 0, which works for vertex attributes (pos, normal, texcoord)
+        glVertexAttribDivisor(6, 1); // but we want matrix to increment per instance
+
         // unbind VAO
         glBindVertexArray(0);
 
@@ -211,11 +231,23 @@ void OpenGLDevice::Render(const RenderData& renderData) {
         
         // retrieve and bind vertex buffers
         const OpenGLDeviceData* deviceData = static_cast<const OpenGLDeviceData*>(command.primitive->graphicsDeviceData.get());
+        
+        glBindBuffer(GL_ARRAY_BUFFER, deviceData->instancedMeshVBO);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            command.models.size_bytes(),
+            command.models.data(),
+            GL_STREAM_DRAW // using stream draw as the instance data changes every frame
+        );
+        
         glBindVertexArray(deviceData->VAO);
-        for (const Matrix4& model : command.models) {
-            glUniformMatrix4fv(shaderProgram->modelUniform, 1, GL_FALSE, model.Data());
-            glDrawElements(GL_TRIANGLES, deviceData->indexCount, GL_UNSIGNED_INT, 0);
-        }
+        glDrawElementsInstanced(
+            GL_TRIANGLES,
+            deviceData->indexCount,
+            GL_UNSIGNED_INT,
+            nullptr,        // already assigned in the EBO, nullptr = indices in EBO start at 0 
+            command.models.size()
+        );
     }
 }
 

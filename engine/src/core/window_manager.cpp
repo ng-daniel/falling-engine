@@ -38,7 +38,7 @@ bool WindowManager::Init(InputManager& inputManager, const std::function<void()>
         return false;
     }
     glfwMakeContextCurrent(handle);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     // set callbacks
     this->inputManager = &inputManager;

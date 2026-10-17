@@ -14,6 +14,7 @@ struct OpenGLDeviceData : IGraphicsDeviceData{
     uint VAO = 0;
     uint VBO = 0;
     uint EBO = 0;
+    uint instancedMeshVBO = 0;
     std::uint32_t indexCount = 0;
 };
 
