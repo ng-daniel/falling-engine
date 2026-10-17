@@ -118,12 +118,12 @@ Completed
 - asset manager + serialization (BASICALLY DONE!!!)
 - scenes, ECS, components (ALSO DONE!!!)
 - renderer, (debug) camera (DONE!!!)
+- profiler (to identify bottlenecks) (DONE, for CPU, no GPU profiling yet)
+- input system (DONE)
+- scripting and custom game logic (DONE)
 
 MVP Remaining Items
-- profiler (to identify bottlenecks)
-- input system
-- scripting and custom game logic
-- physics
+- physics and collisions
 
 QOL Features (in the order of how much I want to do them...)
 - visual post-processing
