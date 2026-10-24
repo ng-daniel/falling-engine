@@ -100,11 +100,15 @@ int main() {
     ScriptManager& scriptManager = app.GetScriptSystem();
 
     float distance = 2.5f;
-    int gridSize = 22;
-    float halfGridSize = gridSize / 2.0f;
-    for (int x = 0; x < gridSize; ++x) {
-        for (int z = 0; z < gridSize; ++z) {
-            for (int y = 0; y < gridSize; ++y) {
+    int xSize = 21;
+    int ySize = 20;
+    int zSize = 20;
+    float halfXSize = xSize / 2.0f;
+    float halfYSize = ySize / 2.0f;
+    float halfZSize = zSize / 2.0f;
+    for (int x = 0; x < xSize; ++x) {
+        for (int z = 0; z < zSize; ++z) {
+            for (int y = 0; y < ySize; ++y) {
                 Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_MODEL.GetUUID());
                 if (modelRootEntity) {
                     // Logger::Info("main", "Created model root entity with ID: " + std::to_string(modelRootEntity->entityId) + " and runtime idx: " + std::to_string(modelRootEntity->entityRuntimeIdx));
@@ -113,7 +117,7 @@ int main() {
                 Transform  * modelRootTransform = ecsManager.GetComponent<Transform>(*modelRootEntity);
                 Transform::ChangePosition(
                     *modelRootTransform,
-                    Vector3(static_cast<float>((x - halfGridSize) * distance), static_cast<float>((y - halfGridSize) * distance), static_cast<float>((z - halfGridSize) * distance))
+                    Vector3(static_cast<float>((x - halfXSize) * distance), static_cast<float>((y - halfYSize) * distance), static_cast<float>((z - halfZSize) * distance))
                 );
                 Rotator * rotator = scriptManager.AddScript<Rotator>(*modelRootEntity);
                 Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
