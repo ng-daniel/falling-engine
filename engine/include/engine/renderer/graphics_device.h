@@ -2,6 +2,7 @@
 
 #include "engine/assets/asset_data.h"
 #include "engine/renderer/renderer_structures.h"
+#include "engine/renderer/render_stats.h"
 
 class WindowManager;
 
@@ -14,7 +15,7 @@ public:
     virtual void Close() = 0;
 
     virtual void BeginFrame() = 0;
-    virtual void Render(const RenderData& renderData) = 0;
+    virtual RenderStats Render(const RenderData& renderData) = 0;
     virtual void EndFrame() = 0;
 
     virtual void InitializeGPUBuffersForMesh(MeshRenderData& renderData, const MeshAsset * meshAsset) = 0;

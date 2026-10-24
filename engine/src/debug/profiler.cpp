@@ -10,6 +10,7 @@ void Profiler::BeginFrame() {
 
     currentFrame.samples.clear();
     currentFrame.durationMs = 0.0;
+    currentFrame.renderStats = {};
     frameStart = Clock::now();
     recording = true;
 }
@@ -25,14 +26,19 @@ void Profiler::EndFrame() {
     recording = false;
 }
 
+void Profiler::AddRenderStats(const RenderStats& stats) {
+    assert(recording);
+    currentFrame.renderStats.vertices += stats.vertices;
+    currentFrame.renderStats.indices += stats.indices;
+    currentFrame.renderStats.triangles += stats.triangles;
+}
+
 double Profiler::GetLastFrameFPS() const noexcept {
     return lastFrame.durationMs > 0.0 ? 1000.0 / lastFrame.durationMs : 0.0;
 }
 
-std::size_t Profiler::BeginScope(std::string name) {
+std::size_t Profiler::BeginScope(std::string name, Clock::time_point startTime) {
     assert(recording);
-
-    Clock::time_point startTime = Clock::now();
 
     const std::size_t parentIndex = liveScopeStack.empty()
         ? ProfileSample::NO_PARENT
@@ -69,6 +75,9 @@ const void Profiler::LogLastFrame() const {
     Logger::Info("Profiler", "----------------------------------------");
     Logger::Info("Profiler", "Duration: " + std::to_string(lastFrame.durationMs) + " ms");
     Logger::Info("Profiler", "Inst. FPS: " + std::to_string(GetLastFrameFPS()));
+    Logger::Info("Profiler", "Submitted vertices: " + std::to_string(lastFrame.renderStats.vertices));
+    Logger::Info("Profiler", "Submitted indices: " + std::to_string(lastFrame.renderStats.indices));
+    Logger::Info("Profiler", "Submitted triangles: " + std::to_string(lastFrame.renderStats.triangles));
     for (const auto& sample : lastFrame.samples) {
         std::string indent;
         std::size_t parentIndex = sample.parentIndex;
@@ -84,7 +93,7 @@ const void Profiler::LogLastFrame() const {
 ProfileScope::ProfileScope(Profiler& profiler, std::string name)
     : profiler(profiler)
     , startTime(std::chrono::steady_clock::now())
-    , sampleIndex(profiler.BeginScope(std::move(name))) {
+    , sampleIndex(profiler.BeginScope(std::move(name), startTime)) {
 }
 
 ProfileScope::~ProfileScope() {

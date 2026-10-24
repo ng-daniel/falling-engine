@@ -70,7 +70,7 @@ void Application::Run() {
         
         {
             ProfileScope scope(profiler, "Render");
-            renderer.Render();
+            profiler.AddRenderStats(renderer.Render());
         }
         renderer.EndFrame();
 

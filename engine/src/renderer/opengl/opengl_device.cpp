@@ -102,6 +102,7 @@ namespace {
             throw std::runtime_error("Primitive has too many indices for the graphics device.");
         }
         deviceData->indexCount = static_cast<std::uint32_t>(indices.size());
+        deviceData->vertexCount = vertices.size();
 
         // generate buffers
         glGenVertexArrays(1, &deviceData->VAO);
@@ -202,7 +203,8 @@ void OpenGLDevice::BeginFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void OpenGLDevice::Render(const RenderData& renderData) {
+RenderStats OpenGLDevice::Render(const RenderData& renderData) {
+    RenderStats stats;
     for (const DrawCommand& command : renderData.commands) {
         if (!command.primitive || !command.primitive->graphicsDeviceData) {
             continue;
@@ -248,7 +250,9 @@ void OpenGLDevice::Render(const RenderData& renderData) {
             nullptr,        // already assigned in the EBO, nullptr = indices in EBO start at 0 
             command.models.size()
         );
+        stats.AddIndexedTriangles(deviceData->vertexCount, deviceData->indexCount, command.models.size());
     }
+    return stats;
 }
 
 void OpenGLDevice::EndFrame() {

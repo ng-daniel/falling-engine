@@ -119,9 +119,9 @@ void Renderer::SubmitMesh(UUID meshId, const Matrix4& worldTransform) {
     meshBatches[batchIt->second].worldTransforms.push_back(worldTransform);
 }
 
-void Renderer::Render() {
+RenderStats Renderer::Render() {
     BuildDrawCommands();
-    device->Render(frameData);
+    return device->Render(frameData);
 }
 
 void Renderer::EndFrame() {

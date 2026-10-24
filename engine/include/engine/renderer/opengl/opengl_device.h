@@ -16,6 +16,7 @@ struct OpenGLDeviceData : IGraphicsDeviceData{
     uint EBO = 0;
     uint instancedMeshVBO = 0;
     std::uint32_t indexCount = 0;
+    std::uint64_t vertexCount = 0;
 };
 
 struct OpenGLShaderProgram : IGraphicsDeviceShader {
@@ -30,7 +31,7 @@ public:
     void ConfigureWindow() override;
     bool Init(WindowManager& window) override;
     void BeginFrame() override;
-    void Render(const RenderData& renderData) override;
+    RenderStats Render(const RenderData& renderData) override;
     void EndFrame() override;
     void Close() override;
 

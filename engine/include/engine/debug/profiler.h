@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "engine/renderer/render_stats.h"
+
 /**
  * @brief Represents the resulting recording from a single ProfileScope
  * Is like a node in a tree, but the tree is represented like a vector
@@ -26,6 +28,7 @@ struct ProfileSample {
 struct ProfileFrame {
     double durationMs = 0.0;
     std::vector<ProfileSample> samples;
+    RenderStats renderStats;
 };
 
 /**
@@ -41,6 +44,7 @@ public:
 
     void BeginFrame();
     void EndFrame();
+    void AddRenderStats(const RenderStats& stats);
 
     /**
      * @brief Get the Last Frame object
@@ -70,7 +74,7 @@ private:
     using Clock = std::chrono::steady_clock;
 
     // friends :3
-    std::size_t BeginScope(std::string name);
+    std::size_t BeginScope(std::string name, Clock::time_point startTime);
     void EndScope(std::size_t sampleIndex, Clock::time_point startTime);
 
     ///

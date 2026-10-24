@@ -24,7 +24,7 @@ public:
     bool Init(WindowManager& window);
     void BeginFrame(const InputManager& inputManager);
     void SubmitMesh(UUID meshId, const Matrix4& worldTransform);
-    void Render();
+    RenderStats Render();
     void EndFrame();
 
     /// SHADER STUFF
