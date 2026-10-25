@@ -99,17 +99,17 @@ int main() {
     
     ScriptManager& scriptManager = app.GetScriptSystem();
 
-    float distance = 2.5f;
-    int xSize = 14;
-    int ySize = 14;
-    int zSize = 14;
+    float distance = 1.0f;
+    int xSize = 22;
+    int ySize = 22;
+    int zSize = 21;
     float halfXSize = xSize / 2.0f;
     float halfYSize = ySize / 2.0f;
     float halfZSize = zSize / 2.0f;
     for (int x = 0; x < xSize; ++x) {
         for (int z = 0; z < zSize; ++z) {
             for (int y = 0; y < ySize; ++y) {
-                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::HAMMERHEAD_SHARK_MODEL.GetUUID());
+                Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_M_MODEL.GetUUID());
                 if (modelRootEntity) {
                     // Logger::Info("main", "Created model root entity with ID: " + std::to_string(modelRootEntity->entityId) + " and runtime idx: " + std::to_string(modelRootEntity->entityRuntimeIdx));
                 }
@@ -147,7 +147,7 @@ int main() {
     /// ---------------------------------------------------------------
 
     MaterialAsset* modelMaterial = assetManager.RequestAsset<MaterialAsset>(
-        GameAssets::HAMMERHEAD_SHARK_MATERIAL_MATERIAL
+        GameAssets::RYUJIN7_M_MATERIAL_MATERIAL
     );
     const ShaderAsset* basicVertexShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
         GameAssets::BASICVERT_SHADER

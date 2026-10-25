@@ -46,6 +46,16 @@ struct Vector3 {
 		return Vector3(x * other.x, y * other.y, z * other.z);
 	}
 
+	constexpr Vector3 operator*(const float other) const {
+		return Vector3(x * other, y * other, z * other);
+	}
+	friend constexpr Vector3 operator*(const float other, const Vector3& vec) {
+        return vec * other; 
+    }
+	constexpr Vector3 operator/(const float other) const {
+		return Vector3(x / other, y / other, z / other);
+	}
+
 };
 
 struct Vector4 {
