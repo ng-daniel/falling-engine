@@ -142,6 +142,7 @@ public:
 	/// ----------------------------------------------
 
 	void SetScene(Entity& entity);
+	UUID GetScene();
 
 private:
 	struct PendingRemoval {

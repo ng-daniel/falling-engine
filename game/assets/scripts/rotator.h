@@ -1,3 +1,5 @@
+#pragma once
+
 #include "engine/scripting/components/script_data.h"
 #include "engine/scripting/script_manager.h"
 #include "engine/ecs/components/transform.h"

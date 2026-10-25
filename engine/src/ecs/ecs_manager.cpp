@@ -294,3 +294,7 @@ std::vector<Entity*> EcsManager::GetChildren(Entity& parent) {
 void EcsManager::SetScene(Entity& entity) {
 	warehouse.SetScene(entity);
 }
+
+UUID EcsManager::GetScene() {
+	return warehouse.GetRootEntityId();
+}

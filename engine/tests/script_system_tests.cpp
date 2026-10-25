@@ -3,9 +3,17 @@
 #include "engine/utils/time.h"
 
 #include <cassert>
+#include <filesystem>
 #include <string>
 
 namespace {
+// AssetManager requires an existing root; an empty one loads no assets.
+std::filesystem::path EmptyAssetRoot() {
+    const std::filesystem::path root = std::filesystem::temp_directory_path() / "falling_engine_script_tests";
+    std::filesystem::create_directories(root);
+    return root;
+}
+
 struct CounterScript : ScriptData {
     int value = 0;
     static inline int creates = 0;
@@ -102,16 +110,15 @@ struct LateRegisteredScript : ScriptData {
 };
 
 struct AddsScriptOnUpdate : ScriptData {
-    static inline ScriptManager* scripts = nullptr;
     static inline int updates = 0;
     bool added = false;
     std::string GetType() const override { return "AddsScriptOnUpdate"; }
 
-    static void OnUpdate(ScriptContext&, Entity entity, AddsScriptOnUpdate& data) {
+    static void OnUpdate(ScriptContext& context, Entity entity, AddsScriptOnUpdate& data) {
         ++updates;
         if (!data.added) {
             data.added = true;
-            LateRegisteredScript* added = scripts->AddScript<LateRegisteredScript>(entity);
+            LateRegisteredScript* added = context.scripts.AddScript<LateRegisteredScript>(entity);
             assert(added);
         }
     }
@@ -140,7 +147,8 @@ void TestLifecycleAndDenseUpdates() {
     const Entity first = *ecs.CreateEntity();
     const Entity second = *ecs.CreateEntity();
     {
-        ScriptManager scripts(ecs);
+        AssetManager assets(EmptyAssetRoot());
+        ScriptManager scripts(ecs, assets);
         const bool counterRegistered = scripts.RegisterScript<CounterScript>();
         const bool otherRegistered = scripts.RegisterScript<OtherScript>();
         assert(counterRegistered);
@@ -191,7 +199,8 @@ void TestScriptManagerProxies() {
     ResetCounters();
     EcsManager ecs;
     const Entity entity = *ecs.CreateEntity();
-    ScriptManager scripts(ecs);
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
 
     CounterScript initial;
     initial.value = 4;
@@ -217,7 +226,8 @@ void TestScriptManagerProxies() {
 void TestInheritedNoOpCallbacks() {
     EcsManager ecs;
     const Entity entity = *ecs.CreateEntity();
-    ScriptManager scripts(ecs);
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
 
     NoOpScript* data = scripts.AddScript<NoOpScript>(entity);
     assert(data);
@@ -234,7 +244,8 @@ void TestComponentAccessFromScript() {
     ecs.AddComponent<ValueComponent>(owner)->value = 7;
     ecs.AddComponent<ValueComponent>(target)->value = 12;
 
-    ScriptManager scripts(ecs);
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
     ReferenceScript initial;
     initial.targetEntityId = target.entityId;
     ReferenceScript* script = scripts.AddScript<ReferenceScript>(owner, initial);
@@ -261,7 +272,8 @@ void TestRegistrationAfterExistingComponent() {
     initial.value = 17;
     ecs.AddComponent<CounterScript>(entity, initial);
     {
-        ScriptManager scripts(ecs);
+        AssetManager assets(EmptyAssetRoot());
+        ScriptManager scripts(ecs, assets);
         scripts.RegisterScript<CounterScript>();
         assert(CounterScript::creates == 0);
         scripts.UpdateAllScripts();
@@ -280,7 +292,8 @@ void TestDeferredRemovalDuringUpdate() {
     RemoveDuringUpdateScript::updates = 0;
     RemoveDuringUpdateScript::destroys = 0;
     EcsManager ecs;
-    ScriptManager scripts(ecs);
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
     const Entity first = *ecs.CreateEntity();
     const Entity second = *ecs.CreateEntity();
     const Entity cleanup = *ecs.CreateEntity();
@@ -319,8 +332,8 @@ void TestRegistrationDuringUpdate() {
     LateRegisteredScript::updates = 0;
 
     EcsManager ecs;
-    ScriptManager scripts(ecs);
-    AddsScriptOnUpdate::scripts = &scripts;
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
     const Entity entity = *ecs.CreateEntity();
     AddsScriptOnUpdate* source = scripts.AddScript<AddsScriptOnUpdate>(entity);
     TrailingScript* trailing = scripts.AddScript<TrailingScript>(entity);
@@ -337,7 +350,6 @@ void TestRegistrationDuringUpdate() {
     assert(AddsScriptOnUpdate::updates == 2);
     assert(TrailingScript::updates == 2);
     assert(LateRegisteredScript::updates == 1);
-    AddsScriptOnUpdate::scripts = nullptr;
 }
 
 void SerializeCounter(JsonArchive&, const CounterScript&) {}
@@ -367,7 +379,8 @@ void TestSceneSaveSkipsRuntimeScript() {
     EcsManager ecs;
     ecs.RegisterComponents();
     const Entity entity = *ecs.CreateEntity();
-    ScriptManager scripts(ecs);
+    AssetManager assets(EmptyAssetRoot());
+    ScriptManager scripts(ecs, assets);
     scripts.RegisterScript<CounterScript>();
     ecs.AddComponent<CounterScript>(entity);
 

@@ -9,7 +9,7 @@
 
 Application::Application(std::filesystem::path assetRoot) 
     : assetManager(assetRoot)
-    , scriptSystem(ecsManager)
+    , scriptSystem(ecsManager, assetManager)
     , renderer(assetManager)
     {
     // 1. assetManager and ECS are initialized first

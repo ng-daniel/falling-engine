@@ -7,15 +7,20 @@
 #include <utility>
 #include <vector>
 
+#include "engine/assets/asset_manager.h"
 #include "engine/ecs/ecs_manager.h"
 #include "engine/scripting/components/script_data.h"
 
+class ScriptManager;
+
 /**
- * @brief Holds the context for script operations, including access to the ECS manager.
+ * @brief Holds the context for script operations, including access to the ECS, asset, and script managers.
  * 
  */
 struct ScriptContext {
     EcsManager& ecs;
+    AssetManager& assets;
+    ScriptManager& scripts;
 
     /**
      * @brief Gets a component from an entity supplied to a script callback.
@@ -52,7 +57,7 @@ struct ScriptRegistryInfo {
  */
 class ScriptManager {
 public:
-    explicit ScriptManager(EcsManager& ecs) : context{ecs} {}
+    explicit ScriptManager(EcsManager& ecs, AssetManager& assets) : context{ecs, assets, *this} {}
     ~ScriptManager() {}
     ScriptManager(const ScriptManager&) = delete;
     ScriptManager& operator=(const ScriptManager&) = delete;
