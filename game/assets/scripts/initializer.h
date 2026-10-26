@@ -65,9 +65,13 @@ struct Initializer : ScriptData {
         }
     }
 
-    static void Initialize(ScriptData& scriptData, int x, int y, int z, float dist) {
+    static void Initialize(
+        ScriptData& scriptData,
+        int x, int y, int z, float dist,
+        UUID modelUUID)
+    {
         Initializer& initializer = static_cast<Initializer&>(scriptData);
-        
+        initializer.modelUUID = modelUUID;
         initializer.distance = dist;
         initializer.xSize = x;
         initializer.ySize = y;
