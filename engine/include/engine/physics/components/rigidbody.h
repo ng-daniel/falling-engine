@@ -3,12 +3,14 @@
 #include "engine/ecs/components/component.h"
 #include "engine/utils/vector.h"
 
-struct Rigidbody : Component {
+struct Rigidbody : public Component {
 public:
-    float mass;
-    Vector3 velocity;
-    Vector3 forceAccumulation;
-    
+    std::string GetType() const override { return "Rigidbody"; }
+
+    float mass = 1.0f;
+    Vector3 velocity = Vector3(0.0f, 0.0f, 0.0f);
+    Vector3 forceAccumulation = Vector3(0.0f, 0.0f, 0.0f);
+
     /**
      * @brief Adds to the accumulated force over the course of a physics tick,
      * total accumulated force is evaluated all at once at the end of each tick. 

@@ -3,7 +3,9 @@
 #include "engine/ecs/components/component.h"
 #include "engine/utils/vector.h"
 
-struct SphereCollider : Component {
+struct SphereCollider : public Component {
+    std::string GetType() const override { return "SphereCollider"; }
+
     float radius;
-    Vector3 relOrigin;
+    Vector3 relativeOrigin;
 };

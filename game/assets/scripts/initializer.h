@@ -5,8 +5,10 @@
 #include "engine/tools/ecs_extras.h"
 #include "engine/utils/random.h"
 
+#include "engine/physics/components/rigidbody.h"
+#include "engine/physics/components/sphere_collider.h"
+
 #include "rotator.h"
-#include "include/generated/asset_ids.h"
 
 #include <string>
 
@@ -53,6 +55,9 @@ struct Initializer : ScriptData {
                     static_cast<float>((z - initializer.halfZSize) * initializer.distance)
                 )
             );
+
+            Rigidbody * rigidbody = context.ecs.AddComponent<Rigidbody>(*modelRootEntity);
+            SphereCollider * sphereCollider = context.ecs.AddComponent<SphereCollider>(*modelRootEntity);
 
             Rotator * rotator = context.scripts.AddScript<Rotator>(*modelRootEntity);
             Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));

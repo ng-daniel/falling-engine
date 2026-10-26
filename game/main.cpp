@@ -46,30 +46,6 @@ int main() {
     AssetManager& assetManager = app.GetAssetManager();
     ScriptManager& scriptManager = app.GetScriptSystem();
 
-
-    // float halfXSize = xSize / 2.0f;
-    // float halfYSize = ySize / 2.0f;
-    // float halfZSize = zSize / 2.0f;
-    // for (int x = 0; x < xSize; ++x) {
-    //     for (int z = 0; z < zSize; ++z) {
-    //         for (int y = 0; y < ySize; ++y) {
-    //             Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(app.GetAssetManager(), ecsManager, GameAssets::RYUJIN7_M_MODEL.GetUUID());
-    //             ecsManager.Parent(*rootEntity, *modelRootEntity);
-    //             Transform  * modelRootTransform = ecsManager.GetComponent<Transform>(*modelRootEntity);
-    //             Transform::ChangePosition(
-    //                 *modelRootTransform,
-    //                 Vector3(static_cast<float>((x - halfXSize) * distance), static_cast<float>((y - halfYSize) * distance), static_cast<float>((z - halfZSize) * distance))
-    //             );
-    //             Rotator * rotator = scriptManager.AddScript<Rotator>(*modelRootEntity);
-    //             Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
-    //             Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
-    //             Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
-    //             Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
-    //             Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
-    //         }
-    //     }
-    // }
-
     float distance = 1.0f;
     int xSize = 22;
     int ySize = 22;
