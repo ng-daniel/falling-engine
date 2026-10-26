@@ -10,6 +10,7 @@ public:
     float mass = 1.0f;
     Vector3 velocity = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 forceAccumulation = Vector3(0.0f, 0.0f, 0.0f);
+    bool hasGravity = true;
 
     /**
      * @brief Adds to the accumulated force over the course of a physics tick,

@@ -14,5 +14,6 @@ void Rigidbody::ResolveForces(Rigidbody &body, float dt) {
     Vector3 a = body.forceAccumulation / body.mass;
     Vector3 dv  = 0.5f * a * dt * dt;
     body.velocity = body.velocity + dv;
+    body.forceAccumulation = Vector3(0.0f, 0.0f, 0.0f);
 }
 

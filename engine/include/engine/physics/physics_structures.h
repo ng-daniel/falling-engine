@@ -1,3 +1,5 @@
 #pragma once
 
-const float PHYS_DELTA = 1.0f / 60.0f; // 60 hz physics simulation
+const int PHYS_HZ = 60; // 60 hz physics simulation
+const float PHYS_DT = 1.0f / PHYS_HZ;
+const float PHYS_GRAVITY = 9.81f; // Gravity constant
