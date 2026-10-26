@@ -12,7 +12,7 @@ void Rigidbody::AddForce(Rigidbody &body, Vector3 force) {
 
 void Rigidbody::ResolveForces(Rigidbody &body, float dt) {
     Vector3 a = body.forceAccumulation / body.mass;
-    Vector3 dv  = 0.5f * a * dt * dt;
+    Vector3 dv  = a * dt;
     body.velocity = body.velocity + dv;
     body.forceAccumulation = Vector3(0.0f, 0.0f, 0.0f);
 }

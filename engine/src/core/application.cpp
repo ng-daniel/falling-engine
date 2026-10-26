@@ -11,6 +11,7 @@ Application::Application(std::filesystem::path assetRoot)
     : assetManager(assetRoot)
     , scriptSystem(ecsManager, assetManager)
     , renderer(assetManager)
+    , physicsManager(ecsManager)
     {
     // 1. assetManager and ECS are initialized first
 
@@ -75,6 +76,8 @@ void Application::Run() {
         renderer.EndFrame();
 
         ecsManager.FlushRemovals();
+
+        physicsManager.Update(Time::GetDeltaTime());
 
         window.EndFrame();
 

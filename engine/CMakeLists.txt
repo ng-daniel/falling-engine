@@ -23,6 +23,9 @@ add_library(engine
 
     src/input/input_manager.cpp
 
+    src/physics/physics_manager.cpp
+    src/physics/components/rigidbody.cpp
+
     src/renderer/components/mesh_renderer.cpp
     src/renderer/renderer.cpp
     src/renderer/debug_camera.cpp

@@ -8,6 +8,7 @@
 #include "engine/ecs/ecs_manager.h"
 #include "engine/scripting/script_manager.h"
 #include "engine/debug/profiler.h"
+#include "engine/physics/physics_manager.h"
 
 /**
  * @brief Main application class that manages the game loop and overall application state.
@@ -25,6 +26,7 @@ public:
     Renderer& GetRenderer() { return renderer; }
     InputManager& GetInputManager() { return inputManager; }
     Profiler& GetProfiler() { return profiler; }
+    PhysicsManager& GetPhysicsManager() { return physicsManager; }
 private:
     InputManager inputManager;
     WindowManager window;
@@ -33,4 +35,5 @@ private:
     ScriptManager scriptSystem;
     Renderer renderer;
     Profiler profiler;
+    PhysicsManager physicsManager;
 };
