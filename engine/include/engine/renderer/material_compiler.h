@@ -2,6 +2,7 @@
    
 #include "engine/assets/asset_data.h"
 #include "engine/renderer/renderer_structures.h"
+#include "engine/assets/asset_manager.h"
 
 /**
  * @brief Builds runtime shader programs and attaches them to materials.
@@ -16,8 +17,9 @@ public:
      * to materialAsset.runtimeShader.
      */
     static ShaderProgramData CompileMaterial(
-        MaterialAsset& materialAsset,
-        const ShaderAsset& vertexShader,
-        const ShaderAsset& fragmentShader
+        UUID materialId,
+        UUID vertexShaderId,
+        UUID fragmentShaderId,
+        AssetManager& assetManager
     );
 };

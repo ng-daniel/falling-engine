@@ -46,37 +46,22 @@ int main() {
     AssetManager& assetManager = app.GetAssetManager();
     ScriptManager& scriptManager = app.GetScriptSystem();
 
-    float distance = 1.0f;
-    int xSize = 22;
-    int ySize = 22;
-    int zSize = 21;
     const Entity * newEntity = ecsManager.CreateEntity();
     Initializer::Initialize(
         *scriptManager.AddScript<Initializer>(*newEntity),
-        xSize, ySize, zSize, distance,
+        22, 22, 21, 1.0f,
         GameAssets::RYUJIN7_M_MODEL.GetUUID()
     );
     
-    MaterialAsset* modelMaterial = assetManager.RequestAsset<MaterialAsset>(
-        GameAssets::RYUJIN7_M_MATERIAL_MATERIAL
-    );
-    const ShaderAsset* basicVertexShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
-        GameAssets::BASICVERT_SHADER
-    );
-    const ShaderAsset* basicFragmentShader = assetManager.RequestAssetReadOnly<ShaderAsset>(
-        GameAssets::BASICFRAG_SHADER
-    );
-    if (!modelMaterial || !basicVertexShader || !basicFragmentShader) {
-        throw std::runtime_error("Failed to load material shader inputs.");
-    }
     const ShaderProgramData basicShaderProgram = MaterialShaderService::CompileMaterial(
-        *modelMaterial,
-        *basicVertexShader,
-        *basicFragmentShader
+        GameAssets::RYUJIN7_M_MATERIAL_MATERIAL.GetUUID(),
+        GameAssets::BASICVERT_SHADER.GetUUID(),
+        GameAssets::BASICFRAG_SHADER.GetUUID(),
+        assetManager
     );
     app.GetRenderer().RegisterShaderProgram(basicShaderProgram);
-    Logger::Info("main", "Finished compiling shader program with ID: " + std::to_string(basicShaderProgram.id));
 
+    Logger::Info("main", "Finished compiling shader program with ID: " + std::to_string(basicShaderProgram.id));
 
     app.Run();
 
