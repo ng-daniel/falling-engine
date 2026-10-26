@@ -56,16 +56,19 @@ struct Initializer : ScriptData {
                 )
             );
 
-            Rigidbody * rigidbody = context.ecs.AddComponent<Rigidbody>(*modelRootEntity);
+            Rigidbody * rb = context.ecs.AddComponent<Rigidbody>(*modelRootEntity);
+            // rb->hasGravity = Random::RandFloat(0, 1) > 0.5f ? true : false; // 50% gravity toggle
             SphereCollider * sphereCollider = context.ecs.AddComponent<SphereCollider>(*modelRootEntity);
 
-            // Rotator * rotator = context.scripts.AddScript<Rotator>(*modelRootEntity);
-            // Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
-            // Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
-            // Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
-            // Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
-            // Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
-        
+            if (!rb->hasGravity) {
+                Rotator * rotator = context.scripts.AddScript<Rotator>(*modelRootEntity);
+                Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
+                Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
+                Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
+                Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
+                Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
+            }
+            
             initializer.numToSpawn++;
         }
     }
