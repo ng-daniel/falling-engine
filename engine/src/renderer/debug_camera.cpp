@@ -15,6 +15,7 @@ namespace {
 
     constexpr float MOVE_SPEED = 3.0f;
     constexpr float ROTATION_SPEED_DEGREES = 90.0f;
+    constexpr float MOUSE_SENSITIVITY_DEGREES = 0.1f;
     constexpr float MAX_FRAME_TIME = 0.1f;
     constexpr float MAX_PITCH_DEGREES = 89.0f;
     constexpr glm::vec3 WORLD_UP(0.0f, 1.0f, 0.0f);
@@ -30,7 +31,7 @@ namespace {
     }
 }
 
-FrameUniformData DebugCamera::Update(const WindowManager& window, const InputManager& inputManager) {
+FrameUniformData DebugCamera::Update(WindowManager& window, const InputManager& inputManager) {
     const auto now = std::chrono::steady_clock::now();
     const float deltaSeconds = std::min(
         std::chrono::duration<float>(now - lastUpdateTime).count(),
@@ -49,6 +50,17 @@ FrameUniformData DebugCamera::Update(const WindowManager& window, const InputMan
     }
     if (inputManager.IsKeyDown(KEY_ARROW_DOWN)) {
         pitchDegrees -= ROTATION_SPEED_DEGREES * deltaSeconds;
+    }
+
+    // capture the cursor on the first update, skipping that frame's delta
+    // since capturing the cursor can produce a large jump
+    if (!cursorCaptured) {
+        window.SetCursorCaptured(true);
+        cursorCaptured = true;
+    } else {
+        const Vector2 cursorDelta = inputManager.GetCursorDelta();
+        yawDegrees += cursorDelta.x * MOUSE_SENSITIVITY_DEGREES;
+        pitchDegrees -= cursorDelta.y * MOUSE_SENSITIVITY_DEGREES;
     }
     pitchDegrees = std::clamp(pitchDegrees, -MAX_PITCH_DEGREES, MAX_PITCH_DEGREES);
 

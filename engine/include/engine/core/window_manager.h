@@ -16,6 +16,7 @@ public:
     void Close();
 
     void GetFramebufferSize(int& width, int& height) const;
+    void SetCursorCaptured(bool captured);
 private:
     static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

@@ -14,7 +14,7 @@ class InputManager;
  */
 class DebugCamera {
 public:
-    FrameUniformData Update(const WindowManager& window, const InputManager& inputManager);
+    FrameUniformData Update(WindowManager& window, const InputManager& inputManager);
 
 private:
     // ground truth pos
@@ -23,6 +23,7 @@ private:
     float yawDegrees = -90.0f;
     float pitchDegrees = -14.0f;
     float aspectRatio = 800.0f / 600.0f;
+    bool cursorCaptured = false;
 
     // for delta time calculation
     std::chrono::steady_clock::time_point lastUpdateTime = std::chrono::steady_clock::now();
