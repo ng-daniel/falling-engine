@@ -24,6 +24,7 @@ private:
     float pitchDegrees = -14.0f;
     float aspectRatio = 800.0f / 600.0f;
     bool cursorCaptured = false;
+    bool firstUpdate = true;
 
     // for delta time calculation
     std::chrono::steady_clock::time_point lastUpdateTime = std::chrono::steady_clock::now();

@@ -52,16 +52,21 @@ FrameUniformData DebugCamera::Update(WindowManager& window, const InputManager& 
         pitchDegrees -= ROTATION_SPEED_DEGREES * deltaSeconds;
     }
 
-    // capture the cursor on the first update, skipping that frame's delta
-    // since capturing the cursor can produce a large jump
-    if (!cursorCaptured) {
+    // capture the cursor on the first update or when clicking back into the window,
+    // skipping that frame's delta since capturing the cursor can produce a large jump.
+    // escape hands the cursor back to the user
+    if (cursorCaptured && inputManager.IsKeyPressed(KEY_ESCAPE)) {
+        window.SetCursorCaptured(false);
+        cursorCaptured = false;
+    } else if (!cursorCaptured && (firstUpdate || inputManager.IsKeyPressed(KEY_MOUSE_LMB))) {
         window.SetCursorCaptured(true);
         cursorCaptured = true;
-    } else {
+    } else if (cursorCaptured) {
         const Vector2 cursorDelta = inputManager.GetCursorDelta();
         yawDegrees += cursorDelta.x * MOUSE_SENSITIVITY_DEGREES;
         pitchDegrees -= cursorDelta.y * MOUSE_SENSITIVITY_DEGREES;
     }
+    firstUpdate = false;
     pitchDegrees = std::clamp(pitchDegrees, -MAX_PITCH_DEGREES, MAX_PITCH_DEGREES);
 
     const glm::vec3 forward = CameraForward(yawDegrees, pitchDegrees);
