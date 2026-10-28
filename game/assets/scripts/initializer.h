@@ -33,7 +33,7 @@ struct Initializer : ScriptData {
 
     static void OnUpdate(ScriptContext& context, Entity entity, ScriptData& scriptData) {
         Initializer& initializer = static_cast<Initializer&>(scriptData);
-        if (initializer.numToSpawn < initializer.totalCount) {
+        while (initializer.numToSpawn < initializer.totalCount) {
             
             Entity * modelRootEntity = ECSExtras::BuildEntityFromModel(
                 context.assets,
@@ -46,7 +46,7 @@ struct Initializer : ScriptData {
             
             int x = initializer.numToSpawn % initializer.xSize;
             int y = (initializer.numToSpawn / initializer.xSize) % initializer.ySize;
-            int z = initializer.numToSpawn / (initializer.xSize * initializer.ySize);
+            int z = initializer.numToSpawn / (initializer.xSize * initializer.ySize) - 30;
             Transform::ChangePosition(
                 *modelRootTransform,
                 Vector3(
@@ -57,8 +57,16 @@ struct Initializer : ScriptData {
             );
 
             Rigidbody * rb = context.ecs.AddComponent<Rigidbody>(*modelRootEntity);
-            // rb->hasGravity = Random::RandFloat(0, 1) > 0.5f ? true : false; // 50% gravity toggle
+            // rb->hasGravity = false;
             SphereCollider * sphereCollider = context.ecs.AddComponent<SphereCollider>(*modelRootEntity);
+
+            // apply an impulse in a random upwards direction
+            Vector3 impulse = Vector3(
+                Random::RandFloat(-1.0f, 1.0f),
+                Random::RandFloat(0.5f, 1.0f),
+                Random::RandFloat(-1.0f, 1.0f)
+            );
+            Rigidbody::AddImpulse(*rb, impulse * 10.0f);
 
             if (!rb->hasGravity) {
                 Rotator * rotator = context.scripts.AddScript<Rotator>(*modelRootEntity);
