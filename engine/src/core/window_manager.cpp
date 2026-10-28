@@ -84,6 +84,21 @@ void WindowManager::GetFramebufferSize(int& width, int& height) const {
     glfwGetFramebufferSize(handle, &width, &height);
 }
 
+/**
+ * @brief Hide and lock the cursor to the window for unbounded mouse movement
+ * 
+ * @param captured 
+ */
+void WindowManager::SetCursorCaptured(bool captured) {
+    if (!handle) {
+        return;
+    }
+    glfwSetInputMode(handle, GLFW_CURSOR, captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    if (glfwRawMouseMotionSupported()) {
+        glfwSetInputMode(handle, GLFW_RAW_MOUSE_MOTION, captured ? GLFW_TRUE : GLFW_FALSE);
+    }
+}
+
 void WindowManager::FrameBufferSizeCallback(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -109,9 +124,9 @@ void WindowManager::ScrollCallback(GLFWwindow* window, double, double yOffset) {
     }
 }
 
-void WindowManager::CursorPositionCallback(GLFWwindow* window, double, double) {
+void WindowManager::CursorPositionCallback(GLFWwindow* window, double xPosition, double yPosition) {
     WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
     if (windowManager && windowManager->inputManager) {
-        windowManager->inputManager->HandleCursorPosition();
+        windowManager->inputManager->HandleCursorPosition(xPosition, yPosition);
     }
 }

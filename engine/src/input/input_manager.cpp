@@ -13,6 +13,7 @@ void InputManager::Update() {
     keyStates[KEY_MOUSE_SCROLL_UP].down = false;
     keyStates[KEY_MOUSE_SCROLL_DOWN].down = false;
     keyStates[KEY_MOUSE_MOVE].down = false;
+    cursorDelta = Vector2();
 
     glfwPollEvents();
 }
@@ -51,6 +52,19 @@ bool InputManager::IsKeyReleased(KeyCode key) const {
     return IsValidKey(key) && keyStates[static_cast<std::size_t>(key)].released;
 }
 
+Vector2 InputManager::GetCursorPosition() const {
+    return cursorPosition;
+}
+
+/**
+ * @brief Get the cursor movement accumulated during the current frame
+ * 
+ * @return Vector2 
+ */
+Vector2 InputManager::GetCursorDelta() const {
+    return cursorDelta;
+}
+
 void InputManager::HandleKey(int key, int action) {
     SetKeyState(GLFWToKeyCode(key), action);
 }
@@ -67,7 +81,15 @@ void InputManager::HandleScroll(double yOffset) {
     }
 }
 
-void InputManager::HandleCursorPosition() {
+void InputManager::HandleCursorPosition(double xPosition, double yPosition) {
+    const Vector2 position(static_cast<float>(xPosition), static_cast<float>(yPosition));
+    // the first sample has no previous position to diff against
+    if (hasCursorSample) {
+        cursorDelta.x += position.x - cursorPosition.x;
+        cursorDelta.y += position.y - cursorPosition.y;
+    }
+    cursorPosition = position;
+    hasCursorSample = true;
     SetKeyState(KEY_MOUSE_MOVE);
 }
 
