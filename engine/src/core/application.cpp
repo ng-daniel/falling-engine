@@ -77,7 +77,10 @@ void Application::Run() {
 
         ecsManager.FlushRemovals();
 
-        physicsManager.Update(Time::GetDeltaTime());
+        {
+            ProfileScope scope(profiler, "Physics Update");
+            physicsManager.Update(Time::GetDeltaTime());
+        }
 
         window.EndFrame();
 
