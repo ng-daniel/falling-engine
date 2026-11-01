@@ -46,7 +46,7 @@ struct Initializer : ScriptData {
             
             int x = initializer.numToSpawn % initializer.xSize;
             int y = (initializer.numToSpawn / initializer.xSize) % initializer.ySize;
-            int z = initializer.numToSpawn / (initializer.xSize * initializer.ySize) - 30;
+            int z = initializer.numToSpawn / (initializer.xSize * initializer.ySize) - 15;
             Transform::ChangePosition(
                 *modelRootTransform,
                 Vector3(
