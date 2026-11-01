@@ -45,7 +45,7 @@ BVHIndex BVH::FreeNode(BVHIndex nodeIndex) {
 }
 
 float BVH::GetSurfaceArea(AABB& bounds) {
-    Vector3 dim = bounds.max - bounds.min; // width, height, depth
+    glm::vec3 dim = bounds.max - bounds.min; // width, height, depth
     return 2.0f * (dim.x * dim.y + dim.y * dim.z + dim.z * dim.x);
 }
 

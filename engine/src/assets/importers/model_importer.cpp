@@ -12,8 +12,14 @@
 #include "engine/assets/importers/image_importer.h"
 #include "engine/assets/importers/texture_importer.h"
 #include "engine/debug/logger.h"
-#include "engine/utils/matrix.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include "engine/utils/transform_utils.h"
+
+#include <glm/gtc/type_ptr.hpp>
 
 #define CGLTF_IMPLEMENTATION
 #include "external/cgltf.h"
@@ -416,7 +422,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
 
     if (material.has_pbr_metallic_roughness) {
         const cgltf_pbr_metallic_roughness& pbr = material.pbr_metallic_roughness;
-        materialAsset->baseColorFactor = Vector4(
+        materialAsset->baseColorFactor = glm::vec4(
             pbr.base_color_factor[0],
             pbr.base_color_factor[1],
             pbr.base_color_factor[2],
@@ -438,7 +444,7 @@ const MaterialAsset* ModelImporter::ProcessMaterial(
         }
     }
 
-    materialAsset->emissiveFactor = Vector3(
+    materialAsset->emissiveFactor = glm::vec3(
         material.emissive_factor[0],
         material.emissive_factor[1],
         material.emissive_factor[2]
@@ -554,9 +560,9 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportC
             // initialize vertex and set defaults
             
             Vertex& vertex = primitiveData.vertices[static_cast<size_t>(vertexIndex)];
-            vertex.normal = Vector3(0.0f);
-            vertex.tangent = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-            vertex.texCoord = Vector2(0.0f);
+            vertex.normal = glm::vec3(0.0f);
+            vertex.tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            vertex.texCoord = glm::vec2(0.0f);
 
             // read position
 
@@ -564,7 +570,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportC
             if (!cgltf_accessor_read_float(positionAccessor, vertexIndex, positionValues, 3)) {
                 throw std::runtime_error("Failed to read mesh POSITION attribute data.");
             }
-            vertex.position = Vector3(positionValues[0], positionValues[1], positionValues[2]);
+            vertex.position = glm::vec3(positionValues[0], positionValues[1], positionValues[2]);
 
             // read normal
 
@@ -573,7 +579,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportC
                 if (!cgltf_accessor_read_float(normalAccessor, vertexIndex, normalValues, 3)) {
                     throw std::runtime_error("Failed to read mesh NORMAL attribute data.");
                 }
-                vertex.normal = Vector3(normalValues[0], normalValues[1], normalValues[2]);
+                vertex.normal = glm::vec3(normalValues[0], normalValues[1], normalValues[2]);
             }
 
             // read tangent
@@ -583,7 +589,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportC
                 if (!cgltf_accessor_read_float(tangentAccessor, vertexIndex, tangentValues, 4)) {
                     throw std::runtime_error("Failed to read mesh TANGENT attribute data.");
                 }
-                vertex.tangent = Vector4(
+                vertex.tangent = glm::vec4(
                     tangentValues[0],
                     tangentValues[1],
                     tangentValues[2],
@@ -598,7 +604,7 @@ const MeshAsset* ModelImporter::ProcessMesh(const cgltf_mesh& mesh, ModelImportC
                 if (!cgltf_accessor_read_float(texCoordAccessor, vertexIndex, texCoordValues, 2)) {
                     throw std::runtime_error("Failed to read mesh TEXCOORD_0 attribute data.");
                 }
-                vertex.texCoord = Vector2(texCoordValues[0], texCoordValues[1]);
+                vertex.texCoord = glm::vec2(texCoordValues[0], texCoordValues[1]);
             }
         }
 
@@ -703,24 +709,24 @@ std::optional<ModelNode> ProcessNode(const cgltf_node * node,ModelImportContext&
     modelNode.name = node->name != nullptr ? node->name : "<unnamed>";
     
     if (node->has_matrix) {
-        const TransformDecomposition decomposition = TransformUtils::Decompose(Matrix4(node->matrix));
+        const TransformDecomposition decomposition = TransformUtils::Decompose(glm::make_mat4(node->matrix));
         modelNode.relativePosition = decomposition.translation;
         modelNode.relativeRotation = decomposition.rotation;
         modelNode.relativeScale = decomposition.scale;
     } else {
         if (node->has_translation) {
-            modelNode.relativePosition = Vector3(
+            modelNode.relativePosition = glm::vec3(
                 node->translation[0],
                 node->translation[1],
                 node->translation[2]
             );
         }
         if (node->has_rotation) {
-            modelNode.relativeRotation = Quaternion(
+            modelNode.relativeRotation = glm::quat::wxyz(
+                node->rotation[3],
                 node->rotation[0],
                 node->rotation[1],
-                node->rotation[2],
-                node->rotation[3]
+                node->rotation[2]
             );
             Logger::Info("ModelImporter", std::string(node->name) + ": Node relative rotation: (" +
                 std::to_string(modelNode.relativeRotation.x) + ", " +
@@ -729,7 +735,7 @@ std::optional<ModelNode> ProcessNode(const cgltf_node * node,ModelImportContext&
                 std::to_string(modelNode.relativeRotation.w) + ")");
         }
         if (node->has_scale) {
-            modelNode.relativeScale = Vector3(
+            modelNode.relativeScale = glm::vec3(
                 node->scale[0],
                 node->scale[1],
                 node->scale[2]
@@ -771,17 +777,17 @@ std::vector<ModelNode> CompressNode(ModelNode rawTreeNode, ModelNode * parent) {
         // Compose exactly as the runtime hierarchy does. Combining the TRS
         // components independently is not equivalent to matrix multiplication
         // when rotations and non-uniform scales are mixed.
-        const Matrix4 parentTransform = TransformUtils::FromTRS(
+        const glm::mat4 parentTransform = TransformUtils::FromTRS(
             parent->relativePosition,
             parent->relativeRotation,
             parent->relativeScale
         );
-        const Matrix4 childTransform = TransformUtils::FromTRS(
+        const glm::mat4 childTransform = TransformUtils::FromTRS(
             rawTreeNode.relativePosition,
             rawTreeNode.relativeRotation,
             rawTreeNode.relativeScale
         );
-        const Matrix4 combinedTransform = parentTransform * childTransform;
+        const glm::mat4 combinedTransform = parentTransform * childTransform;
 
         const TransformDecomposition decomposition = TransformUtils::Decompose(combinedTransform);
         compressedTreeNode.relativePosition = decomposition.translation;

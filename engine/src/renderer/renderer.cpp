@@ -41,7 +41,7 @@ namespace {
     DrawCommand BuildDrawCommand(
         PrimitiveRenderData* primitive,
         SPDEVICE_RID shaderProgramId,
-        std::span<const Matrix4> modelTransforms,
+        std::span<const glm::mat4> modelTransforms,
         const GraphicsDeviceMaterialData& material
     ) {
         DrawCommand command;
@@ -103,7 +103,7 @@ void Renderer::BeginFrame(const InputManager& inputManager) {
     device->BeginFrame();
 }
 
-void Renderer::SubmitMesh(UUID meshId, const Matrix4& worldTransform) {
+void Renderer::SubmitMesh(UUID meshId, const glm::mat4& worldTransform) {
     MeshRenderData* meshRenderData = GetOrCreateMeshRenderData(meshId);
     if (!meshRenderData) {
         return;

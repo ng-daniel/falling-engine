@@ -49,7 +49,7 @@ struct Initializer : ScriptData {
             int z = initializer.numToSpawn / (initializer.xSize * initializer.ySize) - 15;
             Transform::ChangePosition(
                 *modelRootTransform,
-                Vector3(
+                glm::vec3(
                     static_cast<float>((x - initializer.halfXSize) * initializer.distance),
                     static_cast<float>((y - initializer.halfYSize) * initializer.distance),
                     static_cast<float>((z - initializer.halfZSize) * initializer.distance)
@@ -61,7 +61,7 @@ struct Initializer : ScriptData {
             SphereCollider * sphereCollider = context.ecs.AddComponent<SphereCollider>(*modelRootEntity);
 
             // apply an impulse in a random upwards direction
-            Vector3 impulse = Vector3(
+            glm::vec3 impulse = glm::vec3(
                 Random::RandFloat(-1.0f, 1.0f),
                 Random::RandFloat(0.5f, 1.0f),
                 Random::RandFloat(-1.0f, 1.0f)
@@ -73,7 +73,7 @@ struct Initializer : ScriptData {
                 Rotator::SetSpeed(*rotator, Random::RandFloat(10.0f, 20.0f));
                 Rotator::SetHoverOscillationSpeed(*rotator, 1.0f);
                 Rotator::SetHoverOscillationAmplitude(*rotator, 0.5f);
-                Rotator::SetRotationAxis(*rotator, Vector3(0.0f, 1.0f, 0.0f));
+                Rotator::SetRotationAxis(*rotator, glm::vec3(0.0f, 1.0f, 0.0f));
                 Rotator::SetInitialTimer(*rotator, float(x + z + y) / 2.0f);
             }
             

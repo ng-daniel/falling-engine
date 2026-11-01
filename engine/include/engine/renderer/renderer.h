@@ -8,7 +8,7 @@
 #include "engine/renderer/debug_camera.h"
 #include "engine/renderer/renderer_structures.h"
 #include "engine/renderer/graphics_device.h"
-#include "engine/utils/matrix.h"
+#include <glm/mat4x4.hpp>
 
 #include "engine/assets/asset_manager.h"
 
@@ -23,7 +23,7 @@ public:
     void ConfigureWindow();
     bool Init(WindowManager& window);
     void BeginFrame(const InputManager& inputManager);
-    void SubmitMesh(UUID meshId, const Matrix4& worldTransform);
+    void SubmitMesh(UUID meshId, const glm::mat4& worldTransform);
     RenderStats Render();
     void EndFrame();
 

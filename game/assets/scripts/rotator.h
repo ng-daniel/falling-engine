@@ -3,7 +3,8 @@
 #include "engine/scripting/components/script_data.h"
 #include "engine/scripting/script_manager.h"
 #include "engine/ecs/components/transform.h"
-#include "engine/utils/quaternion.h"
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include "engine/utils/time.h"
 #include <string>
 #include "engine/debug/logger.h"
@@ -13,16 +14,16 @@ struct Rotator : ScriptData {
     float hoverOscillationSpeed;
     float hoverOscillationAmplitude;
     float timer;
-    Vector3 initialPosition;
-    Vector3 rotationAxis;
+    glm::vec3 initialPosition = glm::vec3(0.0f);
+    glm::vec3 rotationAxis = glm::vec3(0.0f);
     
     std::string GetType() const override { return "Rotator"; }
 
-    static void RotateAmount(Transform& transform, float amount, const Vector3& axis) {
+    static void RotateAmount(Transform& transform, float amount, const glm::vec3& axis) {
         // use quaternion math to rotate the transform by the given amount around the specified axis
-        Quaternion currentRotation = transform.GetRotation();
-        Quaternion deltaRotation = Quaternion::AngleAxis(amount, axis);
-        Quaternion newRotation = deltaRotation * currentRotation;
+        glm::quat currentRotation = transform.GetRotation();
+        glm::quat deltaRotation = glm::angleAxis(glm::radians(amount), axis);
+        glm::quat newRotation = deltaRotation * currentRotation;
         
         Transform::SetRotation(
             transform,
@@ -37,7 +38,7 @@ struct Rotator : ScriptData {
         rotator.hoverOscillationAmplitude = 1.0f; // Default hover oscillation amplitude
         rotator.timer = 0.0f; // Initialize timer
         rotator.initialPosition = context.GetComponent<Transform>(entity)->GetPosition();
-        rotator.rotationAxis = Vector3(0.0f, 1.0f, 0.0f); // Default rotation axis
+        rotator.rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f); // Default rotation axis
     }
 
     static void OnUpdate(ScriptContext& context, Entity entity, ScriptData& scriptData) {
@@ -52,7 +53,7 @@ struct Rotator : ScriptData {
         }
         Transform::SetPosition(
             *transform,
-            Vector3(
+            glm::vec3(
                 rotator.initialPosition.x,
                 rotator.initialPosition.y + hoverOffset,
                 rotator.initialPosition.z
@@ -76,7 +77,7 @@ struct Rotator : ScriptData {
         rotator.hoverOscillationAmplitude = newAmplitude;
     }
 
-    static void SetRotationAxis(ScriptData& scriptData, const Vector3& newAxis) {
+    static void SetRotationAxis(ScriptData& scriptData, const glm::vec3& newAxis) {
         Rotator& rotator = static_cast<Rotator&>(scriptData);
         rotator.rotationAxis = newAxis;
     }

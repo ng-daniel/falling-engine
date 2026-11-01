@@ -1,19 +1,19 @@
 #include "engine/physics/components/rigidbody.h"
-#include "engine/utils/vector.h"
+#include <glm/vec3.hpp>
 
-void Rigidbody::AddImpulse(Rigidbody &body, Vector3 impulse) {
-    Vector3 dv = impulse / body.mass;
+void Rigidbody::AddImpulse(Rigidbody &body, glm::vec3 impulse) {
+    glm::vec3 dv = impulse / body.mass;
     body.velocity = body.velocity + dv;
 }
 
-void Rigidbody::AddForce(Rigidbody &body, Vector3 force) {
+void Rigidbody::AddForce(Rigidbody &body, glm::vec3 force) {
     body.forceAccumulation = body.forceAccumulation + force;
 }
 
 void Rigidbody::ResolveForces(Rigidbody &body, float dt) {
-    Vector3 a = body.forceAccumulation / body.mass;
-    Vector3 dv  = a * dt;
+    glm::vec3 a = body.forceAccumulation / body.mass;
+    glm::vec3 dv  = a * dt;
     body.velocity = body.velocity + dv;
-    body.forceAccumulation = Vector3(0.0f, 0.0f, 0.0f);
+    body.forceAccumulation = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 

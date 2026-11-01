@@ -19,28 +19,28 @@ void TransformSerializer::Deserialize(JsonArchive& archive, Transform& transform
     UUIDSerializer::Deserialize(archive, transform.prevSiblingEntityId, "prevSiblingEntityId");
 }
 
-void Transform::SetPosition(Transform& transform, Vector3 newVal) {
-    transform.matrix(0, 3) = newVal.x;
-    transform.matrix(1, 3) = newVal.y;
-    transform.matrix(2, 3) = newVal.z;
+void Transform::SetPosition(Transform& transform, glm::vec3 newVal) {
+    transform.matrix[3][0] = newVal.x;
+    transform.matrix[3][1] = newVal.y;
+    transform.matrix[3][2] = newVal.z;
 }
 
-void Transform::ChangePosition(Transform& transform, Vector3 diff) {
+void Transform::ChangePosition(Transform& transform, glm::vec3 diff) {
     SetPosition(transform, transform.GetPosition() + diff);
 }
 
-void Transform::SetRotation(Transform& transform, Quaternion newVal) {
+void Transform::SetRotation(Transform& transform, glm::quat newVal) {
     const TransformDecomposition decomposition = transform.GetDecomposition();
     transform.matrix = FromTRS(decomposition.translation, newVal, decomposition.scale);
 }
 
-void Transform::ChangeRotation(Transform& transform, Quaternion diff) {
+void Transform::ChangeRotation(Transform& transform, glm::quat diff) {
     SetRotation(transform, transform.GetRotation() * diff);
 }
 
-void Transform::SetScale(Transform& transform, Vector3 newVal) {
+void Transform::SetScale(Transform& transform, glm::vec3 newVal) {
     const TransformDecomposition decomposition = transform.GetDecomposition();
-    const Vector3 currentScale = decomposition.scale;
+    const glm::vec3 currentScale = decomposition.scale;
     const float requested[3] = {newVal.x, newVal.y, newVal.z};
     const float current[3] = {currentScale.x, currentScale.y, currentScale.z};
 
@@ -52,24 +52,24 @@ void Transform::SetScale(Transform& transform, Vector3 newVal) {
 
         const float ratio = requested[column] / current[column];
         for (std::size_t row = 0; row < 3; ++row) {
-            transform.matrix(row, column) *= ratio;
+            transform.matrix[column][row] *= ratio;
         }
     }
 }
 
-void Transform::ChangeScale(Transform& transform, Vector3 diff) {
+void Transform::ChangeScale(Transform& transform, glm::vec3 diff) {
     SetScale(transform, transform.GetScale() + diff);
 }
 
-Vector3 Transform::GetPosition() const {
+glm::vec3 Transform::GetPosition() const {
     return GetDecomposition().translation;
 }
 
-Quaternion Transform::GetRotation() const {
+glm::quat Transform::GetRotation() const {
     return GetDecomposition().rotation;
 }
 
-Vector3 Transform::GetScale() const {
+glm::vec3 Transform::GetScale() const {
     return GetDecomposition().scale;
 }
 
@@ -77,10 +77,10 @@ TransformDecomposition Transform::GetDecomposition() const {
     return TransformUtils::Decompose(matrix);
 }
 
-Matrix4 Transform::FromTRS(
-    const Vector3& position,
-    const Quaternion& rotation,
-    const Vector3& scale
+glm::mat4 Transform::FromTRS(
+    const glm::vec3& position,
+    const glm::quat& rotation,
+    const glm::vec3& scale
 ) {
     return TransformUtils::FromTRS(position, rotation, scale);
 }
@@ -92,6 +92,6 @@ Matrix4 Transform::FromTRS(
  * @param parent
  * @param child
  */
-Matrix4 Transform::ComposeTransforms(const Matrix4 &parentTransform, const Matrix4 &childTransform) {
+glm::mat4 Transform::ComposeTransforms(const glm::mat4 &parentTransform, const glm::mat4 &childTransform) {
     return parentTransform * childTransform;
 }

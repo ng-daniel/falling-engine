@@ -2,24 +2,26 @@
 
 #include <stdexcept>
 
-void MatrixSerializer::Serialize(JsonArchive& archive, const Matrix4& matrix, std::string_view name) {
+#include <glm/gtc/type_ptr.hpp>
+
+void MatrixSerializer::Serialize(JsonArchive& archive, const glm::mat4& matrix, std::string_view name) {
     archive.BeginArray(name);
     nlohmann::json& values = archive.GetArray();
     for (std::size_t i = 0; i < 16; ++i) {
-        values.push_back(matrix.Data()[i]);
+        values.push_back(glm::value_ptr(matrix)[i]);
     }
     archive.EndArray();
 }
 
-void MatrixSerializer::Deserialize(JsonArchive& archive, Matrix4& matrix, std::string_view name) {
+void MatrixSerializer::Deserialize(JsonArchive& archive, glm::mat4& matrix, std::string_view name) {
     archive.BeginArray(name);
     const nlohmann::json& values = archive.GetArray();
     if (!values.is_array() || values.size() != 16) {
         archive.EndArray();
-        throw std::runtime_error("Matrix4 JSON value must contain exactly 16 elements");
+        throw std::runtime_error("Matrix JSON value must contain exactly 16 elements");
     }
     for (std::size_t i = 0; i < 16; ++i) {
-        matrix.Data()[i] = values.at(i).get<float>();
+        glm::value_ptr(matrix)[i] = values.at(i).get<float>();
     }
     archive.EndArray();
 }

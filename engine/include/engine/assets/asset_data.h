@@ -8,8 +8,10 @@
 
 #include "engine/assets/asset_structures.h"
 #include "engine/utils/uuid.h"
-#include "engine/utils/vector.h"
-#include "engine/utils/quaternion.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 struct ShaderAsset : public Asset {
     enum ShaderType {
@@ -59,14 +61,14 @@ struct MaterialAsset : public Asset {
         Custom
     };
     MaterialType materialType = MaterialType::PBRMetallicRoughness;
-    Vector4 baseColorFactor = Vector4(1.0f);
+    glm::vec4 baseColorFactor = glm::vec4(1.0f);
 
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
     float occlusionFactor = 1.0f;
     float normalFactor = 1.0f;
 
-    Vector3 emissiveFactor = Vector3(0.0f);
+    glm::vec3 emissiveFactor = glm::vec3(0.0f);
 
     UUID baseColorTexture = INVALID_UUID;
     UUID metallicRoughnessTexture = INVALID_UUID;
@@ -80,10 +82,10 @@ struct MaterialAsset : public Asset {
 };
 
 struct Vertex {
-    Vector3 position;
-    Vector3 normal;
-    Vector4 tangent;
-    Vector2 texCoord;
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 normal = glm::vec3(0.0f);
+    glm::vec4 tangent = glm::vec4(0.0f);
+    glm::vec2 texCoord = glm::vec2(0.0f);
 };
 
 /**
@@ -104,9 +106,9 @@ struct ModelNode {
     UUID meshId = 0;
     bool hasMesh = false;
     std::string name;
-    Vector3 relativePosition = Vector3(0.0f);
-    Quaternion relativeRotation = Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
-    Vector3 relativeScale = Vector3(1.0f);
+    glm::vec3 relativePosition = glm::vec3(0.0f);
+    glm::quat relativeRotation = glm::quat::wxyz(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 relativeScale = glm::vec3(1.0f);
     std::vector<ModelNode> children;
 };
 

@@ -4,7 +4,7 @@
 #include <cstddef>
 
 #include "engine/input/input_structures.h"
-#include "engine/utils/vector.h"
+#include <glm/vec2.hpp>
 
 class InputManager {
 public:
@@ -15,8 +15,8 @@ public:
     bool IsKeyPressed(KeyCode key) const;
     bool IsKeyDown(KeyCode key) const;
     bool IsKeyReleased(KeyCode key) const;
-    Vector2 GetCursorPosition() const;
-    Vector2 GetCursorDelta() const;
+    glm::vec2 GetCursorPosition() const;
+    glm::vec2 GetCursorDelta() const;
 
     void HandleKey(int key, int action);
     void HandleMouseButton(int button, int action);
@@ -39,7 +39,7 @@ private:
 
     std::array<KeyState, static_cast<std::size_t>(KEY_COUNT)> keyStates{};
 
-    Vector2 cursorPosition;
-    Vector2 cursorDelta;
+    glm::vec2 cursorPosition = glm::vec2(0.0f);
+    glm::vec2 cursorDelta = glm::vec2(0.0f);
     bool hasCursorSample = false;
 };

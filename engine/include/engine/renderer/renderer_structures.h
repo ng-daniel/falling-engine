@@ -8,8 +8,9 @@
 #include <vector>
 
 #include "engine/utils/uuid.h"
-#include "engine/utils/matrix.h"
-#include "engine/utils/vector.h"
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 
 enum GraphicsAPI {
     OpenGL,
@@ -91,7 +92,7 @@ struct MeshRenderData {
  */
 struct RenderSubmission {
     MeshRenderData * mesh = nullptr;
-    Matrix4 worldTransform;
+    glm::mat4 worldTransform = glm::mat4(1.0f);
 };
 
 /**
@@ -100,26 +101,26 @@ struct RenderSubmission {
  */
 struct BatchedRenderSubmission {
     MeshRenderData * mesh = nullptr;
-    std::vector<Matrix4> worldTransforms;
+    std::vector<glm::mat4> worldTransforms;
 };
 
 /**
  * @brief View and projection matrices for a single frame
  */
 struct FrameUniformData {
-    Matrix4 view;
-    Matrix4 projection;
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
 };
 
 struct GraphicsDeviceMaterialData {
     UUID materialId = INVALID_UUID;
 
-    Vector4 baseColorFactor = Vector4(1.0f);
+    glm::vec4 baseColorFactor = glm::vec4(1.0f);
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
     float occlusionFactor = 1.0f;
     float normalFactor = 1.0f;
-    Vector3 emissiveFactor = Vector3(0.0f);
+    glm::vec3 emissiveFactor = glm::vec3(0.0f);
 
     std::array<TDEVICE_RID, MATERIAL_TEXTURE_SLOT_COUNT> textures{};
     std::uint32_t textureMask = 0;
@@ -136,7 +137,7 @@ struct DrawCommand {
     PrimitiveRenderData* primitive = nullptr;
     SPDEVICE_RID shaderProgram = INVALID_SPDEVICE_RID;
     // Refers to a mesh batch until the next BeginFrame.
-    std::span<const Matrix4> models;
+    std::span<const glm::mat4> models;
     GraphicsDeviceMaterialData material;
 };
 

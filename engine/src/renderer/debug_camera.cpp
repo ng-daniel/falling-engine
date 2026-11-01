@@ -62,7 +62,7 @@ FrameUniformData DebugCamera::Update(WindowManager& window, const InputManager& 
         window.SetCursorCaptured(true);
         cursorCaptured = true;
     } else if (cursorCaptured) {
-        const Vector2 cursorDelta = inputManager.GetCursorDelta();
+        const glm::vec2 cursorDelta = inputManager.GetCursorDelta();
         yawDegrees += cursorDelta.x * MOUSE_SENSITIVITY_DEGREES;
         pitchDegrees -= cursorDelta.y * MOUSE_SENSITIVITY_DEGREES;
     }
@@ -101,12 +101,12 @@ FrameUniformData DebugCamera::Update(WindowManager& window, const InputManager& 
     }
 
     FrameUniformData frame;
-    frame.view = Matrix4(glm::lookAt(position, position + forward, WORLD_UP));
-    frame.projection = Matrix4(glm::perspective(
+    frame.view = glm::lookAt(position, position + forward, WORLD_UP);
+    frame.projection = glm::perspective(
         glm::radians(FIELD_OF_VIEW_DEGREES),
         aspectRatio,
         NEAR_PLANE,
         FAR_PLANE
-    ));
+    );
     return frame;
 }

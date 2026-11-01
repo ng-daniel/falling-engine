@@ -27,7 +27,7 @@ void PhysicsManager::Tick() {
         Rigidbody::ResolveForces(rb, PHYS_DT);
         
         // compute and apply position change based on velocity and time step
-        Vector3 dp = rb.velocity * PHYS_DT;
+        glm::vec3 dp = rb.velocity * PHYS_DT;
         Transform::ChangePosition(
             *ecsManager.GetComponent<Transform>(
                 *ecsManager.GetEntity(entityId)

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "engine/ecs/ecs_runtime_id.h"
-#include "engine/utils/vector.h"
+#include <glm/vec3.hpp>
 
 using BVHIndex = uint32_t;
 const int INVALID_BVH_INDEX = uint32_t(-1);
 
 struct AABB {
-    Vector3 min;
-    Vector3 max;
+    glm::vec3 min = glm::vec3(0.0f);
+    glm::vec3 max = glm::vec3(0.0f);
 };
 
 struct BVHNodeHandle {

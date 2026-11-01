@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace {
 
     unsigned int CompileShader(unsigned int shaderType, std::string_view source, const char* stageName) {
@@ -227,9 +229,9 @@ RenderStats OpenGLDevice::Render(const RenderData& renderData) {
         }
 
         // set orientation/3d space matrix values
-        glUniformMatrix4fv(shaderProgram->viewUniform, 1, GL_FALSE, renderData.frame.view.Data());
-        glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, renderData.frame.projection.Data());
-        // glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, Matrix4(0.0f).Data());
+        glUniformMatrix4fv(shaderProgram->viewUniform, 1, GL_FALSE, glm::value_ptr(renderData.frame.view));
+        glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, glm::value_ptr(renderData.frame.projection));
+        // glUniformMatrix4fv(shaderProgram->projectionUniform, 1, GL_FALSE, glm::value_ptr(glm::mat4(0.0f)));
         
         // retrieve and bind vertex buffers
         const OpenGLDeviceData* deviceData = static_cast<const OpenGLDeviceData*>(command.primitive->graphicsDeviceData.get());

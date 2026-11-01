@@ -36,8 +36,6 @@ add_library(engine
     src/serialization/jsonarchive.cpp
     src/serialization/serialization_helpers.cpp
     src/serialization/scene_serializer.cpp
-    src/serialization/vector_serializer.cpp
-    src/serialization/quaternion_serializer.cpp
     src/serialization/matrix_serializer.cpp
 
     src/tools/ecs_extras.cpp
@@ -45,9 +43,6 @@ add_library(engine
     src/utils/uuid.cpp
     src/utils/random.cpp
     src/utils/time.cpp
-    src/utils/vector.cpp
-    src/utils/quaternion.cpp
-    src/utils/matrix.cpp
     src/utils/transform_utils.cpp
 )
 
