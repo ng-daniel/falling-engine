@@ -47,11 +47,11 @@ private:
     BVHIndex freeListHead = 0; // head of the free list for unused nodes
                                // on startup, all nodes are free
     void InitializeFreeList();
-    BVHIndex AllocateNode();
+    BVHIndex AllocateNode(const AABB& bounds);
     BVHIndex FreeNode(BVHIndex nodeIndex);
 
     bool IsLeaf(BVHIndex nodeIndex);
 
-    float GetSurfaceArea(AABB& bounds);
-    bool GetCombinedSurfaceAreaDelta(AABB& a, AABB& b);
+    float GetSurfaceArea(const AABB& bounds);
+    float GetCombinedSurfaceArea(const AABB& a, const AABB& b);
 };
