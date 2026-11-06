@@ -3,6 +3,8 @@
 #include "engine/ecs/ecs_runtime_id.h"
 #include <glm/vec3.hpp>
 
+// my father: https://box2d.org/files/ErinCatto_DynamicBVH_Full.pdf
+
 using BVHIndex = uint32_t;
 const int INVALID_BVH_INDEX = uint32_t(-1);
 
@@ -51,7 +53,4 @@ private:
     BVHIndex FreeNode(BVHIndex nodeIndex);
 
     bool IsLeaf(BVHIndex nodeIndex);
-
-    float GetSurfaceArea(const AABB& bounds);
-    float GetCombinedSurfaceArea(const AABB& a, const AABB& b);
 };

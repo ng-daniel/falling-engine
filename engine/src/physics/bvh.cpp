@@ -1,6 +1,9 @@
 #include "engine/physics/bvh.h"
 #include <cstdint>
 #include <glm/common.hpp>
+#include <queue>
+#include <stack>
+#include <vector>
 
 bool BVH::IsLeaf(BVHIndex nodeIndex) {
     BVHNode& node = nodes[nodeIndex];
@@ -67,35 +70,132 @@ BVHIndex BVH::FreeNode(BVHIndex nodeIndex) {
     return nodeIndex;
 }
 
-float BVH::GetSurfaceArea(const AABB& bounds) {
+float GetSurfaceArea(const AABB& bounds) {
     glm::vec3 dim = bounds.max - bounds.min; // width, height, depth
     return 2.0f * (dim.x * dim.y + dim.y * dim.z + dim.z * dim.x);
 }
 
-float BVH::GetCombinedSurfaceArea(const AABB& a, const AABB& b) {
+float GetCombinedSurfaceArea(const AABB& a, const AABB& b) {
     AABB combined;
     combined.min = glm::min(a.min, b.min);
     combined.max = glm::max(a.max, b.max);
     return GetSurfaceArea(combined);
 }
 
-void BVH::Insert(ECS_RID id, const AABB& bounds) {
+/**
+ * @brief Compute exact surface area cost for inserting new AABB into the BVH at the given node
+ * 
+ * @param request
+ * @param node 
+ * @param inheritedCost
+ * @return float 
+ */
+float GetCostNode(const AABB& request, const AABB& node, float inheritedCost) {
+    return GetCombinedSurfaceArea(request, node) + inheritedCost;
+}
+
+/**
+ * @brief Computes lower bound for the cost within the subtree
+ * rooted at node.
+ *
+ * Any cost in the subtree at node cannot be lower than
+ * if there was an existing AABB leaf exactly the dimensions 
+ * of our request. 
+ * 
+ * @param request
+ * @param inheritedCost 
+ * @return float 
+ */
+float GetCostLower(const AABB& request, const AABB& node, float inheritedCost) {
+    return GetSurfaceArea(request) + GetSurfaceArea(node) + inheritedCost;
+}
+
+struct InsQueueEntry {
+    BVHIndex index;
+    float inheritedCost;
+    float cost;
+};
+struct CompareQueueEntries {
+    bool operator()(const InsQueueEntry& q1, const InsQueueEntry& q2) {
+        // defines a min heap, return true if q1 should bubble down
+        return q1.cost > q2.cost;
+    }
+};
+
+/**
+ * @brief 3 steps:
+ * 1. Find the best option for a sibling to insert into.
+ * 2. Modify the tree to insert the sibling.
+ * 3. Refit Ancestor AABBs.
+ * 
+ * @param id 
+ * @param request 
+ */
+void BVH::Insert(ECS_RID id, const AABB& request) {
     // empty tree case
     if (rootIndex == INVALID_BVH_INDEX) {
-        rootIndex = AllocateNode(bounds);
+        rootIndex = AllocateNode(request);
         return;
     }
     
-    // non-empty tree case
-    float cost = 0;
-    BVHIndex current = rootIndex;
-    while (true) {
-        float currentSA = GetSurfaceArea(nodes[current].bounds);
-        float currentCombinedSA = GetCombinedSurfaceArea(nodes[current].bounds, bounds);
+    /// PHASE 1: FIND BEST INSERTION SPOT
+    /// ------------------------------------------------------
+
+    float bestCost = std::numeric_limits<float>::max();
+    BVHIndex bestNode = INVALID_BVH_INDEX;
+    
+    std::stack<float> stack; // tracks ancestor surface area cost
+    std::priority_queue<InsQueueEntry, std::vector<InsQueueEntry>, CompareQueueEntries> queue;
+
+    InsQueueEntry rootEntry = {
+        rootIndex,
+        0.0f,
+        GetCostNode(request, nodes[rootIndex].bounds, 0.0f)
+    };
+    queue.push(rootEntry);
+
+    while (!queue.empty()) {
+        InsQueueEntry curr = queue.top();
+        if (curr.cost < bestCost) {
+            bestCost = curr.cost;
+            bestNode = curr.index;
+        } 
         
-        // estimated inherited cost, not exact, just a heuristic
-        // inserting at current node may also cause ancestor AABBs to increase as well
-        // this is represented by an approximate coefficient of 2
-        float inheritedCost = 2 * (currentCombinedSA - currentSA);
-    }   
+        float subtreeLowerBound = GetCostLower(
+            request,
+            nodes[curr.index].bounds,
+            curr.inheritedCost
+        );
+        if (subtreeLowerBound > bestCost) {
+            queue.pop();
+            continue;
+        }
+        
+        float newInheritedCost = GetSurfaceArea(nodes[curr.index].bounds) + curr.inheritedCost;
+        
+        BVHIndex leftIndex = nodes[curr.index].leftChild;
+        InsQueueEntry leftChild = {
+            leftIndex,
+            newInheritedCost,
+            GetCostNode(request, nodes[leftIndex].bounds, newInheritedCost)
+        };
+        
+        BVHIndex rightIndex = nodes[curr.index].rightChild;
+        InsQueueEntry rightChild = {
+            rightIndex,
+            newInheritedCost,
+            GetCostNode(request, nodes[rightIndex].bounds, newInheritedCost)
+        };
+
+        queue.push(leftChild);
+        queue.push(rightChild);
+    }
+
+    /// PHASE 2: MODIFY TREE TO ADD NODE
+    /// -----------------------------------------
+
+
+    /// PHASE 3: REFIT ANCESTORS
+    /// -----------------------------------------
+
 }
