@@ -51,7 +51,7 @@ private:
                                // on startup, all nodes are free
     void InitializeFreeList();
     BVHIndex AllocateNode(const AABB& bounds);
-    BVHIndex FreeNode(BVHIndex nodeIndex);
+    void FreeNode(BVHIndex nodeIndex);
 
     bool IsLeaf(BVHIndex nodeIndex);
 };

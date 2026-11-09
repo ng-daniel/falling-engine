@@ -1,5 +1,6 @@
 #include "engine/physics/bvh.h"
 #include "engine/debug/logger.h"
+#include "engine/ecs/ecs_runtime_id.h"
 #include <cstdint>
 #include <glm/common.hpp>
 #include <queue>
@@ -43,6 +44,9 @@ BVHIndex BVH::AllocateNode(const AABB& bounds) {
     BVHNode& node = nodes[nodeIndex];
 
     freeListHead = node.rightChild; // move head to next free node
+    if (freeListHead != INVALID_BVH_INDEX) {
+        nodes[freeListHead].parent = INVALID_BVH_INDEX;        
+    }
 
     node.bounds = bounds;
     node.parent = INVALID_BVH_INDEX;
@@ -67,21 +71,31 @@ BVHIndex BVH::AllocateNode(const AABB& bounds) {
  * @param nodeIndex 
  * @return BVHIndex 
  */
-BVHIndex BVH::FreeNode(BVHIndex nodeIndex) {
+void BVH::FreeNode(BVHIndex nodeIndex) {
     if (nodeIndex == INVALID_BVH_INDEX) {
-        return INVALID_BVH_INDEX;
+        return;
     }
     BVHNode& node = nodes[nodeIndex];
+    if (node.isFree) {
+        return;
+    }
+
     node.parent = INVALID_BVH_INDEX;
     node.leftChild = INVALID_BVH_INDEX;
     node.rightChild = freeListHead;
+
+    if (freeListHead != INVALID_BVH_INDEX) {
+        nodes[freeListHead].parent = nodeIndex;
+    }
+    freeListHead = nodeIndex;
+    
+    node.entityId = INVALID_ECS_RID;
     node.isFree = true;
-    freeListHead = nodeIndex;    
     node.generation++;
 
     nodeCount--;
     
-    return nodeIndex;
+    return;
 }
 
 

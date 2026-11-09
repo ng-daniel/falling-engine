@@ -25,6 +25,7 @@ add_library(engine
 
     src/physics/physics_manager.cpp
     src/physics/components/rigidbody.cpp
+    src/physics/bvh.cpp
 
     src/renderer/components/mesh_renderer.cpp
     src/renderer/renderer.cpp
