@@ -6,6 +6,10 @@
 #include <stack>
 #include <vector>
 
+BVH::BVH() {
+    InitializeFreeList();
+}
+
 bool BVH::IsLeaf(BVHIndex nodeIndex) {
     BVHNode& node = nodes[nodeIndex];
     return node.leftChild == INVALID_BVH_INDEX && 
@@ -46,6 +50,8 @@ BVHIndex BVH::AllocateNode(const AABB& bounds) {
     node.rightChild = INVALID_BVH_INDEX;
     node.isFree = false;
     
+    nodeCount++;
+
     return nodeIndex;
 }
 
@@ -54,6 +60,9 @@ BVHIndex BVH::AllocateNode(const AABB& bounds) {
  * Add to the front so we don't just keep shifting the head backwards
  * this keeps most free nodes towards the low-index part of the array,
  * even if it starts to get fragmented
+ *
+ * also increments generation version so we can identify outdated
+ * BVHNode handle references
  * 
  * @param nodeIndex 
  * @return BVHIndex 
@@ -67,14 +76,17 @@ BVHIndex BVH::FreeNode(BVHIndex nodeIndex) {
     node.leftChild = INVALID_BVH_INDEX;
     node.rightChild = freeListHead;
     node.isFree = true;
-    freeListHead = nodeIndex;
+    freeListHead = nodeIndex;    
+    node.generation++;
+
+    nodeCount--;
+    
     return nodeIndex;
 }
 
-float GetSurfaceArea(const AABB& bounds) {
-    glm::vec3 dim = bounds.max - bounds.min; // width, height, depth
-    return 2.0f * (dim.x * dim.y + dim.y * dim.z + dim.z * dim.x);
-}
+
+/// SURFACE AREA OPS
+/// ---------------------------
 
 AABB Union(const AABB& a, const AABB& b) {
     return AABB{
@@ -83,8 +95,25 @@ AABB Union(const AABB& a, const AABB& b) {
     };
 }
 
-float GetCombinedSurfaceArea(const AABB& a, const AABB& b) {
-    return GetSurfaceArea(Union(a, b));
+float SA(const AABB& bounds) {
+    glm::vec3 dim = bounds.max - bounds.min; // width, height, depth
+    return 2.0f * (dim.x * dim.y + dim.y * dim.z + dim.z * dim.x);
+}
+
+/// COST FUNCTIONS
+/// --------------------------
+
+/**
+ * @brief Computes inhereted cost
+ * 
+ * @param request The AABB we want to insert
+ * @param node The node we want to add to the accumulated inherited cost
+ * @param prevInherited The previously computed inherited cost, which
+ * consists of every ancestor above node
+ * @return float 
+ */
+float InheritedCost(const AABB& request, const AABB& node, float prevInherited) {
+    return SA(Union(node, request)) - SA(node) + prevInherited;
 }
 
 /**
@@ -95,8 +124,22 @@ float GetCombinedSurfaceArea(const AABB& a, const AABB& b) {
  * @param inheritedCost
  * @return float 
  */
-float GetCostNode(const AABB& request, const AABB& node, float inheritedCost) {
-    return GetCombinedSurfaceArea(request, node) + inheritedCost;
+float DirectCost(const AABB& request, const AABB& node) {
+    return SA(Union(request, node));
+}
+
+/**
+ * @brief Cost = Cost of creating a new internal node and
+ * updating all the nodes, starting from current node's parent
+ * 
+ * @param request 
+ * @param node 
+ * @param prevInherited the inherited cost of node's ancestors,
+ * since insertting at this point makes "node" a child of the new internal node
+ * @return float 
+ */
+float Cost(const AABB& request, const AABB& node, const float prevInherited) {
+    return DirectCost(request, node) + prevInherited;
 }
 
 /**
@@ -111,9 +154,12 @@ float GetCostNode(const AABB& request, const AABB& node, float inheritedCost) {
  * @param inheritedCost 
  * @return float 
  */
-float GetCostLower(const AABB& request, const AABB& node, float inheritedCost) {
-    return GetSurfaceArea(request) + GetSurfaceArea(node) + inheritedCost;
+float GetCostLower(const AABB& request, float inheritedCost) {
+    return SA(request) + inheritedCost;
 }
+
+/// INSERTION PRIORITY QUEUE STRUCTS
+/// ----------------------------------------
 
 struct InsQueueEntry {
     BVHIndex index;
@@ -137,9 +183,23 @@ struct CompareQueueEntries {
  * @param request 
  */
 void BVH::Insert(ECS_RID id, const AABB& request) {
+    if (handles.contains(id)) {
+        Logger::Error("BVH::Insert", "ECS runtime ID already exists in the tree/handle mapping.");
+        return;
+    }
+    
     // empty tree case
     if (rootIndex == INVALID_BVH_INDEX) {
         rootIndex = AllocateNode(request);
+        if (rootIndex == INVALID_BVH_INDEX) {
+            Logger::Error("BVH::Insert", "Allocate node failed.");
+            return;
+        }
+        handles.emplace(id, BVHNodeHandle{
+            rootIndex,
+            nodes[rootIndex].generation
+        });
+        nodes[rootIndex].entityId = id;    
         return;
     }
     
@@ -147,82 +207,104 @@ void BVH::Insert(ECS_RID id, const AABB& request) {
     /// ------------------------------------------------------
 
     float bestCost = std::numeric_limits<float>::max();
-    BVHIndex bestNode = INVALID_BVH_INDEX;
+    BVHIndex bestIndex = INVALID_BVH_INDEX;
     
-    std::stack<float> stack; // tracks ancestor surface area cost
     std::priority_queue<InsQueueEntry, std::vector<InsQueueEntry>, CompareQueueEntries> queue;
 
     InsQueueEntry rootEntry = {
         rootIndex,
         0.0f,
-        GetCostNode(request, nodes[rootIndex].bounds, 0.0f)
+        Cost(request, nodes[rootIndex].bounds, 0.0f)
     };
     queue.push(rootEntry);
 
     while (!queue.empty()) {
         InsQueueEntry curr = queue.top();
+        queue.pop();
+
         if (curr.cost < bestCost) {
             bestCost = curr.cost;
-            bestNode = curr.index;
+            bestIndex = curr.index;
         } 
         
-        float subtreeLowerBound = GetCostLower(
+        // determine if it's worth it to explore this node's subtree
+
+        AABB& currentBounds = nodes[curr.index].bounds;
+        float newInheritedCost = InheritedCost(
             request,
-            nodes[curr.index].bounds,
+            currentBounds,
             curr.inheritedCost
         );
-        if (subtreeLowerBound > bestCost) {
-            queue.pop();
-            continue;
+        float subtreeLowerBound = GetCostLower(
+            request,
+            newInheritedCost
+        );
+        if (!IsLeaf(curr.index) && subtreeLowerBound < bestCost) {    
+            
+            // enqueue children if worthy
+
+            BVHIndex leftIndex = nodes[curr.index].leftChild;
+            InsQueueEntry leftChild = {
+                leftIndex,
+                newInheritedCost,
+                Cost(request, nodes[leftIndex].bounds, newInheritedCost)
+            };
+            
+            BVHIndex rightIndex = nodes[curr.index].rightChild;
+            InsQueueEntry rightChild = {
+                rightIndex,
+                newInheritedCost,
+                Cost(request, nodes[rightIndex].bounds, newInheritedCost)
+            };
+
+            queue.push(leftChild);
+            queue.push(rightChild);
         }
-        
-        float newInheritedCost = GetSurfaceArea(nodes[curr.index].bounds) + curr.inheritedCost;
-        
-        BVHIndex leftIndex = nodes[curr.index].leftChild;
-        InsQueueEntry leftChild = {
-            leftIndex,
-            newInheritedCost,
-            GetCostNode(request, nodes[leftIndex].bounds, newInheritedCost)
-        };
-        
-        BVHIndex rightIndex = nodes[curr.index].rightChild;
-        InsQueueEntry rightChild = {
-            rightIndex,
-            newInheritedCost,
-            GetCostNode(request, nodes[rightIndex].bounds, newInheritedCost)
-        };
-
-        queue.push(leftChild);
-        queue.push(rightChild);
-
-        queue.pop();
     }
 
     /// PHASE 2: MODIFY TREE TO ADD NODE
     /// -----------------------------------------
 
-    AABB parentBounds = Union(request, nodes[bestNode].bounds);
+    AABB parentBounds = Union(request, nodes[bestIndex].bounds);
     
     BVHIndex newParentIndex = AllocateNode(parentBounds);
+    if (newParentIndex == INVALID_BVH_INDEX) {
+        Logger::Error("BVH::Insert", "Allocation failed.");
+        return;
+    }
     BVHIndex requestIndex = AllocateNode(request);
+    if (requestIndex == INVALID_BVH_INDEX) {
+        Logger::Error("BVH::Insert", "Allocation failed.");
+        FreeNode(newParentIndex);
+        return;
+    }
 
     BVHNode& newParentNode = nodes[newParentIndex];
-    BVHNode& siblingNode = nodes[bestNode];
+    BVHNode& siblingNode = nodes[bestIndex];
     BVHNode& requestNode = nodes[requestIndex];
-    BVHNode& oldParentNode = nodes[siblingNode.parent];
+
+    BVHIndex oldParentIndex = siblingNode.parent;
     
     newParentNode.parent = siblingNode.parent;
+    newParentNode.leftChild = bestIndex;
+    newParentNode.rightChild = requestIndex;
     siblingNode.parent = newParentIndex;
     requestNode.parent = newParentIndex;
     
-    if (oldParentNode.leftChild == bestNode) {
-        oldParentNode.leftChild = newParentIndex;
-    }
-    else if (oldParentNode.rightChild == bestNode) {
-        oldParentNode.rightChild = newParentIndex;
+    if (oldParentIndex == INVALID_BVH_INDEX) {
+        rootIndex = newParentIndex;
     }
     else {
-        Logger::Error("BVH::Insert", "Invalid BVH tree.");
+        BVHNode& oldParentNode = nodes[oldParentIndex];
+        if (oldParentNode.leftChild == bestIndex) {
+            oldParentNode.leftChild = newParentIndex;
+        }
+        else if (oldParentNode.rightChild == bestIndex) {
+            oldParentNode.rightChild = newParentIndex;
+        }
+        else {
+            Logger::Error("BVH::Insert", "Invalid BVH tree.");
+        }
     }
 
     /// PHASE 3: REFIT ANCESTORS
@@ -236,6 +318,14 @@ void BVH::Insert(ECS_RID id, const AABB& request) {
         );
         curr = nodes[curr].parent;
     }
+
+    // mini phase 4: ecs mapping
+    
+    handles.emplace(id, BVHNodeHandle{
+        requestIndex,
+        requestNode.generation
+    });
+    nodes[requestIndex].entityId = id;    
 
     // done!
     return;
