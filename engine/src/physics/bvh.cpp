@@ -1,4 +1,5 @@
 #include "engine/physics/bvh.h"
+#include "engine/debug/logger.h"
 #include <cstdint>
 #include <glm/common.hpp>
 #include <queue>
@@ -75,11 +76,15 @@ float GetSurfaceArea(const AABB& bounds) {
     return 2.0f * (dim.x * dim.y + dim.y * dim.z + dim.z * dim.x);
 }
 
+AABB Union(const AABB& a, const AABB& b) {
+    return AABB{
+        glm::min(a.min, b.min),
+        glm::max(a.max, b.max)
+    };
+}
+
 float GetCombinedSurfaceArea(const AABB& a, const AABB& b) {
-    AABB combined;
-    combined.min = glm::min(a.min, b.min);
-    combined.max = glm::max(a.max, b.max);
-    return GetSurfaceArea(combined);
+    return GetSurfaceArea(Union(a, b));
 }
 
 /**
@@ -189,13 +194,49 @@ void BVH::Insert(ECS_RID id, const AABB& request) {
 
         queue.push(leftChild);
         queue.push(rightChild);
+
+        queue.pop();
     }
 
     /// PHASE 2: MODIFY TREE TO ADD NODE
     /// -----------------------------------------
 
+    AABB parentBounds = Union(request, nodes[bestNode].bounds);
+    
+    BVHIndex newParentIndex = AllocateNode(parentBounds);
+    BVHIndex requestIndex = AllocateNode(request);
+
+    BVHNode& newParentNode = nodes[newParentIndex];
+    BVHNode& siblingNode = nodes[bestNode];
+    BVHNode& requestNode = nodes[requestIndex];
+    BVHNode& oldParentNode = nodes[siblingNode.parent];
+    
+    newParentNode.parent = siblingNode.parent;
+    siblingNode.parent = newParentIndex;
+    requestNode.parent = newParentIndex;
+    
+    if (oldParentNode.leftChild == bestNode) {
+        oldParentNode.leftChild = newParentIndex;
+    }
+    else if (oldParentNode.rightChild == bestNode) {
+        oldParentNode.rightChild = newParentIndex;
+    }
+    else {
+        Logger::Error("BVH::Insert", "Invalid BVH tree.");
+    }
 
     /// PHASE 3: REFIT ANCESTORS
     /// -----------------------------------------
 
+    BVHIndex curr = newParentNode.parent;
+    while (curr != INVALID_BVH_INDEX) {
+        nodes[curr].bounds = Union(
+            nodes[nodes[curr].leftChild].bounds,
+            nodes[nodes[curr].rightChild].bounds
+        );
+        curr = nodes[curr].parent;
+    }
+
+    // done!
+    return;
 }
