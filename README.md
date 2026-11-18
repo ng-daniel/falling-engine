@@ -11,7 +11,7 @@ A small and performant data-oriented C++ game engine with:
 
 I've been working on Falling Engine for many weeks now, really trying
 to understand the design principles behind game engines and high-performance
-realtime software overall instead of just one-shotting this with an LLM.
+realtime software.
 
 And also it's just really cool to be able to say that I'm making a game engine!
 
